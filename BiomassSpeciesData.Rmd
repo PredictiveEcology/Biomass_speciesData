@@ -1,0 +1,23 @@
+---
+title: "BiomassSpeciesData"
+author: "Eliot McIntire, Alex M Chubaty, Cerer Barros"
+date: "16 July 2018"
+output:
+  pdf_document: default
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+```
+
+# Overview
+
+Download and pre-process proprietary LandWeb data (CASFRI + Paul Pickell's dataset) and kNN species biomass data
+
+Full data only available to authorized Google users.
+
+# Links to other modules
+
+Intended for use with the Land-R-Biomass* suite of models - if LandWeb project permissions are valid, then the full dataset used for the LandWeb can be used here.
