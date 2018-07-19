@@ -21,3 +21,39 @@ Full data only available to authorized Google users.
 # Links to other modules
 
 Intended for use with the Land-R-Biomass* suite of models - if LandWeb project permissions are valid, then the full dataset used for the LandWeb can be used here.
+
+```{r}
+# devtools::install_github("CeresBarros/reproducible@development") # require bugfix for one step
+# devtools::install_github("PredictiveEcology/SpaDES.tools@development")
+# devtools::install_github("PredictiveEcology/SpaDES.core@development")
+# devtools::install_github("ygc2l/webDatabases") # For fetching KNN layers from PFC repo
+
+library(magrittr)
+library(SpaDES.core)
+library(SpaDES.tools)
+library(raster)
+
+try(detach("package:SpaDES.core", unload = TRUE)); try(detach("package:SpaDES.tools", unload = TRUE)); try(detach("package:reproducible", unload = TRUE)); devtools::load_all("E:/GitHub/reproducible"); devtools::load_all("E:/GitHub/SpaDES.tools"); devtools::load_all("E:/GitHub/SpaDES.core")
+
+setPaths(modulePath = "../", cachePath = "cache/")
+
+species <- as.matrix(data.frame(speciesnamesRaw = c("Abie_Las"),
+                                speciesNamesEnd =  c("Abie_sp")))
+
+modules <-  list("BiomassSpeciesData")
+objects <- list("species" = species)
+
+mySim <- simInit(modules = modules, objects = objects)
+
+# canadaMap <- Cache(getData, 'GADM', country = 'CAN', level = 1,  path = "data/",
+#                    cacheRepo = getPaths()$cachePath, quick = FALSE) 
+# dev()
+# clearPlot()
+# Plot(canadaMap, speedup = 5, visualSqueeze = 0.9) # 5 seemed optimal
+# Plot(mySim$shpStudyRegionFull, addTo = "canadaMap", col = "red")
+
+## TDO test overlay
+mySimOut <- spades(mySim)
+
+```
+

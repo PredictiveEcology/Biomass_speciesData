@@ -72,11 +72,11 @@ whSpecies <- function(CASFRIattr, topN = 16) {
   keepSpecies
 }
 
-makePaulStack <- function(paths, PaulRaster, uniqueKeepSp, destinationPath) {
-  PaulRaster[] <- PaulRaster[]
-  PaulRaster[PaulRaster[] %in% c(230, 220, 255)] <- NA_integer_ # water, non veg
-  #Paulvals <- sort(unique(PaulRaster[]))
-  PaulStack <- list()
+makePickellStack <- function(paths, PickellRaster, uniqueKeepSp, destinationPath) {
+  PickellRaster[] <- PickellRaster[]
+  PickellRaster[PickellRaster[] %in% c(230, 220, 255)] <- NA_integer_ # water, non veg
+  #Pickellvals <- sort(unique(PickellRaster[]))
+  PickellStack <- list()
   #uniqueKeepSp <- unique(loadedCASFRI$keepSpecies$spGroup)
 
   rasterOptions(maxmemory = 1e9)
@@ -86,57 +86,57 @@ makePaulStack <- function(paths, PaulRaster, uniqueKeepSp, destinationPath) {
 
   for (N in lapply(NA_Sp, grep, uniqueKeepSp, value = TRUE)) {
     message("  running ", N, ", assigning NA because not enough data")
-    PaulStack[[N]] <- raster(PaulRaster) %>% setValues(NA_integer_)
-    PaulStack[[N]] <- Cache(writeRaster, PaulStack[[N]],
-                            filename = asPath(file.path(destinationPath, paste0("Paul", N, ".tif"))),
+    PickellStack[[N]] <- raster(PickellRaster) %>% setValues(NA_integer_)
+    PickellStack[[N]] <- Cache(writeRaster, PickellStack[[N]],
+                            filename = asPath(file.path(destinationPath, paste0("Pickell", N, ".tif"))),
                             overwrite = TRUE, datatype = "INT2U")
   }
 
   N <- "Pice_gla"
-  message("  converting Paul's codes to pct cover raster, for ", N)
-  PaulStack[[N]] <- raster(PaulRaster) %>% setValues(NA_integer_)
-  PaulStack[[N]][PaulRaster[] %in% c(41, 42, 43)] <- 60
-  PaulStack[[N]][PaulRaster[] %in% c(44)] <- 80
-  PaulStack[[N]][PaulRaster[] %in% c(14, 34)] <- 40
-  PaulStack[[N]] <- Cache(writeRaster, PaulStack[[N]] ,
-                          filename = asPath(file.path(destinationPath, paste0("Paul", N, ".tif"))),
+  message("  converting Pickell's codes to pct cover raster, for ", N)
+  PickellStack[[N]] <- raster(PickellRaster) %>% setValues(NA_integer_)
+  PickellStack[[N]][PickellRaster[] %in% c(41, 42, 43)] <- 60
+  PickellStack[[N]][PickellRaster[] %in% c(44)] <- 80
+  PickellStack[[N]][PickellRaster[] %in% c(14, 34)] <- 40
+  PickellStack[[N]] <- Cache(writeRaster, PickellStack[[N]] ,
+                          filename = asPath(file.path(destinationPath, paste0("Pickell", N, ".tif"))),
                           overwrite = TRUE, datatype = "INT2U")
 
   # 5
   N <- "Pice_mar"
-  message("  converting Paul's codes to pct cover raster, for ", N)
-  PaulStack[[N]] <- raster(PaulRaster) %>% setValues(NA_integer_)
-  PaulStack[[N]][PaulRaster[] %in% c(23, 26)] <- 60
-  PaulStack[[N]][PaulRaster[] %in% c(22)] <- 80
-  PaulStack[[N]][PaulRaster[] %in% c(32, 42)] <- 40
-  PaulStack[[N]] <- Cache(writeRaster, PaulStack[[N]],
-                          filename = asPath(file.path(destinationPath, paste0("Paul", N, ".tif"))),
+  message("  converting Pickell's codes to pct cover raster, for ", N)
+  PickellStack[[N]] <- raster(PickellRaster) %>% setValues(NA_integer_)
+  PickellStack[[N]][PickellRaster[] %in% c(23, 26)] <- 60
+  PickellStack[[N]][PickellRaster[] %in% c(22)] <- 80
+  PickellStack[[N]][PickellRaster[] %in% c(32, 42)] <- 40
+  PickellStack[[N]] <- Cache(writeRaster, PickellStack[[N]],
+                          filename = asPath(file.path(destinationPath, paste0("Pickell", N, ".tif"))),
                           overwrite = TRUE, datatype = "INT2U")
 
   # 6
   N <- "Pinu_sp"
-  message("  converting Paul's codes to pct cover raster, for ", N)
-  PaulStack[[N]] <- raster(PaulRaster) %>% setValues(NA_integer_)
-  PaulStack[[N]][PaulRaster[] %in% c(31, 32, 34)] <- 60
-  PaulStack[[N]][PaulRaster[] %in% c(33)] <- 80
-  PaulStack[[N]][PaulRaster[] %in% c(23, 43)] <- 40
-  PaulStack[[N]] <- Cache(writeRaster, PaulStack[[N]],
-                          filename = asPath(file.path(destinationPath, paste0("Paul", N, ".tif"))),
+  message("  converting Pickell's codes to pct cover raster, for ", N)
+  PickellStack[[N]] <- raster(PickellRaster) %>% setValues(NA_integer_)
+  PickellStack[[N]][PickellRaster[] %in% c(31, 32, 34)] <- 60
+  PickellStack[[N]][PickellRaster[] %in% c(33)] <- 80
+  PickellStack[[N]][PickellRaster[] %in% c(23, 43)] <- 40
+  PickellStack[[N]] <- Cache(writeRaster, PickellStack[[N]],
+                          filename = asPath(file.path(destinationPath, paste0("Pickell", N, ".tif"))),
                           overwrite = TRUE, datatype = "INT2U")
 
 
   # 7
   N <- "Popu_tre"
-  message("  converting Paul's codes to pct cover raster, for ", N)
-  PaulStack[[N]] <- raster(PaulRaster) %>% setValues(NA_integer_)
-  PaulStack[[N]][PaulRaster[] %in% c(14)] <- 60
-  PaulStack[[N]][PaulRaster[] %in% c(11)] <- 80
-  PaulStack[[N]][PaulRaster[] %in% c(31, 41)] <- 40
-  PaulStack[[N]] <- Cache(writeRaster, PaulStack[[N]],
-                          filename = asPath(file.path(destinationPath, paste0("Paul", N, ".tif"))),
+  message("  converting Pickell's codes to pct cover raster, for ", N)
+  PickellStack[[N]] <- raster(PickellRaster) %>% setValues(NA_integer_)
+  PickellStack[[N]][PickellRaster[] %in% c(14)] <- 60
+  PickellStack[[N]][PickellRaster[] %in% c(11)] <- 80
+  PickellStack[[N]][PickellRaster[] %in% c(31, 41)] <- 40
+  PickellStack[[N]] <- Cache(writeRaster, PickellStack[[N]],
+                          filename = asPath(file.path(destinationPath, paste0("Pickell", N, ".tif"))),
                           overwrite = TRUE, datatype = "INT2U")
 
-  stack(PaulStack)
+  stack(PickellStack)
 }
 
 CASFRItoSpRasts <- function(CASFRIRas, loadedCASFRI, destinationPath) {
@@ -174,85 +174,125 @@ CASFRItoSpRasts <- function(CASFRIRas, loadedCASFRI, destinationPath) {
   stack(spRasts)
 }
 
+## ---------------------------------------------------------------------------------
+
 overlayStacks <- function(highQualityStack, lowQualityStack, outputFilenameSuffix = "overlay",
                           destinationPath) {
-  for (sp in layerNames(highQualityStack)) {
-    hqLarger <- ncell(lowQualityStack) * prod(res(lowQualityStack)) <
-      ncell(highQualityStack) * prod(res(highQualityStack))
+  ## check if HQ resolution > LQ resolutions
+  hqLarger <- ncell(lowQualityStack) * prod(res(lowQualityStack)) <
+    ncell(highQualityStack) * prod(res(highQualityStack))
+  
+  ## make table of species layers in HQ and LQ
+  dt1 <- data.table(SPP = layerNames(highQualityStack), HQ = TRUE)
+  dt2 <- data.table(SPP = layerNames(lowQualityStack), LQ = TRUE)
+  dtj <- dt1[dt2, on = .(SPP)]
+  
+  browser()   ## TODO overlaying still needs to be checked
+  stack(dtj[, overlay.fun(SPP, HQ, LQ), by = 1:nrow(dtj)])
+  
+}
 
-    if (sp %in% layerNames(lowQualityStack)) {
-      if (!(all(
-        isTRUE(all.equal(extent(lowQualityStack), extent(highQualityStack))),
-        isTRUE(all.equal(crs(lowQualityStack), crs(highQualityStack))),
-        isTRUE(all.equal(res(lowQualityStack), res(highQualityStack)))))) {
-        message("  ", sp, " extents, or resolution, or projection did not match; ",
-                "using gdalwarp to make them overlap")
-        LQRastName <- basename(tempfile(fileext = ".tif"))
-        if (!nzchar(filename(lowQualityStack[[sp]]))) {
-          LQCurName <- basename(tempfile(fileext = ".tif"))
-          lowQualityStack[[sp]][] <- as.integer(lowQualityStack[[sp]][])
-          lowQualityStack[[sp]] <- writeRaster(lowQualityStack[[sp]], filename = LQCurName,
-                                               datatype = "INT2U")
-        }
+## ---------------------------------------------------------------------------------
+## Overlaying function to use in overlayStacks -------------------------------------
+## Function to be applied to each row of a data.table containing information 
+##    of whether the species layer exists in the HQ and LQ data. 
+## SPP: data.table column of species layer name 
+## HQ: data.table column of whether SPP is present in HQ layers
+## LQ: : data.table column of whether SPP is present in LQ layers
 
-        LQRastInHQcrs <- projectExtent(lowQualityStack, crs = crs(highQualityStack))
-        # project LQ raster into HQ dimensions
+overlay.fun <- function(SPP, HQ, LQ) {
+  ## if HQ & LQ exist, pool
+  if (HQ & LQ) {
+    ## check equality of raster attributes and correct if necessary
+    if (!(all(
+      isTRUE(all.equal(extent(lowQualityStack), extent(highQualityStack))),
+      isTRUE(all.equal(crs(lowQualityStack), crs(highQualityStack))),
+      isTRUE(all.equal(res(lowQualityStack), res(highQualityStack)))))) {
+      message("  ", SPP, " extents, or resolution, or projection did not match; ",
+              "using gdalwarp to make them overlap")
+      LQRastName <- basename(tempfile(fileext = ".tif"))
+      if (!nzchar(filename(lowQualityStack[[SPP]]))) {
+        LQCurName <- basename(tempfile(fileext = ".tif"))
+        lowQualityStack[[SPP]][] <- as.integer(lowQualityStack[[SPP]][])
+        lowQualityStack[[SPP]] <- writeRaster(lowQualityStack[[SPP]], filename = LQCurName,
+                                                 datatype = "INT2U")
+      }
+      
+      LQRastInHQcrs <- projectExtent(lowQualityStack, crs = crs(highQualityStack))
+      # project LQ raster into HQ dimensions
+      gdalwarp(overwrite = TRUE,
+               dstalpha = TRUE,
+               s_srs = as.character(crs(lowQualityStack[[SPP]])),
+               t_srs = as.character(crs(highQualityStack[[SPP]])),
+               multi = TRUE, of = "GTiff",
+               tr = res(highQualityStack),
+               te = c(xmin(LQRastInHQcrs), ymin(LQRastInHQcrs),
+                      xmax(LQRastInHQcrs), ymax(LQRastInHQcrs)),
+               filename(lowQualityStack[[SPP]]), ot = "Byte",
+               LQRastName)
+      
+      LQRast <- raster(LQRastName)
+      LQRast[] <- LQRast[]
+      unlink(LQRastName)
+      
+      try(unlink(LQCurName), silent = TRUE)
+      
+      if (hqLarger) {
+        tmpHQName <- basename(tempfile(fileext = ".tif"))
+        
         gdalwarp(overwrite = TRUE,
                  dstalpha = TRUE,
-                 s_srs = as.character(crs(lowQualityStack[[sp]])),
-                 t_srs = as.character(crs(highQualityStack[[sp]])),
+                 s_srs = as.character(crs(highQualityStack[[SPP]])),
+                 t_srs = as.character(crs(highQualityStack[[SPP]])),
                  multi = TRUE, of = "GTiff",
                  tr = res(highQualityStack),
                  te = c(xmin(LQRastInHQcrs), ymin(LQRastInHQcrs),
                         xmax(LQRastInHQcrs), ymax(LQRastInHQcrs)),
-                 filename(lowQualityStack[[sp]]), ot = "Byte",
-                 LQRastName)
-
-        LQRast <- raster(LQRastName)
-        LQRast[] <- LQRast[]
-        unlink(LQRastName)
-
-        try(unlink(LQCurName), silent = TRUE)
-
-        if (hqLarger) {
-          tmpHQName <- basename(tempfile(fileext = ".tif"))
-
-          gdalwarp(overwrite = TRUE,
-                   dstalpha = TRUE,
-                   s_srs = as.character(crs(highQualityStack[[sp]])),
-                   t_srs = as.character(crs(highQualityStack[[sp]])),
-                   multi = TRUE, of = "GTiff",
-                   tr = res(highQualityStack),
-                   te = c(xmin(LQRastInHQcrs), ymin(LQRastInHQcrs),
-                          xmax(LQRastInHQcrs), ymax(LQRastInHQcrs)),
-                   filename(highQualityStack[[sp]]), ot = "Byte", tmpHQName)
-          HQRast <- raster(tmpHQName)
-          HQRast[] <- HQRast[]
-          HQRast[HQRast[] == 255] <- NA_integer_
-          unlink(tmpHQName)
-        } else {
-          HQRast <- highQualityStack[[sp]]
-        }
+                 filename(highQualityStack[[SPP]]), ot = "Byte", tmpHQName)
+        HQRast <- raster(tmpHQName)
+        HQRast[] <- HQRast[]
+        HQRast[HQRast[] == 255] <- NA_integer_
+        unlink(tmpHQName)
       } else {
-        LQRast <- lowQualityStack[[sp]]
-        HQRast <- highQualityStack[[sp]]
+        HQRast <- highQualityStack[[SPP]]
       }
-      message("  Writing new, overlaid ", sp, " raster to disk.")
-      if (!compareRaster(LQRast, HQRast))
-        stop("Stacks not identical, something is wrong with overlayStacks function.")
-
-      nas <- is.na(HQRast[])
-      HQRast[nas] <- LQRast[][nas]
-      HQRast <- writeRaster(HQRast, datatype = "INT2U",
-                            filename = file.path(destinationPath,
-                                                 paste0(sp, "_", outputFilenameSuffix, ".tif")),
-                            overwrite = TRUE)
-      names(HQRast) <- sp
-      if (!exists("HQStack")) HQStack <- stack(HQRast) else HQStack[[sp]] <- HQRast
+    } else {
+      LQRast <- lowQualityStack[[SPP]]
+      HQRast <- highQualityStack[[SPP]]
+    }
+    
+    message("  Writing new, overlaid ", SPP, " raster to disk.")
+    if (!compareRaster(LQRast, HQRast))
+      stop("Stacks not identical, something is wrong with overlayStacks function.")
+    
+    nas <- is.na(HQRast[])
+    
+    ## complete missing HQ data with LQ data
+    HQRast[nas] <- LQRast[][nas]
+    HQRast <- writeRaster(HQRast, datatype = "INT2U",
+                          filename = file.path(destinationPath,
+                                               paste0(sp, "_", outputFilenameSuffix, ".tif")),
+                          overwrite = TRUE)
+    names(HQRast) <- SPP
+    return(HQRast)
+  } else {
+    
+    ## if only HQ/LQ exist return one of them
+    if (HQ) {
+      HQRast <- highQualityStack[[SPP]]
+      names(HQRast) <- SPP
+      return(HQRast)
+    }
+    
+    if(LQ) {
+      LQRast <- lowQualityStack[[SPP]]
+      names(LQRast) <- SPP
+      return(LQRast)
     }
   }
-  HQStack
 }
+
+## ---------------------------------------------------------------------------------
 
 gdalwarp2 <- function(rasterWithDiskBacked, dstfilename, ...) {
   dstfilenameTmp <- .suffix(dstfilename, "_tmp")
