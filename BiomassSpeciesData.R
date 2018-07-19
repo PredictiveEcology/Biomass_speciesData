@@ -16,7 +16,7 @@ defineModule(sim, list(
   timeunit = "year",
   citation = list("citation.bib"),
   documentation = list("README.txt", "BiomassSpeciesData.Rmd"),
-  reqdPkgs = list("googledrive", "reproducible", "SpaDES.core", "SpaDES.tools", "data.table"),
+  reqdPkgs = list("googledrive", "reproducible", "SpaDES.core", "SpaDES.tools", "data.table", "raster"),
   parameters = rbind(
     #defineParameter("paramName", "paramClass", value, min, max, "parameter description"),
     defineParameter(".plotInitialTime", "numeric", NA, NA, NA, "This describes the simulation time at which the first plot event should occur"),
