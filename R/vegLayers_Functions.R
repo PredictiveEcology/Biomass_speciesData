@@ -84,13 +84,14 @@ makePickellStack <- function(paths, PickellRaster, uniqueKeepSp, destinationPath
   if (!(all(NA_Sp %in% uniqueKeepSp)))
     stop("Codes in loadedCASFRI have changed: expecting ", NA_Sp[!(NA_Sp %in% uniqueKeepSp)])
 
+  browser()
   for (N in lapply(NA_Sp, grep, uniqueKeepSp, value = TRUE)) {
     message("  running ", N, ", assigning NA because not enough data")
-    PickellStack[[N]] <- raster(PickellRaster) %>% setValues(NA_integer_)
-browser()
-        PickellStack[[N]] <- Cache(writeRaster, PickellStack[[N]],
-                            filename = asPath(file.path(destinationPath, paste0("Pickell", N, ".tif"))),
-                            overwrite = TRUE, datatype = "INT2U")
+    PickellStack[[N]] <- raster(PickellRaster) %>% setValues(x =  ., values = NA_integer_)
+    browser()
+    PickellStack[[N]] <- Cache(writeRaster, x = PickellStack[[N]],
+                               filename = asPath(file.path(destinationPath, paste0("Pickell", N, ".tif"))),
+                               overwrite = TRUE, datatype = "INT2U")
   }
 
   N <- "Pice_gla"
@@ -144,6 +145,7 @@ CASFRItoSpRasts <- function(CASFRIRas, loadedCASFRI, destinationPath) {
   spRasts <- list()
   spRas <- raster(CASFRIRas) %>% setValues(., NA_integer_)
   for (sp in unique(loadedCASFRI$keepSpecies$spGroup)) {
+    browser()
     spRasts[[sp]] <- spRas
     message("starting ", sp)
     aa2 <- loadedCASFRI$CASFRIattrLong[
@@ -157,7 +159,7 @@ CASFRItoSpRasts <- function(CASFRIRas, loadedCASFRI, destinationPath) {
     rastTmp <- writeRaster(
       spRasts[[sp]],
       filename = asPath(file.path(destinationPath, paste0("CASFRI",sp,".tif"))),
-      datatype = "INT2U", overwrite = TRUE
+      datatype = "INT1U", overwrite = TRUE
     )
     if (is(rastTmp, "Raster")) { # Rasters need to have their disk-backed value assigned, but not shapefiles
       # This is a bug in writeRaster was spotted with crs of rastTmp became
