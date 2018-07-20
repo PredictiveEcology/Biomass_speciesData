@@ -128,10 +128,10 @@ Init <- function(sim) {
                        studyArea = sim$shpStudySubRegion,
                        rasterToMatch = sim$biomassMap,
                        method = "bilinear",
-                       datatype = "FLT4S",
+                       datatype = "INT4U",
                        useCache = FALSE,
                        filename2 = TRUE,
-                       userTags =  c(cacheTags, "CASFRIRas", useCache = FALSE), useCache = FALSE)
+                       userTags =  c(cacheTags, "CASFRIRas"))
     
     message("Load CASFRI data and headers, and convert to long format, and define species groups")
     if (P(sim)$useParallel > 1) data.table::setDTthreads(P(sim)$useParallel)

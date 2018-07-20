@@ -87,7 +87,8 @@ makePickellStack <- function(paths, PickellRaster, uniqueKeepSp, destinationPath
   for (N in lapply(NA_Sp, grep, uniqueKeepSp, value = TRUE)) {
     message("  running ", N, ", assigning NA because not enough data")
     PickellStack[[N]] <- raster(PickellRaster) %>% setValues(NA_integer_)
-    PickellStack[[N]] <- Cache(writeRaster, PickellStack[[N]],
+browser()
+        PickellStack[[N]] <- Cache(writeRaster, PickellStack[[N]],
                             filename = asPath(file.path(destinationPath, paste0("Pickell", N, ".tif"))),
                             overwrite = TRUE, datatype = "INT2U")
   }

@@ -23,16 +23,18 @@ Full data only available to authorized Google users.
 Intended for use with the Land-R-Biomass* suite of models - if LandWeb project permissions are valid, then the full dataset used for the LandWeb can be used here.
 
 ```{r}
-# devtools::install_github("CeresBarros/reproducible@development") # require bugfix for one step
-# devtools::install_github("PredictiveEcology/SpaDES.tools@development")
-# devtools::install_github("PredictiveEcology/SpaDES.core@development")
+devtools::install_github("CeresBarros/reproducible@development", force = TRUE) # require bugfix for one step
+devtools::install_github("PredictiveEcology/SpaDES.tools@development", force = TRUE)
+devtools::install_github("PredictiveEcology/SpaDES.core@development", force = TRUE)
 # devtools::install_github("ygc2l/webDatabases") # For fetching KNN layers from PFC repo
 
 library(magrittr)
-library(SpaDES.core)
+library(reproducible)
 library(SpaDES.tools)
+library(SpaDES.core)
 library(raster)
-
+# library(SpaDES)
+ 
 try(detach("package:SpaDES.core", unload = TRUE)); try(detach("package:SpaDES.tools", unload = TRUE)); try(detach("package:reproducible", unload = TRUE)); devtools::load_all("E:/GitHub/reproducible"); devtools::load_all("E:/GitHub/SpaDES.tools"); devtools::load_all("E:/GitHub/SpaDES.core")
 
 setPaths(modulePath = "../", cachePath = "cache/")
