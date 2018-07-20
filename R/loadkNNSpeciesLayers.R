@@ -49,6 +49,7 @@ loadkNNSpeciesLayers <- function(dataPath, rasterToMatch, studyArea,
     
     species1[[sp]] <- prepInputs(
       targetFile = targetFile,
+      url = extractURL(objectName = "specieslayers", module = "BiomassSpeciesData"),
       archive = asPath(c("kNN-Species.tar", paste0("NFI_MODIS250m_kNN_Species_", sp, "_v0.zip"))),
       #alsoExtract = if (sp == speciesnamesRaw[1]) paste0("NFI_MODIS250m_kNN_Species_", speciesnamesRaw[-1], "_v0.tif"),
       destinationPath = asPath(dataPath),
