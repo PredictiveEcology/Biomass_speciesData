@@ -113,7 +113,7 @@ Init <- function(sim) {
                      datatype = "INT2U",
                      filename2 = TRUE,
                      userTags = c(cacheTags, "Pickell"))#, notOlderThan = Sys.time())
-    
+    browser()
     CASFRITifFile <- asPath(file.path(dPath, "Landweb_CASFRI_GIDs.tif"))
     CASFRIattrFile <- asPath(file.path(dPath, "Landweb_CASFRI_GIDs_attributes3.csv"))
     CASFRIheaderFile <- asPath(file.path(dPath,"Landweb_CASFRI_GIDs_README.txt"))
@@ -142,10 +142,11 @@ Init <- function(sim) {
     
     message("Make stack of species layers from Pickell's layer")
     uniqueKeepSp <- unique(loadedCASFRI$keepSpecies$spGroup)
-    # "Abie_sp"  "Betu_pap" "Lari_lar" "Pice_gla" "Pice_mar" "Pinu_sp" "Popu_tre"
+    
+    browser()
     PickellSpStack <- Cache(makePickellStack, paths = lapply(paths(sim), basename),   # TODO check populus -- why not there?
                             PickellRaster = Pickell, uniqueKeepSp, destinationPath = dPath,
-                            userTags = "stable")
+                            userTags = c("stable", "PickellStack"))
     crs(PickellSpStack) <- crs(sim$biomassMap) # bug in writeRaster
     
     message('Make stack from CASFRI data and headers')
@@ -153,14 +154,14 @@ Init <- function(sim) {
                            destinationPath = dPath, userTags = "stable")
     # browser()
     message("Overlay Pickell and CASFRI stacks")
-    outStack <- Cache(overlayStacks, CASFRISpStack, PickellSpStack, userTags = "stable",
+    outStack <- Cache(overlayStacks, CASFRISpStack, PickellSpStack, userTags = c("stable", "Pickell_CASFRI")
                       outputFilenameSuffix = "CASFRI_Pickell", destinationPath = dPath)#, notOlderThan = Sys.time())
     crs(outStack) <- crs(sim$biomassMap) # bug in writeRaster
     
     message("Overlay Pickell_CASFRI with open data set stacks")
     specieslayers2 <- Cache(overlayStacks, outStack, sim$specieslayers,
                             outputFilenameSuffix = "CASFRI_Pickell_KNN",
-                            destinationPath = dPath, userTags = "stable")
+                            destinationPath = dPath, userTags = c("stable", "CASFRI_Pickell_KNN"))
     crs(specieslayers2) <- crs(sim$biomassMap)
     sim$specieslayers <- specieslayers2
     message("Using LandWeb datasets from Pickell and CASFRI")
