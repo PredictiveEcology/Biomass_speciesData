@@ -218,6 +218,7 @@ Init <- function(sim) {
                                studyArea = sim$shpStudyRegionFull,
                                species = sim$species,
                                thresh = 10,
+                               url = extractURL("specieslayers"),
                                cachePath = cachePath(sim),
                                userTags = c(cacheTags, "specieslayers"))
     

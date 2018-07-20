@@ -10,9 +10,10 @@
 ##    should two raw species names share the same final name, their biomass data will be considered as the "same species"
 ## thresh: is the minimum number of pixels where the species must have biomass > 0 to be considered present in the study area. 
 ##    Defaults to 1
+## url: is the source url for the data, passed to prepInputs.
 
 loadkNNSpeciesLayers <- function(dataPath, rasterToMatch, studyArea, 
-                                 species = "all", thresh = 1, cachePath, ...) {
+                                 species = "all", thresh = 1, url, cachePath, ...) {
   require(magrittr)
   
   ## check if species is a vector/matrix
@@ -45,13 +46,11 @@ loadkNNSpeciesLayers <- function(dataPath, rasterToMatch, studyArea,
   for (sp in species[, "speciesnamesRaw"]) {
     targetFile <- paste0("NFI_MODIS250m_kNN_Species_", sp, "_v0.tif")
     postProcessedFilename <- .suffix(targetFile, suffix = suffix)
-    # postProcessedFilename <- basename(.suffix(targetFile, suffix = suffix))   ## remove root appended by suffix
     
     species1[[sp]] <- prepInputs(
       targetFile = targetFile,
-      url = extractURL(objectName = "specieslayers", module = "BiomassSpeciesData"),
+      url = url,
       archive = asPath(c("kNN-Species.tar", paste0("NFI_MODIS250m_kNN_Species_", sp, "_v0.zip"))),
-      #alsoExtract = if (sp == speciesnamesRaw[1]) paste0("NFI_MODIS250m_kNN_Species_", speciesnamesRaw[-1], "_v0.tif"),
       destinationPath = asPath(dataPath),
       fun = "raster::raster",
       studyArea = studyArea,
@@ -97,18 +96,17 @@ loadkNNSpeciesLayers <- function(dataPath, rasterToMatch, studyArea,
     toReplace <- names(species1)[names(species1) %in% nameReplace[,1]]
     names(species1)[names(species1) %in% toReplace] <- nameReplace[toReplace, 2]
   }
-
+  
   ## remove layers that have less data than thresh (i.e. spp absent in study area)
   ## count no. of pixels that have biomass
   layerData <- Cache(sapply, X = species1, function(x) sum(x[] > 0, na.rm = TRUE))
   
   ## remove layers that had < thresh pixels with biomass
   species1[layerData < thresh] <- NULL
-
+  
   ## return stack
   stack(species1)
 }
-
 
 
 ## ------------------------------------------------------------------
