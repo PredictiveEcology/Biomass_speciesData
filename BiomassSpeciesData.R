@@ -113,7 +113,7 @@ Init <- function(sim) {
                      datatype = "INT2U",
                      filename2 = TRUE,
                      userTags = c(cacheTags, "Pickell"))#, notOlderThan = Sys.time())
-    browser()
+    
     CASFRITifFile <- asPath(file.path(dPath, "Landweb_CASFRI_GIDs.tif"))
     CASFRIattrFile <- asPath(file.path(dPath, "Landweb_CASFRI_GIDs_attributes3.csv"))
     CASFRIheaderFile <- asPath(file.path(dPath,"Landweb_CASFRI_GIDs_README.txt"))
@@ -129,7 +129,6 @@ Init <- function(sim) {
                        rasterToMatch = sim$biomassMap,
                        method = "bilinear",
                        datatype = "INT4U",
-                       useCache = FALSE,
                        filename2 = TRUE,
                        userTags =  c(cacheTags, "CASFRIRas"))
     
@@ -143,18 +142,21 @@ Init <- function(sim) {
     message("Make stack of species layers from Pickell's layer")
     uniqueKeepSp <- unique(loadedCASFRI$keepSpecies$spGroup)
     
-    browser()
-    PickellSpStack <- Cache(makePickellStack, paths = lapply(paths(sim), basename),   # TODO check populus -- why not there?
+    browser()## TODO check populus -- why not there?
+    PickellSpStack <- Cache(makePickellStack, #paths = lapply(paths(sim), basename),   # paths was throwing an error in cache 
                             PickellRaster = Pickell, uniqueKeepSp, destinationPath = dPath,
                             userTags = c("stable", "PickellStack"))
+    
+    makePickellStack(PickellRaster = Pickell, uniqueKeepSp, destinationPath = dPath)
+    
     crs(PickellSpStack) <- crs(sim$biomassMap) # bug in writeRaster
     
     message('Make stack from CASFRI data and headers')
     CASFRISpStack <- Cache(CASFRItoSpRasts, CASFRIRas, loadedCASFRI,
-                           destinationPath = dPath, userTags = "stable")
+                           destinationPath = dPath, userTags = c("stable", "CASFRIstk"))
     # browser()
     message("Overlay Pickell and CASFRI stacks")
-    outStack <- Cache(overlayStacks, CASFRISpStack, PickellSpStack, userTags = c("stable", "Pickell_CASFRI")
+    outStack <- Cache(overlayStacks, CASFRISpStack, PickellSpStack, userTags = c("stable", "Pickell_CASFRI"),
                       outputFilenameSuffix = "CASFRI_Pickell", destinationPath = dPath)#, notOlderThan = Sys.time())
     crs(outStack) <- crs(sim$biomassMap) # bug in writeRaster
     
@@ -175,12 +177,12 @@ Init <- function(sim) {
   cacheTags = c(currentModule(sim), "function:.inputObjects")
   
   if (!suppliedElsewhere("shpStudyRegionFull", sim)) {
-    message("'shpStudyRegionFull' was not provided by user. Using a small polygon in Southwestern Alberta, Canada")
+    message("'shpStudyRegionFull' was not provided by user. Using a polygon in Southwestern Alberta, Canada")
     
     canadaMap <- Cache(getData, 'GADM', country = 'CAN', level = 1, path = asPath(dPath),
                        cacheRepo = getPaths()$cachePath, quick = FALSE) 
-    smallPolygonCoords = list(coords = data.frame(x = c(-113.9994, -113.0787, -113.0787, -113.9994), 
-                                                  y = c(49.96410, 49.96410, 49.35029, 49.35029)))
+    smallPolygonCoords = list(coords = data.frame(x = c(-115.9022,-114.9815,-114.3677,-113.4470,-113.5084,-114.4291,-115.3498,-116.4547,-117.1298,-117.3140), 
+                                                 y = c(50.45516,50.45516,50.51654,50.51654,51.62139,52.72624,52.54210,52.48072,52.11243,51.25310)))
     
     sim$shpStudyRegionFull <- SpatialPolygons(list(Polygons(list(Polygon(smallPolygonCoords$coords)), ID = 1)),
                                           proj4string = crs(canadaMap))

@@ -72,24 +72,28 @@ whSpecies <- function(CASFRIattr, topN = 16) {
   keepSpecies
 }
 
-makePickellStack <- function(paths, PickellRaster, uniqueKeepSp, destinationPath) {
+makePickellStack <- function(PickellRaster, uniqueKeepSp, destinationPath) {
   PickellRaster[] <- PickellRaster[]
   PickellRaster[PickellRaster[] %in% c(230, 220, 255)] <- NA_integer_ # water, non veg
   #Pickellvals <- sort(unique(PickellRaster[]))
   PickellStack <- list()
   #uniqueKeepSp <- unique(loadedCASFRI$keepSpecies$spGroup)
 
+  browser()
+  
   rasterOptions(maxmemory = 1e9)
+  
+  ## TODO invert this. NA-spp has to be all the species in 'species' that are not part of pickells species.
+  ## don't use pickell's decidous
+  
   NA_Sp <- c("Abie_sp", "Betu_pap", "Lari_lar")
   if (!(all(NA_Sp %in% uniqueKeepSp)))
     stop("Codes in loadedCASFRI have changed: expecting ", NA_Sp[!(NA_Sp %in% uniqueKeepSp)])
 
-  browser()
   for (N in lapply(NA_Sp, grep, uniqueKeepSp, value = TRUE)) {
     message("  running ", N, ", assigning NA because not enough data")
     PickellStack[[N]] <- raster(PickellRaster) %>% setValues(x =  ., values = NA_integer_)
-    browser()
-    PickellStack[[N]] <- Cache(writeRaster, x = PickellStack[[N]],
+    PickellStack[[N]] <- Cache(writeRaster, PickellStack[[N]],
                                filename = asPath(file.path(destinationPath, paste0("Pickell", N, ".tif"))),
                                overwrite = TRUE, datatype = "INT2U")
   }
@@ -145,7 +149,6 @@ CASFRItoSpRasts <- function(CASFRIRas, loadedCASFRI, destinationPath) {
   spRasts <- list()
   spRas <- raster(CASFRIRas) %>% setValues(., NA_integer_)
   for (sp in unique(loadedCASFRI$keepSpecies$spGroup)) {
-    browser()
     spRasts[[sp]] <- spRas
     message("starting ", sp)
     aa2 <- loadedCASFRI$CASFRIattrLong[
@@ -179,6 +182,7 @@ CASFRItoSpRasts <- function(CASFRIRas, loadedCASFRI, destinationPath) {
 
 ## ---------------------------------------------------------------------------------
 
+
 overlayStacks <- function(highQualityStack, lowQualityStack, outputFilenameSuffix = "overlay",
                           destinationPath) {
   ## check if HQ resolution > LQ resolutions
@@ -191,7 +195,8 @@ overlayStacks <- function(highQualityStack, lowQualityStack, outputFilenameSuffi
   dtj <- dt1[dt2, on = .(SPP)]
   
   browser()   ## TODO overlaying still needs to be checked
-  stack(dtj[, overlay.fun(SPP, HQ, LQ), by = 1:nrow(dtj)])
+  stack(dtj[, overlay.fun(SPP, HQ, LQ),
+            by = 1:nrow(dtj)])
   
 }
 
@@ -204,6 +209,10 @@ overlayStacks <- function(highQualityStack, lowQualityStack, outputFilenameSuffi
 ## LQ: : data.table column of whether SPP is present in LQ layers
 
 overlay.fun <- function(SPP, HQ, LQ) {
+  browser()
+  outputFilenameSuffix
+  destinationPath
+  hqLarger
   ## if HQ & LQ exist, pool
   if (HQ & LQ) {
     ## check equality of raster attributes and correct if necessary

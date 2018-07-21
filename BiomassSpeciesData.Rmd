@@ -23,9 +23,9 @@ Full data only available to authorized Google users.
 Intended for use with the Land-R-Biomass* suite of models - if LandWeb project permissions are valid, then the full dataset used for the LandWeb can be used here.
 
 ```{r}
-devtools::install_github("CeresBarros/reproducible@development", force = TRUE) # require bugfix for one step
-devtools::install_github("PredictiveEcology/SpaDES.tools@development", force = TRUE)
-devtools::install_github("PredictiveEcology/SpaDES.core@development", force = TRUE)
+# devtools::install_github("CeresBarros/reproducible@development", force = TRUE) # require bugfix for one step
+# devtools::install_github("PredictiveEcology/SpaDES.tools@development", force = TRUE)
+# devtools::install_github("PredictiveEcology/SpaDES.core@development", force = TRUE)
 # devtools::install_github("ygc2l/webDatabases") # For fetching KNN layers from PFC repo
 
 library(magrittr)
@@ -39,22 +39,38 @@ try(detach("package:SpaDES.core", unload = TRUE)); try(detach("package:SpaDES.to
 
 setPaths(modulePath = "../", cachePath = "cache/")
 
-species <- as.matrix(data.frame(speciesnamesRaw = c("Abie_Las"),
-                                speciesNamesEnd =  c("Abie_sp")))
+
+dev()
+clearPlot()
+# canadaMap <- Cache(getData, 'GADM', country = 'CAN', level = 1, path = "data/",
+#                    cacheRepo = getPaths()$cachePath, quick = FALSE) 
+# LIM_SA <- shapefile("../LandscapesInMotion/data/maps/Foothills_study_area.shp")
+# Plot(canadaMap, speedup = 5, visualSqueeze = 0.9) # 5 seemed optimal
+# Plot(LIM_SA, addTo = "canadaMap", col = "green")
+
+## hand-drawn study area
+# if(!exists("shpStudyRegionFull")) {
+#   message("Since there is no object called 'shpStudyRegionFull', please draw a study area with 10 points")
+  # severalrandompoints <- clickCoordinates(10)
+#   if(startsWith(attr(severalrandompoints, "tags"), "cache")) message("Taking shpStudyRegionFull from Cache")
+#   shpStudyRegionFull <- SpatialPolygons(list(Polygons(list(Polygon(severalrandompoints$coords)), ID = 1)),
+#                                proj4string = crs(canadaMap))
+# }
+
+
+species <- as.matrix(data.frame(speciesnamesRaw = c("Abie_Las", "Pinu_Con", "Popu_Tre"),
+                                speciesNamesEnd =  c("Abie_sp", "Pinu_sp", "Popu_Tre")))
 
 modules <-  list("BiomassSpeciesData")
-objects <- list("species" = species)
+objects <- list("species" = species#,
+                # "shpStudyRegionFull" = shpStudyRegionFull,
+                # "shpStudySubRegion" = shpStudyRegionFull
+                )
 
-mySim <- simInit(modules = modules, objects = objects)
+mySim <- simInit(modules = modules, objects = objects
+                 )
 
-# canadaMap <- Cache(getData, 'GADM', country = 'CAN', level = 1,  path = "data/",
-#                    cacheRepo = getPaths()$cachePath, quick = FALSE) 
-# dev()
-# clearPlot()
-# Plot(canadaMap, speedup = 5, visualSqueeze = 0.9) # 5 seemed optimal
-# Plot(mySim$shpStudyRegionFull, addTo = "canadaMap", col = "red")
-
-## TDO test overlay
+## TODO test overlay
 mySimOut <- spades(mySim)
 
 ```
