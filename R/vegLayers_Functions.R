@@ -72,24 +72,21 @@ whSpecies <- function(CASFRIattr, topN = 16) {
   keepSpecies
 }
 
-makePickellStack <- function(PickellRaster, uniqueKeepSp, destinationPath) {
+makePickellStack <- function(PickellRaster, uniqueKeepSp, species, destinationPath) {
   PickellRaster[] <- PickellRaster[]
   PickellRaster[PickellRaster[] %in% c(230, 220, 255)] <- NA_integer_ # water, non veg
-  #Pickellvals <- sort(unique(PickellRaster[]))
   PickellStack <- list()
-  #uniqueKeepSp <- unique(loadedCASFRI$keepSpecies$spGroup)
-
-  browser()
   
   rasterOptions(maxmemory = 1e9)
   
-  ## TODO invert this. NA-spp has to be all the species in 'species' that are not part of pickells species.
-  ## don't use pickell's decidous
-  
-  NA_Sp <- c("Abie_sp", "Betu_pap", "Lari_lar")
+  ## species in Pickel's data
+  PickellSpp <- c("Pice_mar", "Pice_gla", "Pinu_sp", "Popu_tre")
+  NA_Sp <- species[,2][!species[,2] %in% PickellSpp]
+    
+  ## All NA_Sp species codes should be in CASFRI spp list
   if (!(all(NA_Sp %in% uniqueKeepSp)))
     stop("Codes in loadedCASFRI have changed: expecting ", NA_Sp[!(NA_Sp %in% uniqueKeepSp)])
-
+  
   for (N in lapply(NA_Sp, grep, uniqueKeepSp, value = TRUE)) {
     message("  running ", N, ", assigning NA because not enough data")
     PickellStack[[N]] <- raster(PickellRaster) %>% setValues(x =  ., values = NA_integer_)
