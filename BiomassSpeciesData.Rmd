@@ -59,7 +59,7 @@ clearPlot()
 
 
 species <- as.matrix(data.frame(speciesnamesRaw = c("Abie_Las", "Pinu_Con", "Popu_Tre"),
-                                speciesNamesEnd =  c("Abie_sp", "Pinu_sp", "Popu_Tre")))
+                                speciesNamesEnd =  c("Abie_sp", "Pinu_sp", "Popu_tre")))
 
 modules <-  list("BiomassSpeciesData")
 objects <- list("species" = species#,
