@@ -144,10 +144,11 @@ Init <- function(sim) {
     
     browser()## TODO check populus -- why not there?
     PickellSpStack <- Cache(makePickellStack, #paths = lapply(paths(sim), basename),   # paths was throwing an error in cache 
-                            PickellRaster = Pickell, uniqueKeepSp, destinationPath = dPath,
-                            userTags = c("stable", "PickellStack"))
+                            PickellRaster = Pickell, uniqueKeepSp, species = sim$species,
+                            destinationPath = dPath, userTags = c("stable", "PickellStack"))
     
-    makePickellStack(PickellRaster = Pickell, uniqueKeepSp, destinationPath = dPath)
+    makePickellStack(PickellRaster = Pickell, uniqueKeepSp, 
+                     species = sim$species, destinationPath = dPath)
     
     crs(PickellSpStack) <- crs(sim$biomassMap) # bug in writeRaster
     
@@ -196,7 +197,7 @@ Init <- function(sim) {
   if (!suppliedElsewhere("species", sim)) {
     ## default to 6 species, one changing name, and two them merged into one
     sim$species <- as.matrix(data.frame(speciesnamesRaw = c("Abie_Las", "Pice_Gla", "Pice_Mar", "Pinu_Ban", "Pinu_Con", "Popu_Tre"),
-                                       speciesNamesEnd =  c("Abie_sp", "Pice_Gla", "Pice_Mar", "Pinu_sp", "Pinu_sp", "Popu_Tre")))
+                                       speciesNamesEnd =  c("Abie_sp", "Pice_gla", "Pice_mar", "Pinu_sp", "Pinu_sp", "Popu_tre")))
   }
   
   if (!suppliedElsewhere("biomassMap", sim)) {
