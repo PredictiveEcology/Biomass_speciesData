@@ -217,17 +217,13 @@ overlayStacks <- function(highQualityStack, lowQualityStack, outputFilenameSuffi
 ## LQ: : data.table column of whether SPP is present in LQ layers
 
 overlay.fun <- function(SPP, HQ, LQ) {
-  browser()
-  outputFilenameSuffix
-  destinationPath
-  hqLarger
-  ## if HQ & LQ exist, pool
+  ## if HQ & LQ have data, pool
   if (HQ & LQ) {
     ## check equality of raster attributes and correct if necessary
-    if (!(all(
+    if (!all(
       isTRUE(all.equal(extent(lowQualityStack), extent(highQualityStack))),
       isTRUE(all.equal(crs(lowQualityStack), crs(highQualityStack))),
-      isTRUE(all.equal(res(lowQualityStack), res(highQualityStack)))))) {
+      isTRUE(all.equal(res(lowQualityStack), res(highQualityStack))))) {
       message("  ", SPP, " extents, or resolution, or projection did not match; ",
               "using gdalwarp to make them overlap")
       LQRastName <- basename(tempfile(fileext = ".tif"))
@@ -285,13 +281,13 @@ overlay.fun <- function(SPP, HQ, LQ) {
     if (!compareRaster(LQRast, HQRast))
       stop("Stacks not identical, something is wrong with overlayStacks function.")
     
-    nas <- is.na(HQRast[])
+    NAs <- is.na(HQRast[])
     
     ## complete missing HQ data with LQ data
-    HQRast[nas] <- LQRast[][nas]
-    HQRast <- writeRaster(HQRast, datatype = "INT2U",
+    HQRast[NAs] <- LQRast[][NAs]
+    HQRast <- writeRaster(HQRast, datatype = "INT1U",
                           filename = file.path(destinationPath,
-                                               paste0(sp, "_", outputFilenameSuffix, ".tif")),
+                                               paste0(SPP, "_", outputFilenameSuffix, ".tif")),
                           overwrite = TRUE)
     names(HQRast) <- SPP
     return(HQRast)
