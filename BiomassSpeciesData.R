@@ -174,8 +174,10 @@ Init <- function(sim) {
                             destinationPath = dPath, 
                             userTags = c("stable", "CASFRI_Pickell_KNN"))
     crs(specieslayers2) <- crs(sim$biomassMap)
+    
+    ## replace species layers
     sim$specieslayers <- specieslayers2
-    message("Using LandWeb datasets from Pickell and CASFRI")
+    message("Using overlaid datasets from CASFRI, Pickell and CFS kNN")
   }
   
   return(invisible(sim))
