@@ -15,62 +15,57 @@ knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 # Overview
 
 Download and pre-process proprietary LandWeb data (CASFRI + Paul Pickell's dataset) and kNN species biomass data
-
 Full data only available to authorized Google users.
+Defaults to extracting 5 species/genera Abies sp., Picea glauca, Picea mariana, Pinus sp. and  Populus tremuloides.
 
 # Links to other modules
 
-Intended for use with the Land-R-Biomass* suite of models - if LandWeb project permissions are valid, then the full dataset used for the LandWeb can be used here.
+Intended for use with the Land-R-Biomass* suite of models - if LandWeb project permissions are valid, then the full datasets used for the LandWeb can be used here.
 
 ```{r}
-# devtools::install_github("CeresBarros/reproducible@development", force = TRUE) # require bugfix for one step
+# devtools::install_github("PredictiveEcology/reproducible@development", force = TRUE) # require bugfix for one step
 # devtools::install_github("PredictiveEcology/SpaDES.tools@development", force = TRUE)
 # devtools::install_github("PredictiveEcology/SpaDES.core@development", force = TRUE)
 # devtools::install_github("ygc2l/webDatabases") # For fetching KNN layers from PFC repo
 
 library(magrittr)
-library(reproducible)
-library(SpaDES.tools)
-library(SpaDES.core)
 library(raster)
-# library(SpaDES)
+library(SpaDES)
  
-try(detach("package:SpaDES.core", unload = TRUE)); try(detach("package:SpaDES.tools", unload = TRUE)); try(detach("package:reproducible", unload = TRUE)); devtools::load_all("E:/GitHub/reproducible"); devtools::load_all("E:/GitHub/SpaDES.tools"); devtools::load_all("E:/GitHub/SpaDES.core")
-
 setPaths(modulePath = "../", cachePath = "cache/")
 
+## do you want to hand-draw a map or use defaults?
+# - note that large areas will take longer to compute
+handDrawMap <- FALSE
 
-dev()
-clearPlot()
-# canadaMap <- Cache(getData, 'GADM', country = 'CAN', level = 1, path = "data/",
-#                    cacheRepo = getPaths()$cachePath, quick = FALSE) 
-# LIM_SA <- shapefile("../LandscapesInMotion/data/maps/Foothills_study_area.shp")
-# Plot(canadaMap, speedup = 5, visualSqueeze = 0.9) # 5 seemed optimal
-# Plot(LIM_SA, addTo = "canadaMap", col = "green")
-
-## hand-drawn study area
-# if(!exists("shpStudyRegionFull")) {
-#   message("Since there is no object called 'shpStudyRegionFull', please draw a study area with 10 points")
-  # severalrandompoints <- clickCoordinates(10)
-#   if(startsWith(attr(severalrandompoints, "tags"), "cache")) message("Taking shpStudyRegionFull from Cache")
-#   shpStudyRegionFull <- SpatialPolygons(list(Polygons(list(Polygon(severalrandompoints$coords)), ID = 1)),
-#                                proj4string = crs(canadaMap))
-# }
-
-
-species <- as.matrix(data.frame(speciesnamesRaw = c("Abie_Las", "Pinu_Con", "Popu_Tre"),
-                                speciesNamesEnd =  c("Abie_sp", "Pinu_sp", "Popu_tre")))
+if(handDrawMap) {
+  dev()
+  clearPlot()
+  canadaMap <- Cache(getData, 'GADM', country = 'CAN', level = 1, path = "data/",
+                     cacheRepo = getPaths()$cachePath, quick = FALSE)
+  LIM_SA <- shapefile("../LandscapesInMotion/data/maps/Foothills_study_area.shp")
+  Plot(canadaMap, speedup = 5, visualSqueeze = 0.9) # 5 seemed optimal
+  Plot(LIM_SA, addTo = "canadaMap", col = "green")
+  
+  ## hand-drawn study area
+  if(!exists("shpStudyRegionFull")) {
+    message("Since there is no object called 'shpStudyRegionFull', please draw a study area with 10 points")
+    severalrandompoints <- clickCoordinates(10)
+    if(startsWith(attr(severalrandompoints, "tags"), "cache")) message("Taking shpStudyRegionFull from Cache")
+    shpStudyRegionFull <- SpatialPolygons(list(Polygons(list(Polygon(severalrandompoints$coords)), ID = 1)),
+                                          proj4string = crs(canadaMap))
+  }
+}
 
 modules <-  list("BiomassSpeciesData")
-objects <- list("species" = species#,
-                # "shpStudyRegionFull" = shpStudyRegionFull,
-                # "shpStudySubRegion" = shpStudyRegionFull
-                )
+objects <- if(handDrawMap) {
+  list("shpStudyRegionFull" = shpStudyRegionFull,
+       "shpStudySubRegion" = shpStudyRegionFull)  
+} else list()
 
-mySim <- simInit(modules = modules, objects = objects
-                 )
 
-## TODO test overlay
+mySim <- simInit(modules = modules, objects = objects)
+
 mySimOut <- spades(mySim)
 
 ```
