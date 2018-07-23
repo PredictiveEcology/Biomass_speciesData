@@ -168,9 +168,11 @@ Init <- function(sim) {
     crs(outStack) <- crs(sim$biomassMap) # bug in writeRaster
     
     message("Overlay Pickell_CASFRI with open data set stacks")
-    specieslayers2 <- Cache(overlayStacks, outStack, sim$specieslayers,
+    specieslayers2 <- Cache(overlayStacks, 
+                            highQualityStack = outStack, lowQualityStack = sim$specieslayers,
                             outputFilenameSuffix = "CASFRI_Pickell_KNN",
-                            destinationPath = dPath, userTags = c("stable", "CASFRI_Pickell_KNN"))
+                            destinationPath = dPath, 
+                            userTags = c("stable", "CASFRI_Pickell_KNN"))
     crs(specieslayers2) <- crs(sim$biomassMap)
     sim$specieslayers <- specieslayers2
     message("Using LandWeb datasets from Pickell and CASFRI")
