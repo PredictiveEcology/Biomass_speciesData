@@ -140,25 +140,31 @@ Init <- function(sim) {
                           userTags = c("stable", "BigDataTable"))
     
     message("Make stack of species layers from Pickell's layer")
-    uniqueKeepSp <- unique(loadedCASFRI$keepSpecies$spGroup)
     
-    browser()## TODO check populus -- why not there?
+    ## check if all kNN species are in CASFRI and if there are case issues
+    uniqueKeepSp <- unique(loadedCASFRI$keepSpecies$spGroup)
+    if(all(tolower(sim$species[,2]) %in% tolower(uniqueKeepSp))) {
+      if(!all(sim$species[,2] %in% uniqueKeepSp))
+        stop("end species names in kNN do not match CASFRI species codes.
+             \nUpper/lower case issues")
+    } else warning("some kNN species not in CASFRI")
+    
     PickellSpStack <- Cache(makePickellStack, #paths = lapply(paths(sim), basename),   # paths was throwing an error in cache 
                             PickellRaster = Pickell, uniqueKeepSp, species = sim$species,
                             destinationPath = dPath, userTags = c("stable", "PickellStack"))
     
-    makePickellStack(PickellRaster = Pickell, uniqueKeepSp, 
-                     species = sim$species, destinationPath = dPath)
-    
     crs(PickellSpStack) <- crs(sim$biomassMap) # bug in writeRaster
     
     message('Make stack from CASFRI data and headers')
-    CASFRISpStack <- Cache(CASFRItoSpRasts, CASFRIRas, loadedCASFRI,
+    CASFRISpStack <- Cache(CASFRItoSpRasts, CASFRIRas, loadedCASFRI, species = sim$species,
                            destinationPath = dPath, userTags = c("stable", "CASFRIstk"))
-    # browser()
+    
     message("Overlay Pickell and CASFRI stacks")
-    outStack <- Cache(overlayStacks, CASFRISpStack, PickellSpStack, userTags = c("stable", "Pickell_CASFRI"),
-                      outputFilenameSuffix = "CASFRI_Pickell", destinationPath = dPath)#, notOlderThan = Sys.time())
+    outStack <- Cache(overlayStacks, 
+                      highQualityStack = CASFRISpStack, lowQualityStack = PickellSpStack, 
+                      outputFilenameSuffix = "CASFRI_Pickell", destinationPath = dPath,
+                      userTags = c("stable", "Pickell_CASFRI")) 
+    
     crs(outStack) <- crs(sim$biomassMap) # bug in writeRaster
     
     message("Overlay Pickell_CASFRI with open data set stacks")
@@ -195,7 +201,7 @@ Init <- function(sim) {
   }
   
   if (!suppliedElsewhere("species", sim)) {
-    ## default to 6 species, one changing name, and two them merged into one
+    ## default to 6 species, one changing name, and two merged into one
     sim$species <- as.matrix(data.frame(speciesnamesRaw = c("Abie_Las", "Pice_Gla", "Pice_Mar", "Pinu_Ban", "Pinu_Con", "Popu_Tre"),
                                        speciesNamesEnd =  c("Abie_sp", "Pice_gla", "Pice_mar", "Pinu_sp", "Pinu_sp", "Popu_tre")))
   }

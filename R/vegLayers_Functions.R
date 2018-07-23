@@ -154,7 +154,7 @@ CASFRItoSpRasts <- function(CASFRIRas, loadedCASFRI, species, destinationPath) {
   spRasts <- list()
   spRas <- raster(CASFRIRas) %>% setValues(., NA_integer_)
   
-  sppTODO <- setequal(unique(loadedCASFRI$keepSpecies$spGroup) %in% species)
+  sppTODO <- intersect(unique(loadedCASFRI$keepSpecies$spGroup), species[,2])
   
   for (sp in sppTODO) {
     spRasts[[sp]] <- spRas
