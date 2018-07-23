@@ -198,14 +198,28 @@ overlayStacks <- function(highQualityStack, lowQualityStack, outputFilenameSuffi
     ncell(highQualityStack) * prod(res(highQualityStack))
   
   ## make table of species layers in HQ and LQ
-  dt1 <- data.table(SPP = layerNames(highQualityStack), HQ = TRUE)
-  dt2 <- data.table(SPP = layerNames(lowQualityStack), LQ = TRUE)
-  dtj <- dt1[dt2, on = .(SPP)]
+  dt1 <- data.table(SPP = layerNames(highQualityStack), HQ = NA)
+  dt2 <- data.table(SPP = layerNames(lowQualityStack), LQ = NA)
+  setkey(dt1, SPP); setkey(dt2, SPP)
+  dtj <- merge(dt1, dt2, all = TRUE)
   
-  browser()   ## TODO overlaying still needs to be checked
-  stack(dtj[, overlay.fun(SPP, HQ, LQ),
-            by = 1:nrow(dtj)])
+  ## check which layers have species info in HQ and LQ
+  dtj[, HQ := any(!is.na(highQualityStack[[SPP]][])), by = 1:nrow(dtj)]
+  dtj[, LQ := any(!is.na(lowQualityStack[[SPP]][])), by = 1:nrow(dtj)]
   
+  ## workaround: when overlay.fun is called from the environment objects 
+  ##    (e.g. raster stacks) are not found.
+  stackRas <- list()
+  for(x in 1:nrow(dtj)) { 
+     stackRas[[x]] <- dtj[x, overlay.fun(SPP, HQ, LQ, 
+                                         HQStack = highQualityStack,
+                                         LQStack = lowQualityStack,
+                                         fileSuff = outputFilenameSuffix,
+                                         destPath = destinationPath)]   ## this is not working unless the function is created in here maybe try piping
+  }
+  names(stackRas) = dtj$SPP
+  
+  stack(stackRas)
 }
 
 ## ---------------------------------------------------------------------------------
@@ -216,35 +230,37 @@ overlayStacks <- function(highQualityStack, lowQualityStack, outputFilenameSuffi
 ## HQ: data.table column of whether SPP is present in HQ layers
 ## LQ: : data.table column of whether SPP is present in LQ layers
 
-overlay.fun <- function(SPP, HQ, LQ) {
+overlay.fun <- function(SPP, HQ, LQ, ...) {
+  dots <- list(...)
+  
   ## if HQ & LQ have data, pool
   if (HQ & LQ) {
     ## check equality of raster attributes and correct if necessary
     if (!all(
-      isTRUE(all.equal(extent(lowQualityStack), extent(highQualityStack))),
-      isTRUE(all.equal(crs(lowQualityStack), crs(highQualityStack))),
-      isTRUE(all.equal(res(lowQualityStack), res(highQualityStack))))) {
+      isTRUE(all.equal(extent(dots$LQStack), extent(dots$HQStack))),
+      isTRUE(all.equal(crs(dots$LQStack), crs(dots$HQStack))),
+      isTRUE(all.equal(res(dots$LQStack), res(dots$HQStack))))) {
       message("  ", SPP, " extents, or resolution, or projection did not match; ",
               "using gdalwarp to make them overlap")
       LQRastName <- basename(tempfile(fileext = ".tif"))
-      if (!nzchar(filename(lowQualityStack[[SPP]]))) {
+      if (!nzchar(filename(dots$LQStack[[SPP]]))) {
         LQCurName <- basename(tempfile(fileext = ".tif"))
-        lowQualityStack[[SPP]][] <- as.integer(lowQualityStack[[SPP]][])
-        lowQualityStack[[SPP]] <- writeRaster(lowQualityStack[[SPP]], filename = LQCurName,
+        dots$LQStack[[SPP]][] <- as.integer(dots$LQStack[[SPP]][])
+        dots$LQStack[[SPP]] <- writeRaster(dots$LQStack[[SPP]], filename = LQCurName,
                                                  datatype = "INT2U")
       }
       
-      LQRastInHQcrs <- projectExtent(lowQualityStack, crs = crs(highQualityStack))
+      LQRastInHQcrs <- projectExtent(dots$LQStack, crs = crs(dots$HQStack))
       # project LQ raster into HQ dimensions
       gdalwarp(overwrite = TRUE,
                dstalpha = TRUE,
-               s_srs = as.character(crs(lowQualityStack[[SPP]])),
-               t_srs = as.character(crs(highQualityStack[[SPP]])),
+               s_srs = as.character(crs(dots$LQStack[[SPP]])),
+               t_srs = as.character(crs(dots$HQStack[[SPP]])),
                multi = TRUE, of = "GTiff",
-               tr = res(highQualityStack),
+               tr = res(dots$HQStack),
                te = c(xmin(LQRastInHQcrs), ymin(LQRastInHQcrs),
                       xmax(LQRastInHQcrs), ymax(LQRastInHQcrs)),
-               filename(lowQualityStack[[SPP]]), ot = "Byte",
+               filename(dots$LQStack[[SPP]]), ot = "Byte",
                LQRastName)
       
       LQRast <- raster(LQRastName)
@@ -258,23 +274,23 @@ overlay.fun <- function(SPP, HQ, LQ) {
         
         gdalwarp(overwrite = TRUE,
                  dstalpha = TRUE,
-                 s_srs = as.character(crs(highQualityStack[[SPP]])),
-                 t_srs = as.character(crs(highQualityStack[[SPP]])),
+                 s_srs = as.character(crs(dots$HQStack[[SPP]])),
+                 t_srs = as.character(crs(dots$HQStack[[SPP]])),
                  multi = TRUE, of = "GTiff",
-                 tr = res(highQualityStack),
+                 tr = res(dots$HQStack),
                  te = c(xmin(LQRastInHQcrs), ymin(LQRastInHQcrs),
                         xmax(LQRastInHQcrs), ymax(LQRastInHQcrs)),
-                 filename(highQualityStack[[SPP]]), ot = "Byte", tmpHQName)
+                 filename(dots$HQStack[[SPP]]), ot = "Byte", tmpHQName)
         HQRast <- raster(tmpHQName)
         HQRast[] <- HQRast[]
         HQRast[HQRast[] == 255] <- NA_integer_
         unlink(tmpHQName)
       } else {
-        HQRast <- highQualityStack[[SPP]]
+        HQRast <- dots$HQStack[[SPP]]
       }
     } else {
-      LQRast <- lowQualityStack[[SPP]]
-      HQRast <- highQualityStack[[SPP]]
+      LQRast <- dots$LQStack[[SPP]]
+      HQRast <- dots$HQStack[[SPP]]
     }
     
     message("  Writing new, overlaid ", SPP, " raster to disk.")
@@ -286,8 +302,8 @@ overlay.fun <- function(SPP, HQ, LQ) {
     ## complete missing HQ data with LQ data
     HQRast[NAs] <- LQRast[][NAs]
     HQRast <- writeRaster(HQRast, datatype = "INT1U",
-                          filename = file.path(destinationPath,
-                                               paste0(SPP, "_", outputFilenameSuffix, ".tif")),
+                          filename = file.path(dots$destPath,
+                                               paste0(SPP, "_", dots$fileSuff, ".tif")),
                           overwrite = TRUE)
     names(HQRast) <- SPP
     return(HQRast)
@@ -295,13 +311,13 @@ overlay.fun <- function(SPP, HQ, LQ) {
     
     ## if only HQ/LQ exist return one of them
     if (HQ) {
-      HQRast <- highQualityStack[[SPP]]
+      HQRast <- dots$HQStack[[SPP]]
       names(HQRast) <- SPP
       return(HQRast)
     }
     
     if(LQ) {
-      LQRast <- lowQualityStack[[SPP]]
+      LQRast <- dots$LQStack[[SPP]]
       names(LQRast) <- SPP
       return(LQRast)
     }
