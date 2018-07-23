@@ -104,8 +104,8 @@ loadkNNSpeciesLayers <- function(dataPath, rasterToMatch, studyArea,
   ## remove layers that had < thresh pixels with biomass
   species1[layerData < thresh] <- NULL
   
-  ## return stack
-  stack(species1)
+  ## return stack and final species matrix
+  list(specieslayers = stack(species1), species = species)
 }
 
 
