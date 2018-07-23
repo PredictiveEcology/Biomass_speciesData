@@ -216,7 +216,7 @@ Init <- function(sim) {
   }
 
   if (!suppliedElsewhere("specieslayers")) {
-    sim$specieslayers <- Cache(loadkNNSpeciesLayers,
+    specieslayersList <- Cache(loadkNNSpeciesLayers,
                                dataPath = asPath(dPath), 
                                rasterToMatch = sim$biomassMap, 
                                studyArea = sim$shpStudyRegionFull,
@@ -226,6 +226,9 @@ Init <- function(sim) {
                                cachePath = cachePath(sim),
                                userTags = c(cacheTags, "specieslayers"))
     
+    sim$specieslayers <- specieslayersList$specieslayers
+    sim$species <- specieslayersList$species
+
   }
   
   return(invisible(sim))
