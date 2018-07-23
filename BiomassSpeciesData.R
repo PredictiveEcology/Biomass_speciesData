@@ -29,8 +29,7 @@ defineModule(sim, list(
   ),
   inputObjects = bind_rows(
     expectsInput(objectName = "speciesList", objectClass = c("character", "matrix"),
-                 desc = "vector or matrix of species to select. 
-                 If matrix, should have two columns of raw and 'end' species names", sourceURL = ""),
+                 desc = "vector or matrix of species to select. If matrix, should have two columns of raw and 'end' species names", sourceURL = ""),
     expectsInput(objectName = "biomassMap", objectClass = "RasterLayer",
                  desc = "total biomass raster layer in study area, default is Canada national biomass map",
                  sourceURL = "http://tree.pfc.forestry.ca/kNN-StructureBiomass.tar"),
@@ -52,7 +51,9 @@ defineModule(sim, list(
   ),
   outputObjects = bind_rows(
     createsOutput(objectName = "specieslayers", objectClass = "RasterStack",
-                  desc = "biomass percentage raster layers by species in Canada species map")
+                  desc = "biomass percentage raster layers by species in Canada species map"),
+    createsOutput(objectName = "spciesList", objectClass =  c("character", "matrix"),
+                  desc = "vector or matrix of species to select. If matrix, should have two columns of raw and 'end' species names")
   )
 ))
 
