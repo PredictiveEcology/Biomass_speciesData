@@ -52,7 +52,7 @@ defineModule(sim, list(
   outputObjects = bind_rows(
     createsOutput(objectName = "specieslayers", objectClass = "RasterStack",
                   desc = "biomass percentage raster layers by species in Canada species map"),
-    createsOutput(objectName = "spciesList", objectClass =  c("character", "matrix"),
+    createsOutput(objectName = "speciesList", objectClass =  c("character", "matrix"),
                   desc = "vector or matrix of species to select. If matrix, should have two columns of raw and 'end' species names")
   )
 ))

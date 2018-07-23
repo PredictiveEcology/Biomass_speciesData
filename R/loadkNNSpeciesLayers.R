@@ -17,23 +17,23 @@ loadkNNSpeciesLayers <- function(dataPath, rasterToMatch, studyArea,
   require(magrittr)
   
   ## check if species is a vector/matrix
-  if (class(species) == "character") {
-    if (species == "all") {
+  if (class(speciesList) == "character") {
+    if (speciesList == "all") {
       ## get all species layers from .tar
-      species <- untar(tarfile = file.path(dataPath, "kNN-Species.tar"), list = TRUE) %>%
+      speciesList <- untar(tarfile = file.path(dataPath, "kNN-Species.tar"), list = TRUE) %>%
         grep(".zip", ., value = TRUE) %>%
         sub("_v0.zip", "", .) %>%
         sub(".*Species_", "", .)
     }
     
     ## make a matrix of raw and final species names
-    species <-  matrix(data = rep(species, 2),
-                       nrow = length(species), ncol = 2, byrow = FALSE)
-    colnames(species) = c("speciesnamesRaw", "speciesNamesEnd")
+    speciesList <-  matrix(data = rep(speciesList, 2),
+                       nrow = length(speciesList), ncol = 2, byrow = FALSE)
+    colnames(speciesList) = c("speciesnamesRaw", "speciesNamesEnd")
     
-  } else if(class(species) == "matrix") {
+  } else if(class(speciesList) == "matrix") {
     ## check column names
-    if(!setequal(colnames(species), c("speciesnamesRaw", "speciesNamesEnd")))
+    if(!setequal(colnames(speciesList), c("speciesnamesRaw", "speciesNamesEnd")))
       stop("names(species) must be c('speciesnamesRaw', 'speciesNamesEnd'), for raw species names and final species names respectively")
   } else stop("species must be a character vector or a two-column matrix")
   
@@ -43,7 +43,7 @@ loadkNNSpeciesLayers <- function(dataPath, rasterToMatch, studyArea,
     basename(cachePath)
   suffix <- paste0("_", suffix)
   
-  for (sp in species[, "speciesnamesRaw"]) {
+  for (sp in speciesList[, "speciesnamesRaw"]) {
     targetFile <- paste0("NFI_MODIS250m_kNN_Species_", sp, "_v0.tif")
     postProcessedFilename <- .suffix(targetFile, suffix = suffix)
     
@@ -62,12 +62,12 @@ loadkNNSpeciesLayers <- function(dataPath, rasterToMatch, studyArea,
   }
   
   ## Sum species that share same final name
-  if(any(duplicated(species[, 2]))) {
-    dubs <- species[duplicated(species[, 2]), 2]   ## get the duplicated final names
+  if(any(duplicated(speciesList[, 2]))) {
+    dubs <- speciesList[duplicated(speciesList[, 2]), 2]   ## get the duplicated final names
     
     ## make a list of species that will be summed (those with duplicated final names)
     spp2sum <- lapply(dubs, FUN = function(x) {
-      species[species[, 2] %in% dubs, 1]
+      speciesList[speciesList[, 2] %in% dubs, 1]
     })
     
     names(spp2sum) = dubs     
@@ -91,8 +91,8 @@ loadkNNSpeciesLayers <- function(dataPath, rasterToMatch, studyArea,
   }
   
   ## Rename species layers - note: merged species were renamed already
-  nameReplace <- as.matrix(species[,2])
-  rownames(nameReplace) = species[, 1]
+  nameReplace <- as.matrix(speciesList[,2])
+  rownames(nameReplace) = speciesList[, 1]
   
   toReplace <- names(species1)[names(species1) %in% rownames(nameReplace)]
   names(species1)[names(species1) %in% toReplace] <- nameReplace[toReplace, 1]
@@ -105,7 +105,7 @@ loadkNNSpeciesLayers <- function(dataPath, rasterToMatch, studyArea,
   species1[layerData < thresh] <- NULL
   
   ## return stack and final species matrix
-  list(specieslayers = stack(species1), species = species)
+  list(specieslayers = stack(species1), speciesList = speciesList)
 }
 
 
