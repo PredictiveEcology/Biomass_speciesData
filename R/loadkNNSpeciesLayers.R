@@ -13,7 +13,7 @@
 ## url: is the source url for the data, passed to prepInputs.
 
 loadkNNSpeciesLayers <- function(dataPath, rasterToMatch, studyArea, 
-                                 species = "all", thresh = 1, url, cachePath, ...) {
+                                 speciesList = "all", thresh = 1, url, cachePath, ...) {
   require(magrittr)
   
   ## check if species is a vector/matrix
