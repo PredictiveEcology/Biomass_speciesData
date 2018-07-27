@@ -16,7 +16,7 @@ defineModule(sim, list(
   timeunit = "year",
   citation = list("citation.bib"),
   documentation = list("README.txt", "BiomassSpeciesData.Rmd"),
-  reqdPkgs = list("googledrive", "data.table", "raster",
+  reqdPkgs = list("googledrive", "data.table", "raster", "magrittr",
                   "PredictiveEcology/SpaDES.core@development",
                   "PredictiveEcology/SpaDES.tools@development",
                   "PredictiveEcology/reproducible@development",
@@ -52,7 +52,7 @@ defineModule(sim, list(
     expectsInput(objectName = "CASFRIRas", objectClass = "RasterStack",
                  desc = "biomass percentage raster layers by species in Canada species map, created by Pickell et al., UBC, resolution 100m x 100m from LandSat and kNN based on CASFRI.",
                  sourceURL = "https://drive.google.com/file/d/1y0ofr2H0c_IEMIpx19xf3_VTBheY0C9h/view?usp=sharing")
-  ),
+    ),
   outputObjects = bind_rows(
     createsOutput(objectName = "specieslayers", objectClass = "RasterStack",
                   desc = "biomass percentage raster layers by species in Canada species map"),
@@ -140,6 +140,7 @@ Init <- function(sim) {
     message("Load CASFRI data and headers, and convert to long format, and define species groups")
     if (P(sim)$useParallel > 1) data.table::setDTthreads(P(sim)$useParallel)
     loadedCASFRI <- Cache(loadCASFRI, CASFRIRas, CASFRIattrFile, CASFRIheaderFile,
+                          speciesList,
                           # destinationPath = asPath(dPath),
                           # debugCache = "complete",
                           userTags = c("stable", "BigDataTable"))
@@ -164,6 +165,7 @@ Init <- function(sim) {
     CASFRISpStack <- Cache(CASFRItoSpRasts, CASFRIRas, loadedCASFRI, speciesList = sim$speciesList,
                            destinationPath = dPath, userTags = c("stable", "CASFRIstk"))
     
+    
     message("Overlay Pickell and CASFRI stacks")
     outStack <- Cache(overlayStacks, 
                       highQualityStack = CASFRISpStack, lowQualityStack = PickellSpStack, 
@@ -183,7 +185,7 @@ Init <- function(sim) {
     ## replace species layers
     sim$specieslayers <- specieslayers2
     message("Using overlaid datasets from CASFRI, Pickell and CFS kNN")
-  }
+    }
   
   return(invisible(sim))
 }
@@ -198,10 +200,10 @@ Init <- function(sim) {
     canadaMap <- Cache(getData, 'GADM', country = 'CAN', level = 1, path = asPath(dPath),
                        cacheRepo = getPaths()$cachePath, quick = FALSE) 
     smallPolygonCoords = list(coords = data.frame(x = c(-115.9022,-114.9815,-114.3677,-113.4470,-113.5084,-114.4291,-115.3498,-116.4547,-117.1298,-117.3140), 
-                                                 y = c(50.45516,50.45516,50.51654,50.51654,51.62139,52.72624,52.54210,52.48072,52.11243,51.25310)))
+                                                  y = c(50.45516,50.45516,50.51654,50.51654,51.62139,52.72624,52.54210,52.48072,52.11243,51.25310)))
     
     sim$shpStudyRegionFull <- SpatialPolygons(list(Polygons(list(Polygon(smallPolygonCoords$coords)), ID = "swAB_polygon")),
-                                          proj4string = crs(canadaMap))
+                                              proj4string = crs(canadaMap))
   }
   
   if (!suppliedElsewhere("shpStudySubRegion", sim)) {
@@ -211,8 +213,8 @@ Init <- function(sim) {
   
   if (!suppliedElsewhere("speciesList", sim)) {
     ## default to 6 species, one changing name, and two merged into one
-    sim$speciesList <- as.matrix(data.frame(speciesnamesRaw = c("Abie_Las", "Pice_Gla", "Pice_Mar", "Pinu_Ban", "Pinu_Con", "Popu_Tre"),
-                                       speciesNamesEnd =  c("Abie_sp", "Pice_gla", "Pice_mar", "Pinu_sp", "Pinu_sp", "Popu_tre")))
+    sim$speciesList <- as.matrix(data.frame(speciesNamesRaw = c("Abie_Las", "Pice_Gla", "Pice_Mar", "Pinu_Ban", "Pinu_Con", "Popu_Tre"),
+                                            speciesNamesEnd =  c("Abie_sp", "Pice_gla", "Pice_mar", "Pinu_sp", "Pinu_sp", "Popu_tre")))
   }
   
   if (!suppliedElsewhere("biomassMap", sim)) {
@@ -229,7 +231,7 @@ Init <- function(sim) {
                             filename2 = TRUE,
                             userTags = c(cacheTags, "biomassMap"))
   }
-
+  
   if (!suppliedElsewhere("specieslayers")) {
     specieslayersList <- Cache(loadkNNSpeciesLayers,
                                dataPath = asPath(dPath), 
@@ -243,7 +245,7 @@ Init <- function(sim) {
     
     sim$specieslayers <- specieslayersList$specieslayers
     sim$speciesList <- specieslayersList$speciesList
-
+    
   }
   
   return(invisible(sim))

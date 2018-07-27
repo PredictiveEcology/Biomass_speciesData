@@ -1,6 +1,6 @@
-loadCASFRI <- function(CASFRIRas, attrFile, headerFile) {
-  CASFRIattr <- fread(attrFile)
-
+loadCASFRI <- function(CASFRIRas, attrFile, headerFile, speciesList) {
+  CASFRIattr <- Cache(fread, attrFile)
+  
   ## WORKAROUND: maunally extracted the column names because the text file is
   ## very inconsistent (blank lines and uses mix of tabs and spaces as delimiters)
   CASFRIheader <- c("GID", "CAS_ID", "SPECIES_1", "SPECIES_PER_1", "SPECIES_2",
@@ -12,7 +12,7 @@ loadCASFRI <- function(CASFRIRas, attrFile, headerFile) {
                     "NON_FOR_VEG", "HAS_DST", "HAS_NFL", "HAS_LYR")
   #CASFRIheader <- fread(headerFile, skip = 14, nrows = 50, header = FALSE,
   #                      sep = "\t") ## doesn't work
-
+  
   setnames(CASFRIattr, CASFRIheader)
   set(CASFRIattr, , grep(CASFRIheader, pattern = "^SPECIES|^GID|^AGE", invert = TRUE), NULL)
   #setnames(CASFRIattr, CASFRIheader$V1)
@@ -32,8 +32,8 @@ loadCASFRI <- function(CASFRIRas, attrFile, headerFile) {
     set(CASFRIattr, which(CASFRIattr[[paste0("SPECIES_PER_", i)]] <= 15),
         paste0("SPECIES_", i), NA_character_)
   }
-
-  keepSpecies <- whSpecies(CASFRIattr, topN = 16) # 16 most abundant species
+  
+  keepSpecies <- whSpecies(CASFRIattr, speciesList) # select species not based on abundance but on user inputs
   CASFRIattrLong <- melt(CASFRIattr, id.vars = c("GID"),
                          measure.vars = paste0("SPECIES_", 1:5))
   CA2 <- melt(CASFRIattr, id.vars = c("GID"),
@@ -41,34 +41,56 @@ loadCASFRI <- function(CASFRIRas, attrFile, headerFile) {
   CASFRIattrLong[, pct := CA2$value]
   rm(CA2)
   CASFRIattrLong <- na.omit(CASFRIattrLong)
-
+  
   CASFRIdt <- CASFRIRas[] %>% data.table(GID = ., rastInd = 1:ncell(CASFRIRas))
   CASFRIdt <- CASFRIdt[, isNA := is.na(GID)]
   CASFRIdt <- CASFRIdt[isNA == FALSE]
   setkey(CASFRIdt, GID)
   set(CASFRIdt, , "isNA", NULL)
-
+  
   return(list(keepSpecies = keepSpecies, CASFRIattrLong = CASFRIattrLong,
               CASFRIdt = CASFRIdt))
 }
 
-whSpecies <- function(CASFRIattr, topN = 16) {
-  spAbund <- CASFRIattr[, .N, by = "SPECIES_1"] %>% setkeyv("N") #%>% print()
-  spAbund2 <- CASFRIattr[, .N, by = "SPECIES_2"] %>% setkeyv("N") #%>% print()
-  setorder(spAbund, -N)
-  setorder(spAbund2, N)
-  keepSpecies <- data.table(keepSpecies = spAbund$SPECIES_1[1:topN])
-  set(keepSpecies, , "spGroup", keepSpecies$keepSpecies)
+whSpecies <- function(CASFRIattr, speciesList) {
+  keepSpecies <- data.table(keepSpecies = unique(CASFRIattr$SPECIES_1))
+  
+  ## make compatible names
+  keepSpecies$keepSpecies2 <- substring(sub(" ", "_",  keepSpecies$keepSpecies), 1, 8) %>%
+    sub("_spp", "_sp", .)
+  
+  ## species groups according to user-supplied list
+  ## make compatible species names first
+  kNNnames <- lapply(strsplit(speciesList[,1], "_"), function(x) {
+    x[1] <- substring(x[1], 1, 4)
+    x[2] <- paste0(toupper(substring(x[2], 1, 1)), substring(x[2], 2, 3))
+    x
+  })
+  kNNnames <- sapply(kNNnames, function(x) paste(x, collapse = "_"))
+  
+  rownames(speciesList) = tolower(kNNnames)
+  matchNames <- tolower(keepSpecies[tolower(keepSpecies2) %in% rownames(speciesList), keepSpecies2])
+  keepSpecies[tolower(keepSpecies2) %in% rownames(speciesList), spGroup := speciesList[matchNames,2]]
+  
+  ## Because some sister species are usually poorly distinguished in the CASFRI data,
+  ## some need to be pooled.
+  ## add Picea engelmannii x glauca hybrid if one of the others is in the list
   setkey(keepSpecies, keepSpecies)
-  keepSpecies <- keepSpecies[!"Pseu menz"]
-  keepSpecies[c("Pice glau", "Pice enge", "Pice hybr", "Pice spp."), spGroup := "Pice_gla"]
-  keepSpecies["Pice mari", spGroup := "Pice_mar"]
-  keepSpecies["Betu papy", spGroup := "Betu_pap"]
-  keepSpecies[c("Abie bals", "Abie lasi"), spGroup := "Abie_sp"]
-  keepSpecies[c("Lari lari"), spGroup := "Lari_lar"]
-  keepSpecies[c("Pinu cont", "Pinu conl"), spGroup := "Pinu_sp"]
-  keepSpecies[c("Pinu bank", "Pinu spp."), spGroup := "Pinu_sp"]
-  keepSpecies[c("Popu trem", "Popu balb"), spGroup := "Popu_tre"]
+  if(any(speciesList[,2] %in% c("Pice_eng", "Pice_gla")))
+    keepSpecies["Pice hybr", spGroup := "Pice_sp"]
+  
+  ## add other Populus to Populus sp is there is Populus in the list
+  if(any(grep("Popu", speciesList[,2])))
+    keepSpecies[c("Popu spp.", "Popu balb", "Popu balt", "Popu hybr", "Popu delt"), spGroup := "Popu_tre"]
+  
+  ## add other Betula to Betula sp is there is Populus in the list
+  if(any(grep("Betu", speciesList[,2])))
+    keepSpecies[c("Betu papy", "Betu neoa" , "Betu spp."), spGroup := "Popu_tre"]
+  
+  ## Finally, filter species
+  ## (note that there might be more species than in the original data)
+  keepSpecies <- keepSpecies[!is.na(spGroup)]
+  
   keepSpecies
 }
 
@@ -83,25 +105,26 @@ makePickellStack <- function(PickellRaster, uniqueKeepSp, speciesList, destinati
   PickellSpp <- c("Pice_mar", "Pice_gla", "Pinu_sp", "Popu_tre")
   
   ## selected spp absent from Pickell's data
-  NA_Sp <- speciesList[,2][!speciesList[,2] %in% PickellSpp]
+  NA_Sp <- unique(speciesList[,2][!speciesList[,2] %in% PickellSpp])
   
   ## selected spp present in Pickell's data
-  OK_Sp <- speciesList[,2][speciesList[,2] %in% PickellSpp]
-    
+  OK_Sp <- unique(speciesList[,2][speciesList[,2] %in% PickellSpp])
+  
   ## All NA_Sp species codes should be in CASFRI spp list
-  if (!(all(NA_Sp %in% uniqueKeepSp)))
-    stop("Codes in loadedCASFRI have changed: expecting ", NA_Sp[!(NA_Sp %in% uniqueKeepSp)])
+  if (length(NA_Sp) > 1)
+    warning(cat("Not all species selected are in Pickell's data. Check if this is correct:\n",
+                paste0(NA_Sp, collapse = ", ")))
   
   ## empty rasters for NA_sp
-  for (N in lapply(NA_Sp, grep, uniqueKeepSp, value = TRUE)) {
+  for(N in NA_Sp){  
     message("  running ", N, ", assigning NA because not enough data")
     PickellStack[[N]] <- raster(PickellRaster) %>% setValues(x =  ., values = NA_integer_)
     PickellStack[[N]] <- Cache(writeRaster, PickellStack[[N]],
                                filename = asPath(file.path(destinationPath, paste0("Pickell", N, ".tif"))),
                                overwrite = TRUE, datatype = "INT2U")
   }
-
-  ## converting species codes into percentages
+  
+  ## converting existing species codes into percentages
   for(N in lapply(OK_Sp, grep, uniqueKeepSp, value = TRUE)) {
     message("  converting Pickell's codes to pct cover raster, for ", N)
     
@@ -148,11 +171,26 @@ makePickellStack <- function(PickellRaster, uniqueKeepSp, speciesList, destinati
 
 ## ---------------------------------------------------------------------------------
 
-## TODO filter CASFRI by species
-
 CASFRItoSpRasts <- function(CASFRIRas, loadedCASFRI, speciesList, destinationPath) {
   spRasts <- list()
   spRas <- raster(CASFRIRas) %>% setValues(., NA_integer_)
+  
+  ## selected spp absent from CASFRI data
+  NA_Sp <- unique(speciesList[,2][!speciesList[,2] %in% unique(loadedCASFRI$keepSpecies$spGroup)])
+  
+  ## All NA_Sp species codes should be in CASFRI spp list
+  if (length(NA_Sp) > 1)
+    warning(cat("Not all species selected are in loadedCASFRI. Check if this is correct:\n",
+                paste0(NA_Sp, collapse = ", ")))
+  
+  ## empty rasters for NA_sp
+  for(sp in NA_Sp){  
+    message("  running ", sp, ", assigning NA because not enough data")
+    spRasts[[sp]] <- spRas
+    spRasts[[sp]] <- Cache(writeRaster, spRasts[[sp]],
+                           filename = asPath(file.path(destinationPath, paste0("CASFRI", sp,".tif"))),
+                           overwrite = TRUE, datatype = "INT2U")
+  }
   
   sppTODO <- intersect(unique(loadedCASFRI$keepSpecies$spGroup), speciesList[,2])
   
@@ -167,24 +205,24 @@ CASFRItoSpRasts <- function(CASFRIRas, loadedCASFRI, speciesList, destinationPat
     rm(aa2)
     spRasts[[sp]][cc$rastInd] <- cc$V1
     message("  ", sp, " writing to disk")
-    rastTmp <- writeRaster(
-      spRasts[[sp]],
-      filename = asPath(file.path(destinationPath, paste0("CASFRI",sp,".tif"))),
-      datatype = "INT1U", overwrite = TRUE
-    )
-    if (is(rastTmp, "Raster")) { # Rasters need to have their disk-backed value assigned, but not shapefiles
+    
+    startCRS <- crs(spRasts[[sp]])
+    spRasts[[sp]] <- writeRaster(spRasts[[sp]],
+                                 filename = asPath(file.path(destinationPath, paste0("CASFRI", sp,".tif"))),
+                                 datatype = "INT1U", overwrite = TRUE)
+    
+    if (is(spRasts[[sp]], "Raster")) {
+      # Rasters need to have their disk-backed value assigned, but not shapefiles
       # This is a bug in writeRaster was spotted with crs of rastTmp became
       # +proj=lcc +lat_1=49 +lat_2=77 +lat_0=0 +lon_0=-95 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs
       # should have stayed at
       # +proj=lcc +lat_1=49 +lat_2=77 +lat_0=0 +lon_0=-95 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0
-      if (!identical(crs(rastTmp), crs(spRasts[[sp]])))
-        crs(rastTmp) <- crs(spRasts[[sp]])
-
-      spRasts[[sp]] <- rastTmp
+      if (!identical(startCRS, crs(spRasts[[sp]])))
+        crs(spRasts[[sp]]) <- startCRS
     }
     message("  ", sp, " done")
   }
-
+  
   stack(spRasts)
 }
 
@@ -207,15 +245,13 @@ overlayStacks <- function(highQualityStack, lowQualityStack, outputFilenameSuffi
   dtj[, HQ := any(!is.na(highQualityStack[[SPP]][])), by = 1:nrow(dtj)]
   dtj[, LQ := any(!is.na(lowQualityStack[[SPP]][])), by = 1:nrow(dtj)]
   
-  ## workaround: when overlay.fun is called from the environment objects 
-  ##    (e.g. raster stacks) are not found.
   stackRas <- list()
   for(x in 1:nrow(dtj)) { 
-     stackRas[[x]] <- dtj[x, overlay.fun(SPP, HQ, LQ, 
-                                         HQStack = highQualityStack,
-                                         LQStack = lowQualityStack,
-                                         fileSuff = outputFilenameSuffix,
-                                         destPath = destinationPath)]   ## this is not working unless the function is created in here maybe try piping
+    stackRas[[x]] <- dtj[x, overlay.fun(SPP, HQ, LQ, 
+                                        HQStack = highQualityStack,
+                                        LQStack = lowQualityStack,
+                                        fileSuff = outputFilenameSuffix,
+                                        destPath = destinationPath)]   ## this is not working unless the function is created in here maybe try piping
   }
   names(stackRas) = dtj$SPP
   
@@ -252,7 +288,7 @@ overlay.fun <- function(SPP, HQ, LQ, HQStack, LQStack,
         LQCurName <- basename(tempfile(fileext = ".tif"))
         LQStack[[SPP]][] <- as.integer(LQStack[[SPP]][])
         LQStack[[SPP]] <- writeRaster(LQStack[[SPP]], filename = LQCurName,
-                                                 datatype = "INT2U")
+                                      datatype = "INT2U")
       }
       
       LQRastInHQcrs <- projectExtent(LQStack, crs = crs(HQStack))
@@ -315,16 +351,19 @@ overlay.fun <- function(SPP, HQ, LQ, HQStack, LQStack,
   } else {
     
     ## if only HQ/LQ exist return one of them
+    ## if none have data return one of the empty to keep all layers
     if (HQ) {
       HQRast <- HQStack[[SPP]]
       names(HQRast) <- SPP
       return(HQRast)
-    }
-    
-    if(LQ) {
+    } else if(LQ) {
       LQRast <- LQStack[[SPP]]
       names(LQRast) <- SPP
       return(LQRast)
+    } else {
+      HQRast <- HQStack[[SPP]]
+      names(HQRast) <- SPP
+      return(HQRast)
     }
   }
 }
@@ -335,7 +374,7 @@ gdalwarp2 <- function(rasterWithDiskBacked, dstfilename, ...) {
   dstfilenameTmp <- .suffix(dstfilename, "_tmp")
   gdalwarp(srcfile = basename(filename(rasterWithDiskBacked)),
            dstfile = basename(dstfilenameTmp), ...)
-
+  
   rr <- raster(dstfilenameTmp)
   rr[] <- rr[]
   if (is.integer(rr[])) {
