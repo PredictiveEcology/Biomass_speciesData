@@ -214,12 +214,12 @@ Init <- function(sim) {
   }
   
   ## check projection
-  if (!identical(crsUsed, crs(sim$shpStudyRegionFull))) {
-    sim$shpStudyRegionFull <- spTransform(sim$shpStudyRegionFull, crsUsed) #faster without Cache
+  if (!identical(P(sim)$crsUsed, crs(sim$shpStudyRegionFull))) {
+    sim$shpStudyRegionFull <- spTransform(sim$shpStudyRegionFull, P(sim)$crsUsed) #faster without Cache
   }
   
-  if (!identical(crsUsed, crs(sim$shpStudySubRegion))) {
-    shpStudySubRegion <- spTransform(sim$shpStudySubRegion, crsUsed) #faster without Cache
+  if (!identical(P(sim)$crsUsed, crs(sim$shpStudySubRegion))) {
+    shpStudySubRegion <- spTransform(sim$shpStudySubRegion, P(sim)$crsUsed) #faster without Cache
   }
   
   if (!suppliedElsewhere("speciesList", sim)) {
