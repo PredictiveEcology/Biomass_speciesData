@@ -247,7 +247,7 @@ overlayStacks <- function(highQualityStack, lowQualityStack, outputFilenameSuffi
   
   stackRas <- list()
   for(x in 1:nrow(dtj)) { 
-    stackRas[[x]] <- dtj[x, overlay.fun(SPP, HQ, LQ, 
+    stackRas[[x]] <- dtj[x, overlay.fun(SPP, HQ, LQ, hqLarger = hqLarger,
                                         HQStack = highQualityStack,
                                         LQStack = lowQualityStack,
                                         fileSuff = outputFilenameSuffix,
@@ -271,7 +271,7 @@ overlayStacks <- function(highQualityStack, lowQualityStack, outputFilenameSuffi
 ## fileSuff: file suffix to save raster if there was overlaying
 ## destPath: directory for saved rasters
 
-overlay.fun <- function(SPP, HQ, LQ, HQStack, LQStack,
+overlay.fun <- function(SPP, HQ, LQ, HQStack, LQStack, hqLarger,
                         fileSuff, destPath) {
   
   ## if HQ & LQ have data, pool
