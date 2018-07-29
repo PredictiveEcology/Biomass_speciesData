@@ -70,7 +70,7 @@ doEvent.BiomassSpeciesData = function(sim, eventTime, eventType) {
   switch(
     eventType,
     init = {
-      sim <- Init(sim)
+      sim <- biomassDataInit(sim)
     },
     warning(paste("Undefined event type: '", current(sim)[1, "eventType", with = FALSE],
                   "' in module '", current(sim)[1, "moduleName", with = FALSE], "'", sep = ""))
@@ -79,7 +79,7 @@ doEvent.BiomassSpeciesData = function(sim, eventTime, eventType) {
 }
 
 ### template initialization
-Init <- function(sim) {
+biomassDataInit <- function(sim) {
   ## load Pickell Pickell et al. and CASFRI
   if (!exists("sessionCacheFile")) {
     sessionCacheFile <<- tempfile()
