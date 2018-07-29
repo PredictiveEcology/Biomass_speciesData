@@ -237,6 +237,7 @@ biomassDataInit <- function(sim) {
                                                "NFI_MODIS250m_kNN_Structure_Biomass_TotalLiveAboveGround_v0.zip")),
                             destinationPath = asPath(dPath),
                             studyArea = sim$shpStudySubRegion,
+                            useSAcrs = TRUE,
                             method = "bilinear",
                             datatype = "INT2U",
                             filename2 = TRUE,
