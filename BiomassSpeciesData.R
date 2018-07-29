@@ -19,7 +19,7 @@ defineModule(sim, list(
   reqdPkgs = list("googledrive", "data.table", "raster", "magrittr",
                   "PredictiveEcology/SpaDES.core@development",
                   "PredictiveEcology/SpaDES.tools@development",
-                  "PredictiveEcology/reproducible@development",
+                  "CeresBarros/reproducible@development",
                   "ygc2l/webDatabases"),
   parameters = rbind(
     #defineParameter("paramName", "paramClass", value, min, max, "parameter description"),
