@@ -23,6 +23,8 @@ defineModule(sim, list(
                   "ygc2l/webDatabases"),
   parameters = rbind(
     #defineParameter("paramName", "paramClass", value, min, max, "parameter description"),
+    defineParameter("crsUsed", "character", "+proj=lcc +lat_1=49 +lat_2=77 +lat_0=0 +lon_0=-95 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0",
+                    NA, NA, "CRS to be used. Defaults to the biomassMap projection"),
     defineParameter(".plotInitialTime", "numeric", NA, NA, NA, "This describes the simulation time at which the first plot event should occur"),
     defineParameter(".plotInterval", "numeric", NA, NA, NA, "This describes the simulation time interval between plot events"),
     defineParameter(".saveInitialTime", "numeric", NA, NA, NA, "This describes the simulation time at which the first save event should occur"),
@@ -209,6 +211,15 @@ Init <- function(sim) {
   if (!suppliedElsewhere("shpStudySubRegion", sim)) {
     message("'shpStudySubRegion' was not provided by user. Using the same as 'shpStudyRegionFull'")
     sim$shpStudySubRegion <- sim$shpStudyRegionFull
+  }
+  
+  ## check projection
+  if (!identical(crsUsed, crs(sim$shpStudyRegionFull))) {
+    sim$shpStudyRegionFull <- spTransform(sim$shpStudyRegionFull, crsUsed) #faster without Cache
+  }
+  
+  if (!identical(crsUsed, crs(sim$shpStudySubRegion))) {
+    shpStudySubRegion <- spTransform(sim$shpStudySubRegion, crsUsed) #faster without Cache
   }
   
   if (!suppliedElsewhere("speciesList", sim)) {
