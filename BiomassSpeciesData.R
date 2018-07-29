@@ -219,7 +219,7 @@ biomassDataInit <- function(sim) {
   }
   
   if (!identical(P(sim)$crsUsed, crs(sim$shpStudySubRegion))) {
-    shpStudySubRegion <- spTransform(sim$shpStudySubRegion, P(sim)$crsUsed) #faster without Cache
+    sim$shpStudySubRegion <- spTransform(sim$shpStudySubRegion, P(sim)$crsUsed) #faster without Cache
   }
   
   if (!suppliedElsewhere("speciesList", sim)) {
