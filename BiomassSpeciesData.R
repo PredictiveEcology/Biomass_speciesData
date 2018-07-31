@@ -172,7 +172,7 @@ biomassDataInit <- function(sim) {
     outStack <- Cache(overlayStacks, 
                       highQualityStack = CASFRISpStack, lowQualityStack = PickellSpStack, 
                       outputFilenameSuffix = "CASFRI_Pickell", destinationPath = dPath,
-                      userTags = c("stable", "Pickell_CASFRI")) 
+                      userTags = c("stable", "Pickell_CASFRI"), useCache = TRUE) 
     
     crs(outStack) <- crs(sim$biomassMap) # bug in writeRaster
     
@@ -181,7 +181,7 @@ biomassDataInit <- function(sim) {
                             highQualityStack = outStack, lowQualityStack = sim$specieslayers,
                             outputFilenameSuffix = "CASFRI_Pickell_KNN",
                             destinationPath = dPath, 
-                            userTags = c("stable", "CASFRI_Pickell_KNN"))
+                            userTags = c("stable", "CASFRI_Pickell_KNN"), useCache = TRUE)
     crs(specieslayers2) <- crs(sim$biomassMap)
     
     ## replace species layers
