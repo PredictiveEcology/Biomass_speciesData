@@ -214,11 +214,13 @@ biomassDataInit <- function(sim) {
   }
   
   ## check projection
-  if (!identical(P(sim)$.crsUsed, crs(sim$shpStudyRegionFull))) {
+  if (!identical(as.character(P(sim)$.crsUsed), 
+                 as.character(crs(sim$shpStudyRegionFull)))) {
     sim$shpStudyRegionFull <- spTransform(sim$shpStudyRegionFull, P(sim)$.crsUsed) #faster without Cache
   }
   
-  if (!identical(P(sim)$.crsUsed, crs(sim$shpStudySubRegion))) {
+  if (!identical(as.character(P(sim)$.crsUsed), 
+                 as.character(crs(sim$shpStudySubRegion)))) {
     sim$shpStudySubRegion <- spTransform(sim$shpStudySubRegion, P(sim)$.crsUsed) #faster without Cache
   }
   
