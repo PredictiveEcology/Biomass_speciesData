@@ -23,11 +23,6 @@ Defaults to extracting 5 species/genera Abies sp., Picea glauca, Picea mariana, 
 Intended for use with the Land-R-Biomass* suite of models - if LandWeb project permissions are valid, then the full datasets used for the LandWeb can be used here.
 
 ```{r}
-# devtools::install_github("PredictiveEcology/reproducible@development", force = TRUE) # require bugfix for one step
-# devtools::install_github("PredictiveEcology/SpaDES.tools@development", force = TRUE)
-# devtools::install_github("PredictiveEcology/SpaDES.core@development", force = TRUE)
-# devtools::install_github("ygc2l/webDatabases") # For fetching KNN layers from PFC repo
-
 library(magrittr)
 library(raster)
 library(SpaDES)

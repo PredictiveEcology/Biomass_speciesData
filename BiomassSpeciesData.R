@@ -16,9 +16,15 @@ defineModule(sim, list(
   timeunit = "year",
   citation = list("citation.bib"),
   documentation = list("README.txt", "BiomassSpeciesData.Rmd"),
-  reqdPkgs = list("googledrive", "reproducible", "SpaDES.core", "SpaDES.tools", "data.table", "raster"),
+  reqdPkgs = list("googledrive", "data.table", "raster", "magrittr",
+                  "PredictiveEcology/SpaDES.core@development",
+                  "PredictiveEcology/SpaDES.tools@development",
+                  "CeresBarros/reproducible@development",
+                  "ygc2l/webDatabases"),
   parameters = rbind(
     #defineParameter("paramName", "paramClass", value, min, max, "parameter description"),
+    defineParameter(".crsUsed", "character", "+proj=lcc +lat_1=49 +lat_2=77 +lat_0=0 +lon_0=-95 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0",
+                    NA, NA, "CRS to be used. Defaults to the biomassMap projection"),
     defineParameter(".plotInitialTime", "numeric", NA, NA, NA, "This describes the simulation time at which the first plot event should occur"),
     defineParameter(".plotInterval", "numeric", NA, NA, NA, "This describes the simulation time interval between plot events"),
     defineParameter(".saveInitialTime", "numeric", NA, NA, NA, "This describes the simulation time at which the first save event should occur"),
@@ -48,11 +54,11 @@ defineModule(sim, list(
     expectsInput(objectName = "CASFRIRas", objectClass = "RasterStack",
                  desc = "biomass percentage raster layers by species in Canada species map, created by Pickell et al., UBC, resolution 100m x 100m from LandSat and kNN based on CASFRI.",
                  sourceURL = "https://drive.google.com/file/d/1y0ofr2H0c_IEMIpx19xf3_VTBheY0C9h/view?usp=sharing")
-  ),
+    ),
   outputObjects = bind_rows(
     createsOutput(objectName = "specieslayers", objectClass = "RasterStack",
                   desc = "biomass percentage raster layers by species in Canada species map"),
-    createsOutput(objectName = "spciesList", objectClass =  c("character", "matrix"),
+    createsOutput(objectName = "speciesList", objectClass =  c("character", "matrix"),
                   desc = "vector or matrix of species to select. If matrix, should have two columns of raw and 'end' species names")
   )
 ))
@@ -64,7 +70,7 @@ doEvent.BiomassSpeciesData = function(sim, eventTime, eventType) {
   switch(
     eventType,
     init = {
-      sim <- Init(sim)
+      sim <- biomassDataInit(sim)
     },
     warning(paste("Undefined event type: '", current(sim)[1, "eventType", with = FALSE],
                   "' in module '", current(sim)[1, "moduleName", with = FALSE], "'", sep = ""))
@@ -73,7 +79,7 @@ doEvent.BiomassSpeciesData = function(sim, eventTime, eventType) {
 }
 
 ### template initialization
-Init <- function(sim) {
+biomassDataInit <- function(sim) {
   ## load Pickell Pickell et al. and CASFRI
   if (!exists("sessionCacheFile")) {
     sessionCacheFile <<- tempfile()
@@ -136,6 +142,7 @@ Init <- function(sim) {
     message("Load CASFRI data and headers, and convert to long format, and define species groups")
     if (P(sim)$useParallel > 1) data.table::setDTthreads(P(sim)$useParallel)
     loadedCASFRI <- Cache(loadCASFRI, CASFRIRas, CASFRIattrFile, CASFRIheaderFile,
+                          speciesList,
                           # destinationPath = asPath(dPath),
                           # debugCache = "complete",
                           userTags = c("stable", "BigDataTable"))
@@ -160,11 +167,12 @@ Init <- function(sim) {
     CASFRISpStack <- Cache(CASFRItoSpRasts, CASFRIRas, loadedCASFRI, speciesList = sim$speciesList,
                            destinationPath = dPath, userTags = c("stable", "CASFRIstk"))
     
+    
     message("Overlay Pickell and CASFRI stacks")
     outStack <- Cache(overlayStacks, 
                       highQualityStack = CASFRISpStack, lowQualityStack = PickellSpStack, 
                       outputFilenameSuffix = "CASFRI_Pickell", destinationPath = dPath,
-                      userTags = c("stable", "Pickell_CASFRI")) 
+                      userTags = c("stable", "Pickell_CASFRI"), useCache = TRUE) 
     
     crs(outStack) <- crs(sim$biomassMap) # bug in writeRaster
     
@@ -173,13 +181,13 @@ Init <- function(sim) {
                             highQualityStack = outStack, lowQualityStack = sim$specieslayers,
                             outputFilenameSuffix = "CASFRI_Pickell_KNN",
                             destinationPath = dPath, 
-                            userTags = c("stable", "CASFRI_Pickell_KNN"))
+                            userTags = c("stable", "CASFRI_Pickell_KNN"), useCache = TRUE)
     crs(specieslayers2) <- crs(sim$biomassMap)
     
     ## replace species layers
     sim$specieslayers <- specieslayers2
     message("Using overlaid datasets from CASFRI, Pickell and CFS kNN")
-  }
+    }
   
   return(invisible(sim))
 }
@@ -194,10 +202,10 @@ Init <- function(sim) {
     canadaMap <- Cache(getData, 'GADM', country = 'CAN', level = 1, path = asPath(dPath),
                        cacheRepo = getPaths()$cachePath, quick = FALSE) 
     smallPolygonCoords = list(coords = data.frame(x = c(-115.9022,-114.9815,-114.3677,-113.4470,-113.5084,-114.4291,-115.3498,-116.4547,-117.1298,-117.3140), 
-                                                 y = c(50.45516,50.45516,50.51654,50.51654,51.62139,52.72624,52.54210,52.48072,52.11243,51.25310)))
+                                                  y = c(50.45516,50.45516,50.51654,50.51654,51.62139,52.72624,52.54210,52.48072,52.11243,51.25310)))
     
     sim$shpStudyRegionFull <- SpatialPolygons(list(Polygons(list(Polygon(smallPolygonCoords$coords)), ID = "swAB_polygon")),
-                                          proj4string = crs(canadaMap))
+                                              proj4string = crs(canadaMap))
   }
   
   if (!suppliedElsewhere("shpStudySubRegion", sim)) {
@@ -205,10 +213,21 @@ Init <- function(sim) {
     sim$shpStudySubRegion <- sim$shpStudyRegionFull
   }
   
+  ## check projection
+  if (!identical(as.character(P(sim)$.crsUsed), 
+                 as.character(crs(sim$shpStudyRegionFull)))) {
+    sim$shpStudyRegionFull <- spTransform(sim$shpStudyRegionFull, P(sim)$.crsUsed) #faster without Cache
+  }
+  
+  if (!identical(as.character(P(sim)$.crsUsed), 
+                 as.character(crs(sim$shpStudySubRegion)))) {
+    sim$shpStudySubRegion <- spTransform(sim$shpStudySubRegion, P(sim)$.crsUsed) #faster without Cache
+  }
+  
   if (!suppliedElsewhere("speciesList", sim)) {
     ## default to 6 species, one changing name, and two merged into one
-    sim$speciesList <- as.matrix(data.frame(speciesnamesRaw = c("Abie_Las", "Pice_Gla", "Pice_Mar", "Pinu_Ban", "Pinu_Con", "Popu_Tre"),
-                                       speciesNamesEnd =  c("Abie_sp", "Pice_gla", "Pice_mar", "Pinu_sp", "Pinu_sp", "Popu_tre")))
+    sim$speciesList <- as.matrix(data.frame(speciesNamesRaw = c("Abie_Las", "Pice_Gla", "Pice_Mar", "Pinu_Ban", "Pinu_Con", "Popu_Tre"),
+                                            speciesNamesEnd =  c("Abie_sp", "Pice_gla", "Pice_mar", "Pinu_sp", "Pinu_sp", "Popu_tre")))
   }
   
   if (!suppliedElsewhere("biomassMap", sim)) {
@@ -220,12 +239,13 @@ Init <- function(sim) {
                                                "NFI_MODIS250m_kNN_Structure_Biomass_TotalLiveAboveGround_v0.zip")),
                             destinationPath = asPath(dPath),
                             studyArea = sim$shpStudySubRegion,
+                            useSAcrs = TRUE,
                             method = "bilinear",
                             datatype = "INT2U",
                             filename2 = TRUE,
                             userTags = c(cacheTags, "biomassMap"))
   }
-
+  
   if (!suppliedElsewhere("specieslayers")) {
     specieslayersList <- Cache(loadkNNSpeciesLayers,
                                dataPath = asPath(dPath), 
@@ -239,7 +259,7 @@ Init <- function(sim) {
     
     sim$specieslayers <- specieslayersList$specieslayers
     sim$speciesList <- specieslayersList$speciesList
-
+    
   }
   
   return(invisible(sim))
