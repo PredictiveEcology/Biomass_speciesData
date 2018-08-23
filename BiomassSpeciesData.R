@@ -248,7 +248,7 @@ biomassDataInit <- function(sim) {
   
   if (!suppliedElsewhere("specieslayers")) {
     specieslayersList <- Cache(loadkNNSpeciesLayers,
-                               dataPath = asPath(dPath), 
+                               dPath = asPath(dPath), 
                                rasterToMatch = sim$biomassMap, 
                                studyArea = sim$shpStudyRegionFull,
                                speciesList = sim$speciesList,
