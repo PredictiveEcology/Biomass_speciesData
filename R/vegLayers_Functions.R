@@ -76,15 +76,15 @@ whSpecies <- function(CASFRIattr, speciesList) {
   ## some need to be pooled.
   ## add Picea engelmannii x glauca hybrid if one of the others is in the list
   setkey(keepSpecies, keepSpecies)
-  if(any(speciesList[,2] %in% c("Pice_eng", "Pice_gla")))
+  if (any(speciesList[,2] %in% c("Pice_eng", "Pice_gla")))
     keepSpecies["Pice hybr", spGroup := "Pice_sp"]
   
   ## add other Populus to Populus sp is there is Populus in the list
-  if(any(grep("Popu", speciesList[,2])))
+  if (any(grep("Popu", speciesList[,2])))
     keepSpecies[c("Popu spp.", "Popu balb", "Popu balt", "Popu hybr", "Popu delt"), spGroup := "Popu_tre"]
   
   ## add other Betula to Betula sp is there is Populus in the list
-  if(any(grep("Betu", speciesList[,2])))
+  if (any(grep("Betu", speciesList[,2])))
     keepSpecies[c("Betu papy", "Betu neoa" , "Betu spp."), spGroup := "Popu_tre"]
   
   ## Finally, filter species
@@ -116,7 +116,7 @@ makePickellStack <- function(PickellRaster, uniqueKeepSp, speciesList, destinati
                 paste0(NA_Sp, collapse = ", ")))
   
   ## empty rasters for NA_sp
-  for(N in NA_Sp){  
+  for(N in NA_Sp) {  
     message("  running ", N, ", assigning NA because not enough data")
     PickellStack[[N]] <- raster(PickellRaster) %>% setValues(x =  ., values = NA_integer_)
     PickellStack[[N]] <- Cache(writeRaster, PickellStack[[N]],
@@ -128,7 +128,7 @@ makePickellStack <- function(PickellRaster, uniqueKeepSp, speciesList, destinati
   for(N in lapply(OK_Sp, grep, uniqueKeepSp, value = TRUE)) {
     message("  converting Pickell's codes to pct cover raster, for ", N)
     
-    if(N == "Pice_gla") {
+    if (N == "Pice_gla") {
       PickellStack[[N]] <- raster(PickellRaster) %>% setValues(NA_integer_)
       PickellStack[[N]][PickellRaster[] %in% c(41, 42, 43)] <- 60
       PickellStack[[N]][PickellRaster[] %in% c(44)] <- 80
@@ -137,7 +137,7 @@ makePickellStack <- function(PickellRaster, uniqueKeepSp, speciesList, destinati
                                  filename = asPath(file.path(destinationPath, paste0("Pickell", N, ".tif"))),
                                  overwrite = TRUE, datatype = "INT1U")
     }
-    if(N == "Pice_mar") {
+    if (N == "Pice_mar") {
       PickellStack[[N]] <- raster(PickellRaster) %>% setValues(NA_integer_)
       PickellStack[[N]][PickellRaster[] %in% c(23, 26)] <- 60
       PickellStack[[N]][PickellRaster[] %in% c(22)] <- 80
@@ -146,7 +146,7 @@ makePickellStack <- function(PickellRaster, uniqueKeepSp, speciesList, destinati
                                  filename = asPath(file.path(destinationPath, paste0("Pickell", N, ".tif"))),
                                  overwrite = TRUE, datatype = "INT1U")
     }
-    if(N == "Pinu_sp") {
+    if (N == "Pinu_sp") {
       PickellStack[[N]] <- raster(PickellRaster) %>% setValues(NA_integer_)
       PickellStack[[N]][PickellRaster[] %in% c(31, 32, 34)] <- 60
       PickellStack[[N]][PickellRaster[] %in% c(33)] <- 80
@@ -155,7 +155,7 @@ makePickellStack <- function(PickellRaster, uniqueKeepSp, speciesList, destinati
                                  filename = asPath(file.path(destinationPath, paste0("Pickell", N, ".tif"))),
                                  overwrite = TRUE, datatype = "INT1U")
     }
-    if(N == "Popu_tre") {
+    if (N == "Popu_tre") {
       PickellStack[[N]] <- raster(PickellRaster) %>% setValues(NA_integer_)
       PickellStack[[N]][PickellRaster[] %in% c(14)] <- 60
       PickellStack[[N]][PickellRaster[] %in% c(11)] <- 80
@@ -179,12 +179,12 @@ CASFRItoSpRasts <- function(CASFRIRas, loadedCASFRI, speciesList, destinationPat
   NA_Sp <- unique(speciesList[,2][!speciesList[,2] %in% unique(loadedCASFRI$keepSpecies$spGroup)])
   
   ## All NA_Sp species codes should be in CASFRI spp list
-  if (length(NA_Sp) > 1)
+  if (length(NA_Sp) > 0)
     warning(cat("Not all species selected are in loadedCASFRI. Check if this is correct:\n",
                 paste0(NA_Sp, collapse = ", ")))
   
   ## empty rasters for NA_sp
-  for(sp in NA_Sp){  
+  for(sp in NA_Sp) {  
     message("  running ", sp, ", assigning NA because not enough data")
     spRasts[[sp]] <- spRas
     spRasts[[sp]] <- Cache(writeRaster, spRasts[[sp]],
@@ -356,7 +356,7 @@ overlay.fun <- function(SPP, HQ, LQ, HQStack, LQStack, hqLarger,
       HQRast <- HQStack[[SPP]]
       names(HQRast) <- SPP
       return(HQRast)
-    } else if(LQ) {
+    } else if (LQ) {
       LQRast <- LQStack[[SPP]]
       names(LQRast) <- SPP
       return(LQRast)
