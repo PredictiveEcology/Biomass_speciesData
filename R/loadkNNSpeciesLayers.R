@@ -2,7 +2,7 @@
 ## Function to load kNN species layers from online data repository
 ## ------------------------------------------------------------------
 
-## dataPath: directory to data folder
+## dPath: directory to data folder
 ## rasterToMatch: passed to prepInputs
 ## studyArea: passed to prepInputs
 ## species is either a character vector of species names to download,
@@ -12,11 +12,18 @@
 ##    Defaults to 1
 ## url: is the source url for the data, passed to prepInputs.
 
-loadkNNSpeciesLayers <- function(dataPath, rasterToMatch, studyArea, 
+loadkNNSpeciesLayers <- function(dPath, rasterToMatch, studyArea, 
                                  speciesList = "all", thresh = 1, url, cachePath, ...) {
   
+  if(!file.exists(file.path(dPath, "kNN-Species.tar"))){
+    httr::GET(url = "http://tree.pfc.forestry.ca/kNN-Species.tar", 
+              httr::user_agent(getOption("reproducible.useragent")), 
+              httr::progress(), 
+              httr::write_disk(file.path(dPath, "kNN-Species.tar")))
+  }
+  
   ## get all kNN species
-  allSpp <- Cache(untar, tarfile = file.path(dataPath, "kNN-Species.tar"), list = TRUE) 
+  allSpp <- Cache(untar, tarfile = file.path(dPath, "kNN-Species.tar"), list = TRUE) 
   allSpp <- allSpp %>%
     grep(".zip", ., value = TRUE) %>%
     sub("_v0.zip", "", .) %>%
@@ -68,7 +75,7 @@ loadkNNSpeciesLayers <- function(dataPath, rasterToMatch, studyArea,
       targetFile = targetFile,
       url = url,
       archive = asPath(c("kNN-Species.tar", paste0("NFI_MODIS250m_kNN_Species_", sp, "_v0.zip"))),
-      destinationPath = asPath(dataPath),
+      destinationPath = asPath(dPath),
       fun = "raster::raster",
       studyArea = studyArea,
       rasterToMatch = rasterToMatch,
@@ -102,7 +109,7 @@ loadkNNSpeciesLayers <- function(dataPath, rasterToMatch, studyArea,
       sumSpecies <- spp2sum[[i]]
       newLayerName <- names(spp2sum)[i]
       
-      fname <- .suffix(file.path(dataPath, paste0("KNN", newLayerName, ".tif")), suffix)
+      fname <- .suffix(file.path(dPath, paste0("KNN", newLayerName, ".tif")), suffix)
       a <- Cache(sumRastersBySpecies,
                  speciesLayers = species1[sumSpecies], 
                  newLayerName = newLayerName,
