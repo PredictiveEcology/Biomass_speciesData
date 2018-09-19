@@ -104,48 +104,45 @@ biomassDataInit <- function(sim) {
   
   if (is.null(aaa)) { # means got the file
     dPath <- dataPath(sim)
-    cacheTags <- c(currentModule(sim), "event:init", "function:prepInputs")
+    cacheTags <- c(currentModule(sim), "event:init")
     
     message("  Loading CASFRI and Pickell et al. layers")
-    Pickell <- Cache(prepInputs,
-                     targetFile = asPath("SPP_1990_100m_NAD83_LCC_BYTE_VEG_NO_TIES_FILLED_FINAL.dat"),
-                     archive = asPath("SPP_1990_100m_NAD83_LCC_BYTE_VEG_NO_TIES_FILLED_FINAL.zip"),
-                     url = extractURL(objectName = "Pickell"),
-                     alsoExtract = asPath("SPP_1990_100m_NAD83_LCC_BYTE_VEG_NO_TIES_FILLED_FINAL.hdr"),
-                     destinationPath = asPath(dPath),
-                     fun = "raster::raster",
-                     studyArea = sim$shpStudySubRegion,
-                     rasterToMatch = sim$biomassMap,
-                     method = "bilinear",
-                     datatype = "INT2U",
-                     filename2 = TRUE,
-                     userTags = c(cacheTags, "Pickell"))#, notOlderThan = Sys.time())
+    ## Ceres: i keep having problems with cached prepInputs here. outside Cache removed
+    Pickell <- prepInputs(targetFile = asPath("SPP_1990_100m_NAD83_LCC_BYTE_VEG_NO_TIES_FILLED_FINAL.dat"),
+                          archive = asPath("SPP_1990_100m_NAD83_LCC_BYTE_VEG_NO_TIES_FILLED_FINAL.zip"),
+                          url = extractURL(objectName = "Pickell"),
+                          alsoExtract = asPath("SPP_1990_100m_NAD83_LCC_BYTE_VEG_NO_TIES_FILLED_FINAL.hdr"),
+                          destinationPath = asPath(dPath),
+                          fun = "raster::raster",
+                          studyArea = sim$shpStudySubRegion,
+                          rasterToMatch = sim$biomassMap,
+                          method = "bilinear",
+                          datatype = "INT2U",
+                          filename2 = TRUE,
+                          userTags = c(cacheTags, "function:prepInputs", "Pickell"))
     
     CASFRITifFile <- asPath(file.path(dPath, "Landweb_CASFRI_GIDs.tif"))
     CASFRIattrFile <- asPath(file.path(dPath, "Landweb_CASFRI_GIDs_attributes3.csv"))
     CASFRIheaderFile <- asPath(file.path(dPath,"Landweb_CASFRI_GIDs_README.txt"))
     
-    CASFRIRas <- Cache(prepInputs,
-                       targetFile = asPath("Landweb_CASFRI_GIDs.tif"),
-                       archive = asPath("CASFRI for Landweb.zip"),
-                       url = extractURL(objectName = "CASFRIRas"),
-                       alsoExtract = c(CASFRITifFile, CASFRIattrFile, CASFRIheaderFile),
-                       destinationPath = asPath(dPath),
-                       fun = "raster::raster",
-                       studyArea = sim$shpStudySubRegion,
-                       rasterToMatch = sim$biomassMap,
-                       method = "bilinear",
-                       datatype = "INT4U",
-                       filename2 = TRUE,
-                       userTags =  c(cacheTags, "CASFRIRas"))
+    CASFRIRas <- prepInputs(targetFile = asPath("Landweb_CASFRI_GIDs.tif"),
+                            archive = asPath("CASFRI for Landweb.zip"),
+                            url = extractURL(objectName = "CASFRIRas"),
+                            alsoExtract = c(CASFRITifFile, CASFRIattrFile, CASFRIheaderFile),
+                            destinationPath = asPath(dPath),
+                            fun = "raster::raster",
+                            studyArea = sim$shpStudySubRegion,
+                            rasterToMatch = sim$biomassMap,
+                            method = "bilinear",
+                            datatype = "INT4U",
+                            filename2 = TRUE,
+                            userTags =  c(cacheTags, "function:prepInputs", "CASFRIRas"))
     
     message("Load CASFRI data and headers, and convert to long format, and define species groups")
     if (P(sim)$useParallel > 1) data.table::setDTthreads(P(sim)$useParallel)
     loadedCASFRI <- Cache(loadCASFRI, CASFRIRas, CASFRIattrFile, CASFRIheaderFile,
                           speciesList,
-                          # destinationPath = asPath(dPath),
-                          # debugCache = "complete",
-                          userTags = c("stable", "BigDataTable"))
+                          userTags = c("function:loadCASFRI", "BigDataTable"))
     
     message("Make stack of species layers from Pickell's layer")
     
@@ -159,7 +156,8 @@ biomassDataInit <- function(sim) {
     
     PickellSpStack <- Cache(makePickellStack, #paths = lapply(paths(sim), basename),   # paths was throwing an error in cache 
                             PickellRaster = Pickell, uniqueKeepSp, speciesList = sim$speciesList,
-                            destinationPath = dPath, userTags = c("stable", "PickellStack"))
+                            destinationPath = dPath, 
+                            userTags = c(cacheTags, "function:makePickellStack", "PickellStack"))
     
     crs(PickellSpStack) <- crs(sim$biomassMap) # bug in writeRaster
     
@@ -172,7 +170,7 @@ biomassDataInit <- function(sim) {
     outStack <- Cache(overlayStacks, 
                       highQualityStack = CASFRISpStack, lowQualityStack = PickellSpStack, 
                       outputFilenameSuffix = "CASFRI_Pickell", destinationPath = dPath,
-                      userTags = c("stable", "Pickell_CASFRI"), useCache = TRUE) 
+                      userTags = c(cacheTags, "function:overlayStacks", "Pickell_CASFRI"), useCache = TRUE) 
     
     crs(outStack) <- crs(sim$biomassMap) # bug in writeRaster
     
@@ -181,7 +179,7 @@ biomassDataInit <- function(sim) {
                             highQualityStack = outStack, lowQualityStack = sim$specieslayers,
                             outputFilenameSuffix = "CASFRI_Pickell_KNN",
                             destinationPath = dPath, 
-                            userTags = c("stable", "CASFRI_Pickell_KNN"), useCache = TRUE)
+                            userTags = c(cacheTags, "function:overlayStacks", "CASFRI_Pickell_KNN"), useCache = TRUE)
     crs(specieslayers2) <- crs(sim$biomassMap)
     
     ## replace species layers
