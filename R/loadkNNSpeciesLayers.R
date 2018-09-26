@@ -41,6 +41,17 @@ loadkNNSpeciesLayers <- function(dPath, rasterToMatch, studyArea,
                            nrow = length(speciesList), ncol = 2, byrow = FALSE)
     colnames(speciesList) = c("speciesNamesRaw", "speciesNamesEnd")
     
+    ## change to Genu_spp format
+    namesEnd <- paste0(toupper(substring(speciesList[,2], 1, 1)), tolower(substring(speciesList[,2], 2, 4)),
+                       "_", tolower(substring(gsub("^[[:alpha:]]*_|_[[:alpha:]]*$", "", speciesList[,2]), 1, 3)))
+    
+    ## if sub species are to kept separate, "add them back"
+    if (any(grepl("_.*_", speciesList[,2]))) {
+      namesEnd[grepl("_.*_", speciesList[,2])] <- namesEnd[grepl("_.*_", speciesList[,2])] %>%
+        paste0(., "_", tolower(sub(".*_", "", speciesList[grepl("_.*_", speciesList[,2]), 2])))
+    }
+    speciesList[, 2] <- namesEnd
+    
   } else if(class(speciesList) == "matrix") {
     ## check column names
     if(!setequal(colnames(speciesList), c("speciesNamesRaw", "speciesNamesEnd")))
@@ -136,6 +147,9 @@ loadkNNSpeciesLayers <- function(dPath, rasterToMatch, studyArea,
   
   ## remove layers that had < thresh pixels with biomass
   species1[layerData < thresh] <- NULL
+  
+  ## update speciesList
+  speciesList <- speciesList[speciesList[, 2] %in% names(species1),]
   
   ## return stack and final species matrix
   list(specieslayers = stack(species1), speciesList = speciesList)
