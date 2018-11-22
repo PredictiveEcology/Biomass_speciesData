@@ -43,19 +43,19 @@ if(handDrawMap) {
   Plot(LIM_SA, addTo = "canadaMap", col = "green")
   
   ## hand-drawn study area
-  if(!exists("shpStudyRegionFull")) {
-    message("Since there is no object called 'shpStudyRegionFull', please draw a study area with 10 points")
+  if(!exists("studyAreaLarge")) {
+    message("Since there is no object called 'studyAreaLarge', please draw a study area with 10 points")
     severalrandompoints <- clickCoordinates(10)
-    if(startsWith(attr(severalrandompoints, "tags"), "cache")) message("Taking shpStudyRegionFull from Cache")
-    shpStudyRegionFull <- SpatialPolygons(list(Polygons(list(Polygon(severalrandompoints$coords)), ID = "handDrawnPoly")),
+    if(startsWith(attr(severalrandompoints, "tags"), "cache")) message("Taking studyAreaLarge from Cache")
+    studyAreaLarge <- SpatialPolygons(list(Polygons(list(Polygon(severalrandompoints$coords)), ID = "handDrawnPoly")),
                                           proj4string = crs(canadaMap))
   }
 }
 
 modules <-  list("BiomassSpeciesData")
 objects <- if(handDrawMap) {
-  list("shpStudyRegionFull" = shpStudyRegionFull,
-       "shpStudySubRegion" = shpStudyRegionFull)  
+  list("studyAreaLarge" = studyAreaLarge,
+       "studyArea" = studyAreaLarge)  
 } else list()
 
 

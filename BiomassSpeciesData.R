@@ -42,10 +42,10 @@ defineModule(sim, list(
     expectsInput(objectName = "specieslayers", objectClass = "RasterStack",
                  desc = "biomass percentage raster layers by species in Canada species map",
                  sourceURL = "http://tree.pfc.forestry.ca/kNN-Species.tar"),
-    expectsInput(objectName = "shpStudySubRegion", objectClass = "SpatialPolygonsDataFrame",
+    expectsInput(objectName = "studyArea", objectClass = "SpatialPolygonsDataFrame",
                  desc = "this shape file contains two informaton: Sub study area with fire return interval attribute. 
                  Defaults to a square shapefile in Southwestern Alberta, Canada", sourceURL = ""),
-    expectsInput(objectName = "shpStudyRegionFull", objectClass = "SpatialPolygonsDataFrame",
+    expectsInput(objectName = "studyAreaLarge", objectClass = "SpatialPolygonsDataFrame",
                  desc = "this shape file contains two informaton: Full study area with fire return interval attribute.
                  Defaults to a square shapefile in Southwestern Alberta, Canada", sourceURL = ""), # i guess this is study area and fire return interval
     expectsInput(objectName = "Pickell", objectClass = "RasterStack",
@@ -114,7 +114,7 @@ biomassDataInit <- function(sim) {
                           alsoExtract = asPath("SPP_1990_100m_NAD83_LCC_BYTE_VEG_NO_TIES_FILLED_FINAL.hdr"),
                           destinationPath = asPath(dPath),
                           fun = "raster::raster",
-                          studyArea = sim$shpStudySubRegion,
+                          studyArea = sim$studyArea,
                           rasterToMatch = sim$biomassMap,
                           method = "bilinear",
                           datatype = "INT2U",
@@ -131,7 +131,7 @@ biomassDataInit <- function(sim) {
                             alsoExtract = c(CASFRITifFile, CASFRIattrFile, CASFRIheaderFile),
                             destinationPath = asPath(dPath),
                             fun = "raster::raster",
-                            studyArea = sim$shpStudySubRegion,
+                            studyArea = sim$studyArea,
                             rasterToMatch = sim$biomassMap,
                             method = "bilinear",
                             datatype = "INT4U",
@@ -191,64 +191,75 @@ biomassDataInit <- function(sim) {
 }
 
 .inputObjects <- function(sim) {
-  dPath <- dataPath(sim)
+  dPath <- asPath(dataPath(sim), 1)
   cacheTags = c(currentModule(sim), "function:.inputObjects")
   
-  if (!suppliedElsewhere("shpStudyRegionFull", sim)) {
-    message("'shpStudyRegionFull' was not provided by user. Using a polygon in Southwestern Alberta, Canada")
+  if (!suppliedElsewhere("studyAreaLarge", sim)) {
+    message("'studyAreaLarge' was not provided by user. Using a polygon in Southwestern Alberta, Canada")
     
     canadaMap <- Cache(getData, 'GADM', country = 'CAN', level = 1, path = asPath(dPath),
                        cacheRepo = getPaths()$cachePath, quick = FALSE) 
     smallPolygonCoords = list(coords = data.frame(x = c(-115.9022,-114.9815,-114.3677,-113.4470,-113.5084,-114.4291,-115.3498,-116.4547,-117.1298,-117.3140), 
                                                   y = c(50.45516,50.45516,50.51654,50.51654,51.62139,52.72624,52.54210,52.48072,52.11243,51.25310)))
     
-    sim$shpStudyRegionFull <- SpatialPolygons(list(Polygons(list(Polygon(smallPolygonCoords$coords)), ID = "swAB_polygon")),
+    sim$studyAreaLarge <- SpatialPolygons(list(Polygons(list(Polygon(smallPolygonCoords$coords)), ID = "swAB_polygon")),
                                               proj4string = crs(canadaMap))
   }
   
-  if (!suppliedElsewhere("shpStudySubRegion", sim)) {
-    message("'shpStudySubRegion' was not provided by user. Using the same as 'shpStudyRegionFull'")
-    sim$shpStudySubRegion <- sim$shpStudyRegionFull
+  if (!suppliedElsewhere("studyArea", sim)) {
+    message("'studyArea' was not provided by user. Using the same as 'studyAreaLarge'")
+    sim$studyArea <- sim$studyAreaLarge
   }
   
   ## check projection
   if (!identical(as.character(P(sim)$.crsUsed), 
-                 as.character(crs(sim$shpStudyRegionFull)))) {
-    sim$shpStudyRegionFull <- spTransform(sim$shpStudyRegionFull, P(sim)$.crsUsed) #faster without Cache
+                 as.character(crs(sim$studyAreaLarge)))) {
+    sim$studyAreaLarge <- spTransform(sim$studyAreaLarge, P(sim)$.crsUsed) #faster without Cache
   }
   
   if (!identical(as.character(P(sim)$.crsUsed), 
-                 as.character(crs(sim$shpStudySubRegion)))) {
-    sim$shpStudySubRegion <- spTransform(sim$shpStudySubRegion, P(sim)$.crsUsed) #faster without Cache
+                 as.character(crs(sim$studyArea)))) {
+    sim$studyArea <- spTransform(sim$studyArea, P(sim)$.crsUsed) #faster without Cache
   }
   
-  if (!suppliedElsewhere("speciesList", sim)) {
+  if (!suppliedElsewhere("sppNameVector", sim)) {
     ## default to 6 species, one changing name, and two merged into one
-    sim$speciesList <- as.matrix(data.frame(speciesNamesRaw = c("Abie_Las", "Pice_Gla", "Pice_Mar", "Pinu_Ban", "Pinu_Con", "Popu_Tre"),
-                                            speciesNamesEnd =  c("Abie_sp", "Pice_gla", "Pice_mar", "Pinu_sp", "Pinu_sp", "Popu_tre")))
+    sim$sppNameVector <- c("Abie_sp", "Pice_gla", "Pice_mar", "Pinu_sp", "Pinu_sp", "Popu_tre")
   }
   
+  if (!suppliedElsewhere("sppMerge", sim)) {
+    ## default to 6 species, one changing name, and two merged into one
+    sim$sppMerge <- list(Pinu_sp = c("Pinu_Ban", "Pinu_Con"))
+  }
+  
+  if(!suppliedElsewhere("speciesEquivalency", sim)) {
+    sim$speciesEquivalency <- as.data.table(pemisc::sppEquivalencies_CA)
+    ## By default, Abies lasiocarpa is renamed to Abies sp.
+    sim$speciesEquivalency[KNN_names == "Abie_Las", LandR_names := "Abie_sp"]
+  }
+  
+  browser()
   if (!suppliedElsewhere("biomassMap", sim)) {
     biomassMapFilename <- file.path(dPath, "NFI_MODIS250m_kNN_Structure_Biomass_TotalLiveAboveGround_v0.tif")
     sim$biomassMap <- Cache(prepInputs,
-                            targetFile = biomassMapFilename,
-                            url = extractURL(objectName = "biomassMap"),
+                            targetFile = asPath(basename(biomassMapFilename)),
                             archive = asPath(c("kNN-StructureBiomass.tar",
                                                "NFI_MODIS250m_kNN_Structure_Biomass_TotalLiveAboveGround_v0.zip")),
-                            destinationPath = asPath(dPath),
-                            studyArea = sim$shpStudySubRegion,
+                            url = extractURL("biomassMap"),
+                            destinationPath = dPath,
+                            studyArea = sim$studyArea,
                             useSAcrs = TRUE,
                             method = "bilinear",
                             datatype = "INT2U",
-                            filename2 = TRUE,
-                            userTags = c(cacheTags, "biomassMap"))
+                            filename2 = TRUE, overwrite = TRUE,
+                            userTags = cacheTags)
   }
   
   if (!suppliedElsewhere("specieslayers")) {
     specieslayersList <- Cache(loadkNNSpeciesLayers,
-                               dPath = asPath(dPath), 
+                               dPath = dPath, 
                                rasterToMatch = sim$biomassMap, 
-                               studyArea = sim$shpStudyRegionFull,
+                               studyArea = sim$studyAreaLarge,
                                speciesList = sim$speciesList,
                                thresh = 10,
                                url = extractURL("specieslayers"),
