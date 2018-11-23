@@ -17,10 +17,8 @@ defineModule(sim, list(
   citation = list("citation.bib"),
   documentation = list("README.txt", "BiomassSpeciesData.Rmd"),
   reqdPkgs = list("googledrive", "data.table", "raster", "magrittr", "gdalUtils",
-                  "PredictiveEcology/SpaDES.core@development",
-                  "PredictiveEcology/SpaDES.tools@development",
-                  "PredictiveEcology/reproducible@development",
-                  "PredictiveEcology/webDatabases"),
+                  "PredictiveEcology/webDatabases",
+                  "PredictiveEcology/pemisc"),
   parameters = rbind(
     #defineParameter("paramName", "paramClass", value, min, max, "parameter description"),
     defineParameter(".crsUsed", "character", "+proj=lcc +lat_1=49 +lat_2=77 +lat_0=0 +lon_0=-95 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0",
