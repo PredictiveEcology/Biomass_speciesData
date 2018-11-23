@@ -32,8 +32,15 @@ defineModule(sim, list(
                     desc = "Used in reading csv file with fread. Will be passed to data.table::setDTthreads")
   ),
   inputObjects = bind_rows(
-    expectsInput(objectName = "speciesList", objectClass = c("character", "matrix"),
-                 desc = "vector or matrix of species to select. If matrix, should have two columns of raw and 'end' species names", sourceURL = ""),
+    expectsInput(objectName = "sppNameVector", objectClass = c("character"),
+                 desc = "vector of species to select", sourceURL = ""),
+    expectsInput(objectName = "sppMerge", objectClass = c("list"),
+                 desc = "list of Knn species' layers that should be merged. If none, create an empty list. Defaults to merging
+                 of Pinus contorta and P. banksiana into Pinus sp.", 
+                 sourceURL = ""),
+    expectsInput(objectName = "speciesEquivalency", objectClass = c("data.table"),
+                 desc = "table of species equivalencies. See premisc::sppEquivalencies_CA for further information",
+                 sourceURL = ""),
     expectsInput(objectName = "biomassMap", objectClass = "RasterLayer",
                  desc = "total biomass raster layer in study area, default is Canada national biomass map",
                  sourceURL = "http://tree.pfc.forestry.ca/kNN-StructureBiomass.tar"),
@@ -221,8 +228,8 @@ biomassDataInit <- function(sim) {
   }
   
   if (!suppliedElsewhere("sppNameVector", sim)) {
-    ## default to 6 species, one changing name, and two merged into one
-    sim$sppNameVector <- c("Abie_sp", "Pice_gla", "Pice_mar", "Pinu_sp", "Pinu_sp", "Popu_tre")
+    ## default to 6 species, one changing name (Abie_las to Abie_sp), and two merged into one (Pinu_ban, Pinu_con to Pinu_sp)
+    sim$sppNameVector <- c("Abie_sp", "Pice_gla", "Pice_mar", "Pinu_ban", "Pinu_con", "Popu_tre")
   }
   
   if (!suppliedElsewhere("sppMerge", sim)) {
@@ -231,19 +238,19 @@ biomassDataInit <- function(sim) {
   }
   
   if(!suppliedElsewhere("speciesEquivalency", sim)) {
-    sim$speciesEquivalency <- as.data.table(pemisc::sppEquivalencies_CA)
+    data("sppEquivalencies_CA")
+    sim$speciesEquivalency <- as.data.table(sppEquivalencies_CA)
     ## By default, Abies lasiocarpa is renamed to Abies sp.
     sim$speciesEquivalency[KNN_names == "Abie_Las", LandR_names := "Abie_sp"]
   }
   
-  browser()
   if (!suppliedElsewhere("biomassMap", sim)) {
     biomassMapFilename <- file.path(dPath, "NFI_MODIS250m_kNN_Structure_Biomass_TotalLiveAboveGround_v0.tif")
     sim$biomassMap <- Cache(prepInputs,
                             targetFile = asPath(basename(biomassMapFilename)),
                             archive = asPath(c("kNN-StructureBiomass.tar",
                                                "NFI_MODIS250m_kNN_Structure_Biomass_TotalLiveAboveGround_v0.zip")),
-                            url = extractURL("biomassMap"),
+                            url = extractURL("biomassMap", sim),
                             destinationPath = dPath,
                             studyArea = sim$studyArea,
                             useSAcrs = TRUE,
@@ -255,18 +262,21 @@ biomassDataInit <- function(sim) {
   
   if (!suppliedElsewhere("specieslayers")) {
     specieslayersList <- Cache(loadkNNSpeciesLayers,
-                               dPath = dPath, 
+                               dPath = asPath(dPath), 
                                rasterToMatch = sim$biomassMap, 
                                studyArea = sim$studyAreaLarge,
-                               speciesList = sim$speciesList,
+                               sppNameVector = sim$sppNameVector,
+                               speciesEquivalency = sim$speciesEquivalency,
+                               sppMerge = sim$sppMerge,
+                               knnNamesCol = "KNN_names", 
+                               sppEndNamesCol = "LandR_names",
                                thresh = 10,
-                               url = extractURL("specieslayers"),
+                               url = extractURL("specieslayers"), 
                                cachePath = cachePath(sim),
                                userTags = c(cacheTags, "specieslayers"))
     
     sim$specieslayers <- specieslayersList$specieslayers
-    sim$speciesList <- specieslayersList$speciesList
-    
+    sim$sppNameVector <- specieslayersList$sppNameVector ## update the list of species to use
   }
   
   return(invisible(sim))
