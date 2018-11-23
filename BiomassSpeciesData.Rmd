@@ -26,7 +26,18 @@ Intended for use with the Land-R-Biomass* suite of models - if LandWeb project p
 library(magrittr)
 library(raster)
 library(SpaDES)
+library(pemisc)
+
+try(detach("package:SpaDES.core", unload = TRUE))
+try(detach("package:SpaDES.tools", unload = TRUE))
+try(detach("package:reproducible", unload = TRUE))
+try(detach("package:pemisc", unload = TRUE))
+devtools::load_all("E:/GitHub/pemisc")
+devtools::load_all("E:/GitHub/reproducible")
+devtools::load_all("E:/GitHub/SpaDES.tools")
+devtools::load_all("E:/GitHub/SpaDES.core")
  
+options(reproducible.inputPaths = "E:/Data/LandR_related/")
 setPaths(modulePath = "../", cachePath = "cache/")
 
 ## do you want to hand-draw a map or use defaults?
@@ -58,10 +69,9 @@ objects <- if(handDrawMap) {
        "studyArea" = studyAreaLarge)  
 } else list()
 
-
 mySim <- simInit(modules = modules, objects = objects)
 
-mySimOut <- spades(mySim)
+# mySimOut <- spades(mySim)
 
 ```
 
