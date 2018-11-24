@@ -183,7 +183,8 @@ biomassDataInit <- function(sim) {
     outStack <- Cache(overlayStacks, 
                       highQualityStack = CASFRISpStack, lowQualityStack = PickellSpStack, 
                       outputFilenameSuffix = "CASFRI_Pickell", destinationPath = dPath,
-                      userTags = c(cacheTags, "function:overlayStacks", "Pickell_CASFRI"), useCache = TRUE) 
+                      userTags = c(cacheTags, "function:overlayStacks", "Pickell_CASFRI"),
+                      useCache = TRUE) 
     
     crs(outStack) <- crs(sim$biomassMap) # bug in writeRaster
     
@@ -192,7 +193,8 @@ biomassDataInit <- function(sim) {
                             highQualityStack = outStack, lowQualityStack = sim$specieslayers,
                             outputFilenameSuffix = "CASFRI_Pickell_KNN",
                             destinationPath = dPath, 
-                            userTags = c(cacheTags, "function:overlayStacks", "CASFRI_Pickell_KNN"), useCache = TRUE)
+                            userTags = c(cacheTags, "function:overlayStacks", "CASFRI_Pickell_KNN"),
+                            useCache = TRUE)
     crs(specieslayers2) <- crs(sim$biomassMap)
     
     ## replace species layers
@@ -285,6 +287,7 @@ biomassDataInit <- function(sim) {
     
     sim$specieslayers <- specieslayersList$speciesLayers
     sim$sppNameVector <- specieslayersList$sppNameVector ## update the list of original species to use; 
+    ## as Knn is the lowest resolution, if  species weren't found they will be excluded
   }
   
   return(invisible(sim))
