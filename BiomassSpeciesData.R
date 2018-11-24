@@ -283,8 +283,8 @@ biomassDataInit <- function(sim) {
                                cachePath = cachePath(sim),
                                userTags = c(cacheTags, "specieslayers"))
     
-    sim$specieslayers <- specieslayersList$specieslayers
-    sim$sppNameVector <- specieslayersList$sppNameVector ## update the list of species to use
+    sim$specieslayers <- specieslayersList$speciesLayers
+    sim$sppNameVector <- specieslayersList$sppNameVector ## update the list of original species to use; 
   }
   
   return(invisible(sim))
