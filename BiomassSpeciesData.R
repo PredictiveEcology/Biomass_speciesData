@@ -108,7 +108,7 @@ biomassDataInit <- function(sim) {
   })
   
   if (is.null(aaa)) { # means got the file
-    dPath <- dataPath(sim)
+    dPath <- asPath(dataPath(sim))
     cacheTags <- c(currentModule(sim), "event:init")
     
     message("  Loading CASFRI and Pickell et al. layers")
@@ -117,7 +117,7 @@ biomassDataInit <- function(sim) {
                           archive = asPath("SPP_1990_100m_NAD83_LCC_BYTE_VEG_NO_TIES_FILLED_FINAL.zip"),
                           url = extractURL(objectName = "Pickell"),
                           alsoExtract = asPath("SPP_1990_100m_NAD83_LCC_BYTE_VEG_NO_TIES_FILLED_FINAL.hdr"),
-                          destinationPath = asPath(dPath),
+                          destinationPath = dPath,
                           fun = "raster::raster",
                           studyArea = sim$studyArea,
                           rasterToMatch = sim$biomassMap,
@@ -135,7 +135,7 @@ biomassDataInit <- function(sim) {
                             archive = asPath("CASFRI for Landweb.zip"),
                             url = extractURL(objectName = "CASFRIRas"),
                             alsoExtract = c(CASFRITifFile, CASFRIattrFile, CASFRIheaderFile),
-                            destinationPath = asPath(dPath),
+                            destinationPath = dPath,
                             fun = "raster::raster",
                             studyArea = sim$studyArea,
                             rasterToMatch = sim$biomassMap,
@@ -280,7 +280,7 @@ biomassDataInit <- function(sim) {
                                sppEndNamesCol = "LandR_names",
                                thresh = 10,
                                url = extractURL("specieslayers"), 
-                               cachePath = cachePath(sim),
+                               cachePath = asPath(cachePath(sim)),
                                userTags = c(cacheTags, "specieslayers"))
     
     sim$specieslayers <- specieslayersList$speciesLayers
