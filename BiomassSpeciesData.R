@@ -124,6 +124,7 @@ biomassDataInit <- function(sim) {
                           method = "bilinear",
                           datatype = "INT2U",
                           filename2 = TRUE,
+                          overwrite = TRUE,
                           userTags = c(cacheTags, "function:prepInputs", "Pickell"))
     
     CASFRITifFile <- asPath(file.path(dPath, "Landweb_CASFRI_GIDs.tif"))
@@ -141,23 +142,30 @@ biomassDataInit <- function(sim) {
                             method = "bilinear",
                             datatype = "INT4U",
                             filename2 = TRUE,
+                            overwrite = TRUE,
                             userTags =  c(cacheTags, "function:prepInputs", "CASFRIRas"))
     
     message("Load CASFRI data and headers, and convert to long format, and define species groups")
     if (P(sim)$useParallel > 1) data.table::setDTthreads(P(sim)$useParallel)
-    loadedCASFRI <- Cache(loadCASFRI, CASFRIRas, CASFRIattrFile, CASFRIheaderFile,
-                          speciesList,
+    
+    loadedCASFRI <- Cache(loadCASFRI,
+                          CASFRIRas = CASFRIRas,
+                          attrFile = CASFRIattrFile, 
+                          headerFile = CASFRIheaderFile,
+                          sppNameVector = sim$sppNameVector,
+                          speciesEquivalency = sim$speciesEquivalency,
+                          sppEndNamesCol = "LandR_names",
+                          sppMerge = sim$sppMerge,
                           userTags = c("function:loadCASFRI", "BigDataTable"))
     
     message("Make stack of species layers from Pickell's layer")
     
-    ## check if all kNN species are in CASFRI and if there are case issues
+    browser()
+    ## check if all species found in Knn database are in CASFRI and if there are case issues
     uniqueKeepSp <- unique(loadedCASFRI$keepSpecies$spGroup)
-    if(all(tolower(sim$speciesList[,2]) %in% tolower(uniqueKeepSp))) {
-      if(!all(sim$speciesList[,2] %in% uniqueKeepSp))
-        stop("end species names in kNN do not match CASFRI species codes.
-             \nUpper/lower case issues")
-    } else warning("some kNN species not in CASFRI")
+    
+    if(!all(names(sim$specieslayers) %in% uniqueKeepSp)) 
+      warning("some kNN species not in CASFRI")
     
     PickellSpStack <- Cache(makePickellStack, #paths = lapply(paths(sim), basename),   # paths was throwing an error in cache 
                             PickellRaster = Pickell, uniqueKeepSp, speciesList = sim$speciesList,
