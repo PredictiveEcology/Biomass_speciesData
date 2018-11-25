@@ -171,8 +171,7 @@ makePickellStack <- function(PickellRaster, uniqueKeepSp, speciesList, destinati
                                  overwrite = TRUE, datatype = "INT2U")
     }
   }
-  
-  stack(PickellStack)
+  raster::stack(PickellStack)
 }
 
 ## ---------------------------------------------------------------------------------
