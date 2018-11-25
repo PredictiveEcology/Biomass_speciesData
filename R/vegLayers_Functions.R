@@ -100,7 +100,7 @@ whSpecies <- function(CASFRIattr, sppNameVector, speciesEquivalency, sppEndNames
   keepSpecies
 }
 
-makePickellStack <- function(PickellRaster, uniqueKeepSp, speciesList, destinationPath) {
+makePickellStack <- function(PickellRaster, uniqueKeepSp, destinationPath) {
   PickellRaster[] <- PickellRaster[]
   PickellRaster[PickellRaster[] %in% c(230, 220, 255)] <- NA_integer_ # water, non veg
   PickellStack <- list()
@@ -111,13 +111,13 @@ makePickellStack <- function(PickellRaster, uniqueKeepSp, speciesList, destinati
   PickellSpp <- c("Pice_mar", "Pice_gla", "Pinu_sp", "Popu_tre")
   
   ## selected spp absent from Pickell's data
-  NA_Sp <- unique(speciesList[,2][!speciesList[,2] %in% PickellSpp])
+  NA_Sp <- setdiff(uniqueKeepSp, PickellSpp)
   
   ## selected spp present in Pickell's data
-  OK_Sp <- unique(speciesList[,2][speciesList[,2] %in% PickellSpp])
+  OK_Sp <- intersect(uniqueKeepSp, PickellSpp)
   
   ## All NA_Sp species codes should be in CASFRI/Knn spp list
-  if (length(NA_Sp) > 1)
+  if (length(NA_Sp))
     warning(cat("Not all selected species are in Pickell's data. Check if this is correct:\n",
                 paste(paste0(NA_Sp, collapse = ", "), "absent\n")))
   
