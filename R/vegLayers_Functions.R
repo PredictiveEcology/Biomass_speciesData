@@ -116,14 +116,14 @@ makePickellStack <- function(PickellRaster, uniqueKeepSp, speciesList, destinati
   ## selected spp present in Pickell's data
   OK_Sp <- unique(speciesList[,2][speciesList[,2] %in% PickellSpp])
   
-  ## All NA_Sp species codes should be in CASFRI spp list
+  ## All NA_Sp species codes should be in CASFRI/Knn spp list
   if (length(NA_Sp) > 1)
-    warning(cat("Not all species selected are in Pickell's data. Check if this is correct:\n",
-                paste0(NA_Sp, collapse = ", ")))
+    warning(cat("Not all selected species are in Pickell's data. Check if this is correct:\n",
+                paste(paste0(NA_Sp, collapse = ", "), "absent\n")))
   
   ## empty rasters for NA_sp
   for(N in NA_Sp) {  
-    message("  running ", N, ", assigning NA because not enough data")
+    message("  running ", N, ". Assigning NA, because absent from Pickell's data")
     PickellStack[[N]] <- raster(PickellRaster) %>% setValues(x =  ., values = NA_integer_)
     PickellStack[[N]] <- Cache(writeRaster, PickellStack[[N]],
                                filename = asPath(file.path(destinationPath, paste0("Pickell", N, ".tif"))),
