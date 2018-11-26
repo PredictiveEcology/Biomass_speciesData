@@ -154,7 +154,7 @@ biomassDataInit <- function(sim) {
                           headerFile = CASFRIheaderFile,
                           sppNameVector = sim$sppNameVector,
                           speciesEquivalency = sim$speciesEquivalency,
-                          sppEndNamesCol = "LandR_names",
+                          sppEndNamesCol = "LandR",
                           sppMerge = sim$sppMerge,
                           userTags = c("function:loadCASFRI", "BigDataTable"))
     
@@ -252,7 +252,7 @@ biomassDataInit <- function(sim) {
     data("sppEquivalencies_CA")
     sim$speciesEquivalency <- as.data.table(sppEquivalencies_CA)
     ## By default, Abies lasiocarpa is renamed to Abies sp.
-    sim$speciesEquivalency[KNN_names == "Abie_Las", LandR_names := "Abie_sp"]
+    sim$speciesEquivalency[KNN == "Abie_Las", LandR := "Abie_sp"]
   }
   
   if (!suppliedElsewhere("biomassMap", sim)) {
@@ -279,8 +279,8 @@ biomassDataInit <- function(sim) {
                                sppNameVector = sim$sppNameVector,
                                speciesEquivalency = sim$speciesEquivalency,
                                sppMerge = sim$sppMerge,
-                               knnNamesCol = "KNN_names", 
-                               sppEndNamesCol = "LandR_names",
+                               knnNamesCol = "KNN", 
+                               sppEndNamesCol = "LandR",
                                thresh = 10,
                                url = extractURL("specieslayers"), 
                                userTags = c(cacheTags, "specieslayers"))
