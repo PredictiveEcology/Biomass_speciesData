@@ -160,31 +160,33 @@ biomassDataInit <- function(sim) {
     
     message("Make stack of species layers from Pickell's layer")
     
-    browser()
-    ## check if all species found in Knn database are in CASFRI and if there are case issues
+    ## check if all species found in Knn database are in CASFRI
     uniqueKeepSp <- unique(loadedCASFRI$keepSpecies$spGroup)
-    
-    if(!all(names(sim$specieslayers) %in% uniqueKeepSp)) 
+    if(!all(names(sim$specieslayers) %in% uniqueKeepSp))
       warning("some kNN species not in CASFRI")
     
-    PickellSpStack <- Cache(makePickellStack, #paths = lapply(paths(sim), basename),   # paths was throwing an error in cache 
-                            PickellRaster = Pickell, uniqueKeepSp, speciesList = sim$speciesList,
-                            destinationPath = dPath, 
+    PickellSpStack <- Cache(makePickellStack,
+                            PickellRaster = Pickell, 
+                            uniqueKeepSp = uniqueKeepSp,
+                            speciesKnn = names(sim$specieslayers),
+                            destinationPath = dPath,
                             userTags = c(cacheTags, "function:makePickellStack", "PickellStack"))
     
     crs(PickellSpStack) <- crs(sim$biomassMap) # bug in writeRaster
     
     message('Make stack from CASFRI data and headers')
-    CASFRISpStack <- Cache(CASFRItoSpRasts, CASFRIRas, loadedCASFRI, speciesList = sim$speciesList,
-                           destinationPath = dPath, userTags = c("stable", "CASFRIstk"))
-    
+    CASFRISpStack <- Cache(CASFRItoSpRasts,
+                           CASFRIRas = CASFRIRas, 
+                           loadedCASFRI = loadedCASFRI, 
+                           speciesKnn = names(sim$specieslayers),
+                           destinationPath = dPath,
+                           userTags = c("stable", "CASFRIstk"))
     
     message("Overlay Pickell and CASFRI stacks")
     outStack <- Cache(overlayStacks, 
                       highQualityStack = CASFRISpStack, lowQualityStack = PickellSpStack, 
                       outputFilenameSuffix = "CASFRI_Pickell", destinationPath = dPath,
-                      userTags = c(cacheTags, "function:overlayStacks", "Pickell_CASFRI"),
-                      useCache = TRUE) 
+                      userTags = c(cacheTags, "function:overlayStacks", "Pickell_CASFRI")) 
     
     crs(outStack) <- crs(sim$biomassMap) # bug in writeRaster
     
@@ -193,8 +195,7 @@ biomassDataInit <- function(sim) {
                             highQualityStack = outStack, lowQualityStack = sim$specieslayers,
                             outputFilenameSuffix = "CASFRI_Pickell_KNN",
                             destinationPath = dPath, 
-                            userTags = c(cacheTags, "function:overlayStacks", "CASFRI_Pickell_KNN"),
-                            useCache = TRUE)
+                            userTags = c(cacheTags, "function:overlayStacks", "CASFRI_Pickell_KNN"))
     crs(specieslayers2) <- crs(sim$biomassMap)
     
     ## replace species layers
@@ -272,7 +273,7 @@ biomassDataInit <- function(sim) {
   
   if (!suppliedElsewhere("specieslayers")) {
     specieslayersList <- Cache(loadkNNSpeciesLayers,
-                               dPath = asPath(dPath), 
+                               dPath = dPath, 
                                rasterToMatch = sim$biomassMap, 
                                studyArea = sim$studyAreaLarge,
                                sppNameVector = sim$sppNameVector,
@@ -282,7 +283,6 @@ biomassDataInit <- function(sim) {
                                sppEndNamesCol = "LandR_names",
                                thresh = 10,
                                url = extractURL("specieslayers"), 
-                               cachePath = asPath(cachePath(sim)),
                                userTags = c(cacheTags, "specieslayers"))
     
     sim$specieslayers <- specieslayersList$speciesLayers
