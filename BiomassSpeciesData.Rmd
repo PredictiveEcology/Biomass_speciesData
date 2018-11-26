@@ -23,19 +23,16 @@ Defaults to extracting 5 species/genera Abies sp., Picea glauca, Picea mariana, 
 Intended for use with the Land-R-Biomass* suite of models - if LandWeb project permissions are valid, then the full datasets used for the LandWeb can be used here.
 
 ```{r}
+## as of Nov 25th 2019
+devtools::install_github("PredictiveEcology/SpaDES.core@development", dependencies = FALSE)
+devtools::install_github("PredictiveEcology/reproducible@development", dependencies = FALSE)
+devtools::install_github("PredictiveEcology/pemisc@development", dependencies = FALSE)
+
 library(magrittr)
 library(raster)
 library(SpaDES)
 library(pemisc)
 
-try(detach("package:SpaDES.core", unload = TRUE))
-try(detach("package:SpaDES.tools", unload = TRUE))
-try(detach("package:reproducible", unload = TRUE))
-try(detach("package:pemisc", unload = TRUE))
-devtools::load_all("E:/GitHub/pemisc")
-devtools::load_all("E:/GitHub/reproducible")
-devtools::load_all("E:/GitHub/SpaDES.tools")
-devtools::load_all("E:/GitHub/SpaDES.core")
  
 options(reproducible.inputPaths = "E:/Data/LandR_related/")
 setPaths(modulePath = "../", cachePath = "cache/")
@@ -69,9 +66,10 @@ objects <- if(handDrawMap) {
        "studyArea" = studyAreaLarge)  
 } else list()
 
+opts <- options(reproducible.useCache = FALSE)
 mySim <- simInit(modules = modules, objects = objects)
 
-# mySimOut <- spades(mySim)
-
+mySimOut <- spades(mySim)
+options(opts)
 ```
 
