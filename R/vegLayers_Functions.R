@@ -37,7 +37,7 @@ loadCASFRI <- function(CASFRIRas, attrFile, headerFile, sppNameVector, speciesEq
     set(CASFRIattr, which(CASFRIattr[[paste0("SPECIES_PER_", i)]] <= 15),
         paste0("SPECIES_", i), NA_character_)
   }
-
+  
   keepSpecies <- whSpecies(CASFRIattr, sppNameVector, speciesEquivalency, sppEndNamesCol, sppMerge) # select species not based on abundance but on user inputs
   
   CASFRIattrLong <- melt(CASFRIattr, id.vars = c("GID"),
@@ -64,7 +64,7 @@ whSpecies <- function(CASFRIattr, sppNameVector, speciesEquivalency, sppEndNames
   ## convert to LandR format - remove the "." in "spp."
   keepSpecies$keepSpecies2 <- sub(".", "", keepSpecies$keepSpecies, fixed = TRUE) %>%
     equivalentName(., speciesEquivalency, sppEndNamesCol)
-
+  
   ## species groups according to user-supplied list
   sppMerge2 <- data.table(toMerge = unlist(sppMerge, use.names = FALSE), 
                           endName = rep(names(sppMerge), times = sapply(sppMerge, length)))
@@ -100,104 +100,109 @@ whSpecies <- function(CASFRIattr, sppNameVector, speciesEquivalency, sppEndNames
   keepSpecies
 }
 
-makePickellStack <- function(PickellRaster, uniqueKeepSp, destinationPath) {
+makePickellStack <- function(PickellRaster, uniqueKeepSp, speciesKnn, destinationPath) {
+  ## bring to memory and replace water, non veg by NAs
   PickellRaster[] <- PickellRaster[]
-  PickellRaster[PickellRaster[] %in% c(230, 220, 255)] <- NA_integer_ # water, non veg
-  PickellStack <- list()
+  PickellRaster[PickellRaster[] %in% c(230, 220, 255)] <- NA_integer_
+  
+  ## create list and template raster
+  spRasts <- list()
+  spRas <- raster(PickellRaster) %>% setValues(., NA_integer_)
   
   rasterOptions(maxmemory = 1e9)
   
   ## species in Pickel's data
   PickellSpp <- c("Pice_mar", "Pice_gla", "Pinu_sp", "Popu_tre")
   
-  ## selected spp absent from Pickell's data
-  NA_Sp <- setdiff(uniqueKeepSp, PickellSpp)
+  ## selected Knn spp absent from Pickell's data
+  NA_Sp <- setdiff(speciesKnn, PickellSpp)
   
-  ## selected spp present in Pickell's data
-  OK_Sp <- intersect(uniqueKeepSp, PickellSpp)
+  ## selected Knn spp present in Pickell's data
+  sppTODO <- intersect(speciesKnn, PickellSpp)
   
-  ## All NA_Sp species codes should be in CASFRI/Knn spp list
+  ## All NA_Sp species codes should be in CASFRI spp list
   if (length(NA_Sp))
     warning(cat("Not all selected species are in Pickell's data. Check if this is correct:\n",
                 paste(paste0(NA_Sp, collapse = ", "), "absent\n")))
   
   ## empty rasters for NA_sp
-  for(N in NA_Sp) {  
-    message("  running ", N, ". Assigning NA, because absent from Pickell's data")
-    PickellStack[[N]] <- raster(PickellRaster) %>% setValues(x =  ., values = NA_integer_)
-    PickellStack[[N]] <- Cache(writeRaster, PickellStack[[N]],
-                               filename = asPath(file.path(destinationPath, paste0("Pickell", N, ".tif"))),
-                               overwrite = TRUE, datatype = "INT2U")
+  for (sp in NA_Sp) {  
+    message("  running ", sp, ". Assigning NA, because absent from Pickell's data")
+    spRasts[[sp]] <- spRas
+    spRasts[[sp]] <- Cache(writeRaster,   spRasts[[sp]],
+                          filename = asPath(file.path(destinationPath, paste0("Pickell", sp, ".tif"))),
+                          overwrite = TRUE, datatype = "INT2U")
   }
   
   ## converting existing species codes into percentages
-  for(N in lapply(OK_Sp, grep, uniqueKeepSp, value = TRUE)) {
-    message("  converting Pickell's codes to pct cover raster, for ", N)
+  for (sp in lapply(sppTODO, grep, uniqueKeepSp, value = TRUE)) {
+    message("  converting Pickell's codes to pct cover raster, for ", sp)
     
-    if (N == "Pice_gla") {
-      PickellStack[[N]] <- raster(PickellRaster) %>% setValues(NA_integer_)
-      PickellStack[[N]][PickellRaster[] %in% c(41, 42, 43)] <- 60
-      PickellStack[[N]][PickellRaster[] %in% c(44)] <- 80
-      PickellStack[[N]][PickellRaster[] %in% c(14, 34)] <- 40
-      PickellStack[[N]] <- Cache(writeRaster, PickellStack[[N]] ,
-                                 filename = asPath(file.path(destinationPath, paste0("Pickell", N, ".tif"))),
-                                 overwrite = TRUE, datatype = "INT1U")
+    if (sp == "Pice_gla") {
+      spRasts[[sp]] <- spRas
+      spRasts[[sp]][PickellRaster[] %in% c(41, 42, 43)] <- 60
+      spRasts[[sp]][PickellRaster[] %in% c(44)] <- 80
+      spRasts[[sp]][PickellRaster[] %in% c(14, 34)] <- 40
+      spRasts[[sp]] <- Cache(writeRaster,   spRasts[[sp]] ,
+                            filename = asPath(file.path(destinationPath, paste0("Pickell", sp, ".tif"))),
+                            overwrite = TRUE, datatype = "INT1U")
     }
-    if (N == "Pice_mar") {
-      PickellStack[[N]] <- raster(PickellRaster) %>% setValues(NA_integer_)
-      PickellStack[[N]][PickellRaster[] %in% c(23, 26)] <- 60
-      PickellStack[[N]][PickellRaster[] %in% c(22)] <- 80
-      PickellStack[[N]][PickellRaster[] %in% c(32, 42)] <- 40
-      PickellStack[[N]] <- Cache(writeRaster, PickellStack[[N]],
-                                 filename = asPath(file.path(destinationPath, paste0("Pickell", N, ".tif"))),
-                                 overwrite = TRUE, datatype = "INT1U")
+    if (sp == "Pice_mar") {
+      spRasts[[sp]] <- spRas
+      spRasts[[sp]][PickellRaster[] %in% c(23, 26)] <- 60
+      spRasts[[sp]][PickellRaster[] %in% c(22)] <- 80
+      spRasts[[sp]][PickellRaster[] %in% c(32, 42)] <- 40
+      spRasts[[sp]] <- Cache(writeRaster,   spRasts[[sp]],
+                            filename = asPath(file.path(destinationPath, paste0("Pickell", sp, ".tif"))),
+                            overwrite = TRUE, datatype = "INT1U")
     }
-    if (N == "Pinu_sp") {
-      PickellStack[[N]] <- raster(PickellRaster) %>% setValues(NA_integer_)
-      PickellStack[[N]][PickellRaster[] %in% c(31, 32, 34)] <- 60
-      PickellStack[[N]][PickellRaster[] %in% c(33)] <- 80
-      PickellStack[[N]][PickellRaster[] %in% c(23, 43)] <- 40
-      PickellStack[[N]] <- Cache(writeRaster, PickellStack[[N]],
-                                 filename = asPath(file.path(destinationPath, paste0("Pickell", N, ".tif"))),
-                                 overwrite = TRUE, datatype = "INT1U")
+    if (sp == "Pinu_sp") {
+      spRasts[[sp]] <- spRas
+      spRasts[[sp]][PickellRaster[] %in% c(31, 32, 34)] <- 60
+      spRasts[[sp]][PickellRaster[] %in% c(33)] <- 80
+      spRasts[[sp]][PickellRaster[] %in% c(23, 43)] <- 40
+      spRasts[[sp]] <- Cache(writeRaster,   spRasts[[sp]],
+                            filename = asPath(file.path(destinationPath, paste0("Pickell", sp, ".tif"))),
+                            overwrite = TRUE, datatype = "INT1U")
     }
-    if (N == "Popu_tre") {
-      PickellStack[[N]] <- raster(PickellRaster) %>% setValues(NA_integer_)
-      PickellStack[[N]][PickellRaster[] %in% c(14)] <- 60
-      PickellStack[[N]][PickellRaster[] %in% c(11)] <- 80
-      PickellStack[[N]][PickellRaster[] %in% c(31, 41)] <- 40
-      PickellStack[[N]] <- Cache(writeRaster, PickellStack[[N]],
-                                 filename = asPath(file.path(destinationPath, paste0("Pickell", N, ".tif"))),
-                                 overwrite = TRUE, datatype = "INT2U")
+    if (sp == "Popu_tre") {
+      spRasts[[sp]] <- spRas
+      spRasts[[sp]][PickellRaster[] %in% c(14)] <- 60
+      spRasts[[sp]][PickellRaster[] %in% c(11)] <- 80
+      spRasts[[sp]][PickellRaster[] %in% c(31, 41)] <- 40
+      spRasts[[sp]] <- Cache(writeRaster,   spRasts[[sp]],
+                            filename = asPath(file.path(destinationPath, paste0("Pickell", sp, ".tif"))),
+                            overwrite = TRUE, datatype = "INT2U")
     }
   }
-  raster::stack(PickellStack)
+  raster::stack(spRasts)
 }
 
 ## ---------------------------------------------------------------------------------
 
-CASFRItoSpRasts <- function(CASFRIRas, loadedCASFRI, speciesList, destinationPath) {
+CASFRItoSpRasts <- function(CASFRIRas, loadedCASFRI, speciesKnn, destinationPath) {
+  ## create list and template raster
   spRasts <- list()
   spRas <- raster(CASFRIRas) %>% setValues(., NA_integer_)
   
   ## selected spp absent from CASFRI data
-  NA_Sp <- unique(speciesList[,2][!speciesList[,2] %in% unique(loadedCASFRI$keepSpecies$spGroup)])
+  NA_Sp <- setdiff(speciesKnn, unique(loadedCASFRI$keepSpecies$spGroup))
   
   ## All NA_Sp species codes should be in CASFRI spp list
-  if (length(NA_Sp) > 0)
-    warning(cat("Not all species selected are in loadedCASFRI. Check if this is correct:\n",
-                paste0(NA_Sp, collapse = ", ")))
+  if (length(NA_Sp))
+    warning(cat("Not all selected species are in loadedCASFRI. Check if this is correct:\n",
+                paste(paste0(NA_Sp, collapse = ", "), "absent\n")))
   
   ## empty rasters for NA_sp
-  for(sp in NA_Sp) {  
-    message("  running ", sp, ", assigning NA because not enough data")
+  for (sp in NA_Sp) {  
+    message("  running ", sp, ". Assigning NA, because absent from CASFRI")
     spRasts[[sp]] <- spRas
     spRasts[[sp]] <- Cache(writeRaster, spRasts[[sp]],
                            filename = asPath(file.path(destinationPath, paste0("CASFRI", sp,".tif"))),
                            overwrite = TRUE, datatype = "INT2U")
   }
   
-  sppTODO <- intersect(unique(loadedCASFRI$keepSpecies$spGroup), speciesList[,2])
+  sppTODO <- intersect(unique(loadedCASFRI$keepSpecies$spGroup), speciesKnn)
   
   for (sp in sppTODO) {
     spRasts[[sp]] <- spRas
@@ -228,7 +233,7 @@ CASFRItoSpRasts <- function(CASFRIRas, loadedCASFRI, speciesList, destinationPat
     message("  ", sp, " done")
   }
   
-  stack(spRasts)
+  raster::stack(spRasts)
 }
 
 ## ---------------------------------------------------------------------------------
