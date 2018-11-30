@@ -213,16 +213,16 @@ biomassDataInit <- function(sim) {
     crs(outStack) <- crs(sim$biomassMap) # bug in writeRaster ## TODO: use sim$rasterToMatch instead of biomassMap
 
     message("Overlay Pickell_CASFRI with open data set stacks")
-    specieslayers2 <- Cache(overlayStacks,
+    speciesLayers2 <- Cache(overlayStacks,
                             highQualityStack = outStack,
                             lowQualityStack = sim$speciesLayers,
                             outputFilenameSuffix = "CASFRI_Pickell_kNN",
                             destinationPath = dPath,
                             userTags = c(cacheTags, "function:overlayStacks", "CASFRI_Pickell_kNN"))
-    crs(specieslayers2) <- crs(sim$biomassMap) ## TODO: use sim$rasterToMatch instead of biomassMap
+    crs(speciesLayers2) <- crs(sim$biomassMap) ## TODO: use sim$rasterToMatch instead of biomassMap
 
     ## replace species layers
-    sim$speciesLayers <- specieslayers2
+    sim$speciesLayers <- speciesLayers2
     message("Using overlaid datasets from CASFRI, Pickell and CFS kNN")
   }
 
@@ -299,7 +299,7 @@ biomassDataInit <- function(sim) {
   }
 
   if (!suppliedElsewhere("speciesLayers")) { ## TODO: rule should check for sppNameVector
-    specieslayersList <- Cache(loadkNNSpeciesLayers,
+    speciesLayersList <- Cache(loadkNNSpeciesLayers,
                                dPath = dPath,
                                rasterToMatch = sim$biomassMap, ## TODO: use rasterToMatch
                                studyArea = sim$studyAreaLarge,
@@ -312,11 +312,11 @@ biomassDataInit <- function(sim) {
                                url = extractURL("speciesLayers"),
                                userTags = c(cacheTags, "speciesLayers"))
 
-    sim$speciesLayers <- specieslayersList$speciesLayers
+    sim$speciesLayers <- speciesLayersList$speciesLayers
 
     ## update the list of original species to use;
     ## as kNN is the lowest resolution, if species weren't found they will be excluded
-    sim$sppNameVector <- specieslayersList$sppNameVector
+    sim$sppNameVector <- speciesLayersList$sppNameVector
   }
 
   return(invisible(sim))
