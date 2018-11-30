@@ -36,9 +36,6 @@ defineModule(sim, list(
                     "Used in reading csv file with fread. Will be passed to data.table::setDTthreads")
   ),
   inputObjects = bind_rows(
-    expectsInput("biomassMap", "RasterLayer",
-                 desc = "total biomass raster layer in study area, default is Canada national biomass map",
-                 sourceURL = "http://tree.pfc.forestry.ca/kNN-StructureBiomass.tar"),
     expectsInput("CASFRIRas", "RasterStack",
                  desc = "biomass percentage raster layers by species in Canada species map, created by Pickell et al., UBC, resolution 100m x 100m from LandSat and kNN based on CASFRI.",
                  sourceURL = "https://drive.google.com/file/d/1y0ofr2H0c_IEMIpx19xf3_VTBheY0C9h/view?usp=sharing"),
@@ -262,71 +259,47 @@ biomassDataInit <- function(sim) {
     sim$studyAreaLarge <- SpatialPolygonsDataFrame(sim$studyAreaLarge, data = dfData)
   }
 
-  needRTM <- FALSE
   if (is.null(sim$rasterToMatch)) {
     if (!suppliedElsewhere("rasterToMatch", sim)) {
-      needRTM <- TRUE
       message("There is no rasterToMatch supplied; will attempt to use biomassMap")
+      
+      biomassMap <- Cache(prepInputs,
+                          targetFile = asPath(basename(biomassMapFilename)),
+                          archive = asPath(c("kNN-StructureBiomass.tar",
+                                             "NFI_MODIS250m_kNN_Structure_Biomass_TotalLiveAboveGround_v0.zip")),
+                          url = "http://tree.pfc.forestry.ca/kNN-StructureBiomass.tar",  ## TODO: maybe put this URL in rasterToMatch metadata?
+                          destinationPath = dPath,
+                          studyArea = sim$studyArea,   ## TODO: should this be studyAreaLarge? in RTM below it is...
+                          useSAcrs = TRUE,
+                          method = "bilinear",
+                          datatype = "INT2U",
+                          filename2 = TRUE, overwrite = TRUE,
+                          userTags = cacheTags)
+      
+      sim$rasterToMatch <- biomassMap
+      message("  Rasterizing the studyAreaLarge polygon map")
+      
+      # Layers provided by David Andison sometimes have LTHRC, sometimes LTHFC ... chose whichever
+      LTHxC <- grep("(LTH.+C)",names(sim$studyAreaLarge), value = TRUE)
+      fieldName <- if (length(LTHxC)) {
+        LTHxC
+      } else {
+        if (length(names(sim$studyAreaLarge)) > 1) {   ## study region may be a simple polygon
+          names(sim$studyAreaLarge)[1]
+        } else NULL
+      }
+      
+      sim$rasterToMatch <- crop(fasterizeFromSp(sim$studyAreaLarge, sim$rasterToMatch, fieldName),
+                                sim$studyAreaLarge)
+      sim$rasterToMatch <- Cache(writeRaster, sim$rasterToMatch,
+                                 filename = file.path(dataPath(sim), "rasterToMatch.tif"),
+                                 datatype = "INT2U", overwrite = TRUE)
     } else {
       stop("rasterToMatch is going to be supplied, but ", currentModule(sim), " requires it ",
            "as part of its .inputObjects. Please make it accessible to ", currentModule(sim),
            " in the .inputObjects by passing it in as an object in simInit(objects = list(rasterToMatch = aRaster)",
            " or in a module that gets loaded prior to ", currentModule(sim))
     }
-  }
-  
-  if (!suppliedElsewhere("biomassMap", sim) || needRTM) {
-    if(!needRTM) {
-      sim$biomassMap <- Cache(prepInputs,
-                              targetFile = asPath(basename(biomassMapFilename)),
-                              archive = asPath(c("kNN-StructureBiomass.tar",
-                                                 "NFI_MODIS250m_kNN_Structure_Biomass_TotalLiveAboveGround_v0.zip")),
-                              url = extractURL("biomassMap"),
-                              destinationPath = dPath,
-                              studyArea = sim$studyArea,
-                              rasterToMatch = sim$rasterToMatch,
-                              useSAcrs = TRUE,
-                              method = "bilinear",
-                              datatype = "INT2U",
-                              filename2 = TRUE, overwrite = TRUE,
-                              userTags = cacheTags)
-    } else {
-      sim$biomassMap <- Cache(prepInputs,
-                              targetFile = asPath(basename(biomassMapFilename)),
-                              archive = asPath(c("kNN-StructureBiomass.tar",
-                                                 "NFI_MODIS250m_kNN_Structure_Biomass_TotalLiveAboveGround_v0.zip")),
-                              url = extractURL("biomassMap"),
-                              destinationPath = dPath,
-                              studyArea = sim$studyArea,   ## TODO: should this be studyAreaLarge? in RTM below it is...
-                              useSAcrs = TRUE,
-                              method = "bilinear",
-                              datatype = "INT2U",
-                              filename2 = TRUE, overwrite = TRUE,
-                              userTags = cacheTags)
-    }
-    
-  }
-  
-  if (needRTM) {
-    # if we need rasterToMatch, that means a) we don't have it, but b) we will have biomassMap
-    sim$rasterToMatch <- sim$biomassMap
-    message("  Rasterizing the studyAreaLarge polygon map")
-    
-    # Layers provided by David Andison sometimes have LTHRC, sometimes LTHFC ... chose whichever
-    LTHxC <- grep("(LTH.+C)",names(sim$studyAreaLarge), value = TRUE)
-    fieldName <- if (length(LTHxC)) {
-      LTHxC
-    } else {
-      if (length(names(sim$studyAreaLarge)) > 1) {   ## study region may be a simple polygon
-        names(sim$studyAreaLarge)[1]
-      } else NULL
-    }
-    
-    sim$rasterToMatch <- crop(fasterizeFromSp(sim$studyAreaLarge, sim$rasterToMatch, fieldName),
-                              sim$studyAreaLarge)
-    sim$rasterToMatch <- Cache(writeRaster, sim$rasterToMatch,
-                               filename = file.path(dataPath(sim), "rasterToMatch.tif"),
-                               datatype = "INT2U", overwrite = TRUE)
   }
   
   if (!suppliedElsewhere("sppNameVector", sim)) {
