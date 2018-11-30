@@ -61,11 +61,12 @@ defineModule(sim, list(
     expectsInput("sppNameVector", c("character"),
                  desc = "vector of species to select", sourceURL = ""),
     expectsInput("studyArea", "SpatialPolygonsDataFrame",
-                 desc = "Study area used for the simulation, including deriving vegetation model parameters. Defaults to `studyAreaLarge`",
+                 desc =  paste("Multipolygon to use as the study area,",
+                               "Defaults to a square shapefile in Southwestern Alberta, Canada."),
                  sourceURL = NA), 
     expectsInput("studyAreaLarge", "SpatialPolygonsDataFrame",
-                 desc = "Larger study area, enclosing the simulation study area. Used to derive vegetation model parameters that require
-                 a larger dataset. Defaults to a square polygon in Southwestern Alberta, Canada",
+                 desc = paste("multipolygon (larger area than studyArea) to use for parameter estimation.",
+                              "Defaults to a square shapefile in Southwestern Alberta, Canada."),
                  sourceURL = NA)
   ),
   outputObjects = bind_rows(
@@ -319,7 +320,6 @@ biomassDataInit <- function(sim) {
     ## By default, Abies_las is renamed to Abies_sp
     sim$speciesEquivalency[KNN == "Abie_Las", LandR := "Abie_sp"]
   }
-
 
   if (!suppliedElsewhere("speciesLayers")) {
     speciesLayersList <- Cache(loadkNNSpeciesLayers,
