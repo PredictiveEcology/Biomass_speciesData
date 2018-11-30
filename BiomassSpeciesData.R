@@ -64,15 +64,12 @@ defineModule(sim, list(
     expectsInput("sppNameVector", c("character"),
                  desc = "vector of species to select", sourceURL = ""),
     expectsInput("studyArea", "SpatialPolygonsDataFrame",
-                 desc = paste("multipolygon to use as the study area,",
-                              "with attribute LTHFC describing the fire return interval.",
-                              "Defaults to a square shapefile in Southwestern Alberta, Canada."),
-                 sourceURL = ""), ## TODO: I don't believe fire return interval is needed for this module!
+                 desc = "Study area used for the simulation, including deriving vegetation model parameters. Defaults to `studyAreaLarge`",
+                 sourceURL = NA), 
     expectsInput("studyAreaLarge", "SpatialPolygonsDataFrame",
-                 desc = paste("multipolygon (larger area than studyArea) to use for parameter estimation,",
-                              "with attribute LTHFC describing the fire return interval.",
-                              "Defaults to a square shapefile in Southwestern Alberta, Canada."),
-                 sourceURL = "") ## TODO: I don't believe fire return interval is needed for this module!
+                 desc = "Larger study area, enclosing the simulation study area. Used to derive vegetation model parameters that require
+                 a larger dataset. Defaults to a square polygon in Southwestern Alberta, Canada",
+                 sourceURL = NA)
   ),
   outputObjects = bind_rows(
     createsOutput("speciesLayers", "RasterStack",
@@ -237,20 +234,16 @@ biomassDataInit <- function(sim) {
   cacheTags = c(currentModule(sim), "function:.inputObjects")
 
   if (!suppliedElsewhere("studyAreaLarge", sim)) {
-    message("'studyAreaLarge' was not provided by user. Using a polygon in Southwestern Alberta, Canada.")
-
-    canadaMap <- Cache(getData, 'GADM', country = 'CAN', level = 1, path = asPath(dPath),
-                       cacheRepo = getPaths()$cachePath, quick = FALSE)
-    smallPolygonCoords = list(
-      coords = data.frame(x = c(-115.9022, -114.9815, -114.3677, -113.4470, -113.5084,
-                                -114.4291, -115.3498, -116.4547, -117.1298, -117.3140),
-                          y = c(50.45516, 50.45516, 50.51654, 50.51654, 51.62139,
-                                52.72624, 52.54210, 52.48072, 52.11243, 51.25310))
-    )
-
-    sim$studyAreaLarge <- SpatialPolygons(list(Polygons(list(
-      Polygon(smallPolygonCoords$coords)), ID = "swAB_polygon")),
-      proj4string = crs(canadaMap))
+    message("'studyAreaLarge' was not provided by user. Using a polygon in southwestern Alberta, Canada,")
+    
+    polyCenter <- SpatialPoints(coords = data.frame(x = c(-1349980), y = c(6986895)),
+                                proj4string = CRS(paste("+proj=lcc +lat_1=49 +lat_2=77 +lat_0=0 +lon_0=-95 +x_0=0 +y_0=0",
+                                                        "+datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0")))
+    
+    seedToKeep <- .GlobalEnv$.Random.seed
+    set.seed(1234)
+    sim$studyAreaLarge <- SpaDES.tools::randomPolygon(x = polyCenter, hectares = 10000)
+    .GlobalEnv$.Random.seed <- seedToKeep
   }
 
   if (!suppliedElsewhere("studyArea", sim)) {
