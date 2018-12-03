@@ -44,9 +44,9 @@ defineModule(sim, list(
                               "created by Pickell et al., UBC, resolution 100m x 100m from LandSat and kNN based on CASFRI."),
                  sourceURL = "https://drive.google.com/open?id=1M_L-7ovDpJLyY8dDOxG3xQTyzPx2HSg4"),
     expectsInput("rasterToMatch", "RasterLayer",
-                 desc = "Raster layer of study area used for cropping, masking and projecting. 
-                 Defaults to the Knn biomass map masked with `studyArea`",
-                 sourceURL = NA), 
+                 desc = "Raster layer of study area used for cropping, masking and projecting.
+                 Defaults to the kNN biomass map masked with `studyArea`",
+                 sourceURL = NA),
     expectsInput("speciesEquivalency", c("data.table"),
                  desc = "table of species equivalencies. See pemisc::sppEquivalencies_CA for further information",
                  sourceURL = ""),
@@ -63,7 +63,7 @@ defineModule(sim, list(
     expectsInput("studyArea", "SpatialPolygonsDataFrame",
                  desc =  paste("Multipolygon to use as the study area,",
                                "Defaults to a square shapefile in Southwestern Alberta, Canada."),
-                 sourceURL = NA), 
+                 sourceURL = NA),
     expectsInput("studyAreaLarge", "SpatialPolygonsDataFrame",
                  desc = paste("multipolygon (larger area than studyArea) to use for parameter estimation.",
                               "Defaults to a square shapefile in Southwestern Alberta, Canada."),
@@ -80,7 +80,7 @@ defineModule(sim, list(
 ## event types
 #   - type `init` is required for initialiazation
 
-doEvent.BiomassSpeciesData = function(sim, eventTime, eventType) {
+doEvent.BiomassSpeciesData <- function(sim, eventTime, eventType) {
   switch(
     eventType,
     init = {
@@ -111,133 +111,87 @@ biomassDataInit <- function(sim) {
     FALSE
   }
 
-  ## download a small file to confirm access to private Google Drive files
-  aaa <- testthat::capture_error({
-    googledrive::drive_auth(use_oob = TRUE, verbose = TRUE, cache = .cacheVal)
-    file_url <- "https://drive.google.com/file/d/1sJoZajgHtsrOTNOE3LL8MtnTASzY0mo7/view?usp=sharing"
-    googledrive::drive_download(googledrive::as_id(file_url), path = tempfile(),
-                                overwrite = TRUE, verbose = TRUE)
-  })
 
-  if (is.null(aaa)) { # means got the file
-    dPath <- asPath(dataPath(sim))
-    cacheTags <- c(currentModule(sim), "event:init", "stable")
+  message("Load CASFRI data and headers, and convert to long format, and define species groups")
+  if (P(sim)$.useParallel > 1) data.table::setDTthreads(P(sim)$.useParallel)
 
-    message("  Loading CASFRI and Pickell et al. layers")
-    ## Ceres: i keep having problems with cached prepInputs here. outside Cache removed ## TODO: restore it
-    Pickell <- prepInputs(targetFile = asPath("SPP_1990_100m_NAD83_LCC_BYTE_VEG_NO_TIES_FILLED_FINAL.dat"),
-                          url = extractURL("Pickell"),
-                          archive = asPath("SPP_1990_100m_NAD83_LCC_BYTE_VEG_NO_TIES_FILLED_FINAL.zip"),
-                          alsoExtract = asPath("SPP_1990_100m_NAD83_LCC_BYTE_VEG_NO_TIES_FILLED_FINAL.hdr"),
+  loadedCASFRI <- Cache(loadCASFRI, ## TODO: restore use of Cache
+                        CASFRIRas = CASFRIRas,
+                        attrFile = CASFRIattrFile,
+                        headerFile = CASFRIheaderFile,
+                        sppNameVector = sim$sppNameVector,
+                        speciesEquivalency = sim$speciesEquivalency,
+                        sppEndNamesCol = "LandR",
+                        sppMerge = sim$sppMerge,
+                        userTags = c("function:loadCASFRI", "BigDataTable"))
+
+  message("Make stack of species layers from Pickell's layer")
+
+  ## check if all species found in kNN database are in CASFRI
+  uniqueKeepSp <- unique(loadedCASFRI$keepSpecies$spGroup)
+  if (!all(names(sim$speciesLayers) %in% uniqueKeepSp))
+    warning("some kNN species not in CASFRI layers.")
+
+  ## TODO: weird bug when useCache = "overwrite"
+  if (getOption("reproducible.useCache") == "overwrite")
+    opt <- options(reproducible.useCache = TRUE) ## TODO: temporary workaround
+
+  PickellSpStack <- Cache(makePickellStack,
+                          PickellRaster = Pickell,
+                          uniqueKeepSp = uniqueKeepSp,
+                          speciesKnn = names(sim$speciesLayers),
                           destinationPath = dPath,
-                          fun = "raster::raster",
-                          studyArea = sim$studyArea,
-                          rasterToMatch = sim$rasterToMatch,
-                          method = "bilinear",
-                          datatype = "INT2U",
-                          filename2 = TRUE,
-                          overwrite = TRUE,
-                          userTags = c(cacheTags, "function:prepInputs", "Pickell"))
+                          userTags = c(cacheTags, "function:makePickellStack", "PickellStack"))
 
-    CASFRItiffFile <- asPath(file.path(dPath, "Landweb_CASFRI_GIDs.tif"))
-    CASFRIattrFile <- asPath(file.path(dPath, "Landweb_CASFRI_GIDs_attributes3.csv"))
-    CASFRIheaderFile <- asPath(file.path(dPath,"Landweb_CASFRI_GIDs_README.txt"))
+  if (exists("opt", inherits = FALSE)) options(opt) ## TODO: temporary workaround with above
 
-    CASFRIRas <- prepInputs(targetFile = asPath("Landweb_CASFRI_GIDs.tif"), ## TODO: restore use of Cache
-                            archive = asPath("CASFRI for Landweb.zip"),
-                            url = extractURL("CASFRIRas"),
-                            alsoExtract = c(CASFRItiffFile, CASFRIattrFile, CASFRIheaderFile),
-                            destinationPath = dPath,
-                            fun = "raster::raster",
-                            studyArea = sim$studyArea,
-                            rasterToMatch = sim$rasterToMatch, 
-                            method = "bilinear",
-                            datatype = "INT4U",
-                            filename2 = TRUE,
-                            overwrite = TRUE,
-                            userTags =  c(cacheTags, "function:prepInputs", "CASFRIRas"))
+  crs(PickellSpStack) <- crs(sim$rasterToMatch) # bug in writeRaster
 
-    message("Load CASFRI data and headers, and convert to long format, and define species groups")
-    if (P(sim)$.useParallel > 1) data.table::setDTthreads(P(sim)$.useParallel)
+  message('Make stack from CASFRI data and headers')
+  CASFRISpStack <- Cache(CASFRItoSpRasts,
+                         CASFRIRas = CASFRIRas,
+                         loadedCASFRI = loadedCASFRI,
+                         speciesKnn = names(sim$speciesLayers),
+                         destinationPath = dPath,
+                         userTags = c(cacheTags, "function:CASFRItoSpRasts", "CASFRIstack"))
 
-    loadedCASFRI <- Cache(loadCASFRI, ## TODO: restore use of Cache
-                          CASFRIRas = CASFRIRas,
-                          attrFile = CASFRIattrFile,
-                          headerFile = CASFRIheaderFile,
-                          sppNameVector = sim$sppNameVector,
-                          speciesEquivalency = sim$speciesEquivalency,
-                          sppEndNamesCol = "LandR",
-                          sppMerge = sim$sppMerge,
-                          userTags = c("function:loadCASFRI", "BigDataTable"))
+  message("Overlay Pickell and CASFRI stacks")
+  outStack <- Cache(overlayStacks,
+                    highQualityStack = CASFRISpStack,
+                    lowQualityStack = PickellSpStack,
+                    outputFilenameSuffix = "CASFRI_Pickell",
+                    destinationPath = dPath,
+                    userTags = c(cacheTags, "function:overlayStacks", "Pickell_CASFRI"))
 
-    message("Make stack of species layers from Pickell's layer")
+  crs(outStack) <- crs(sim$rasterToMatch) # bug in writeRaster
 
-    ## check if all species found in kNN database are in CASFRI
-    uniqueKeepSp <- unique(loadedCASFRI$keepSpecies$spGroup)
-    if (!all(names(sim$speciesLayers) %in% uniqueKeepSp))
-      warning("some kNN species not in CASFRI layers.")
+  message("Overlay Pickell_CASFRI with open data set stacks")
+  speciesLayers2 <- Cache(overlayStacks,
+                          highQualityStack = outStack,
+                          lowQualityStack = sim$speciesLayers,
+                          outputFilenameSuffix = "CASFRI_Pickell_kNN",
+                          destinationPath = dPath,
+                          userTags = c(cacheTags, "function:overlayStacks", "CASFRI_Pickell_kNN"))
+  crs(speciesLayers2) <- crs(sim$rasterToMatch)
 
-    ## TODO: weird bug when useCache = "overwrite"
-    if (getOption("reproducible.useCache") == "overwrite")
-      opt <- options(reproducible.useCache = TRUE) ## TODO: temporary workaround
-
-    PickellSpStack <- Cache(makePickellStack,
-                            PickellRaster = Pickell,
-                            uniqueKeepSp = uniqueKeepSp,
-                            speciesKnn = names(sim$speciesLayers),
-                            destinationPath = dPath,
-                            userTags = c(cacheTags, "function:makePickellStack", "PickellStack"))
-
-    if (exists("opt", inherits = FALSE)) options(opt) ## TODO: temporary workaround with above
-
-    crs(PickellSpStack) <- crs(sim$rasterToMatch) # bug in writeRaster
-
-    message('Make stack from CASFRI data and headers')
-    CASFRISpStack <- Cache(CASFRItoSpRasts,
-                           CASFRIRas = CASFRIRas,
-                           loadedCASFRI = loadedCASFRI,
-                           speciesKnn = names(sim$speciesLayers),
-                           destinationPath = dPath,
-                           userTags = c(cacheTags, "function:CASFRItoSpRasts", "CASFRIstack"))
-
-    message("Overlay Pickell and CASFRI stacks")
-    outStack <- Cache(overlayStacks,
-                      highQualityStack = CASFRISpStack,
-                      lowQualityStack = PickellSpStack,
-                      outputFilenameSuffix = "CASFRI_Pickell",
-                      destinationPath = dPath,
-                      userTags = c(cacheTags, "function:overlayStacks", "Pickell_CASFRI"))
-
-    crs(outStack) <- crs(sim$rasterToMatch) # bug in writeRaster
-
-    message("Overlay Pickell_CASFRI with open data set stacks")
-    speciesLayers2 <- Cache(overlayStacks,
-                            highQualityStack = outStack,
-                            lowQualityStack = sim$speciesLayers,
-                            outputFilenameSuffix = "CASFRI_Pickell_kNN",
-                            destinationPath = dPath,
-                            userTags = c(cacheTags, "function:overlayStacks", "CASFRI_Pickell_kNN"))
-    crs(speciesLayers2) <- crs(sim$rasterToMatch) 
-
-    ## replace species layers
-    sim$speciesLayers <- speciesLayers2
-    message("Using overlaid datasets from CASFRI, Pickell and CFS kNN")
-  }
+  ## replace species layers
+  sim$speciesLayers <- speciesLayers2
+  message("Using overlaid datasets from CASFRI, Pickell and CFS kNN")
 
   return(invisible(sim))
 }
 
 .inputObjects <- function(sim) {
   dPath <- asPath(dataPath(sim), 1)
-  cacheTags = c(currentModule(sim), "function:.inputObjects")
+  cacheTags <- c(currentModule(sim), "function:.inputObjects")
 
   if (!suppliedElsewhere("studyAreaLarge", sim)) {
     message("'studyAreaLarge' was not provided by user. Using a polygon in southwestern Alberta, Canada,")
-    
+
     polyCenter <- SpatialPoints(coords = data.frame(x = c(-1349980), y = c(6986895)),
                                 proj4string = CRS(paste("+proj=lcc +lat_1=49 +lat_2=77 +lat_0=0 +lon_0=-95 +x_0=0 +y_0=0",
                                                         "+datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0")))
-    
+
     seedToKeep <- .GlobalEnv$.Random.seed
     set.seed(1234)
     sim$studyAreaLarge <- SpaDES.tools::randomPolygon(x = polyCenter, hectares = 10000)
@@ -248,7 +202,7 @@ biomassDataInit <- function(sim) {
     message("'studyArea' was not provided by user. Using the same as 'studyAreaLarge'.")
     sim$studyArea <- sim$studyAreaLarge
   }
-  
+
   if (!is(sim$studyAreaLarge, "SpatialPolygonsDataFrame")) {
     dfData <- if (is.null(rownames(sim$studyAreaLarge))) {
       polyID <- sapply(slot(sim$studyAreaLarge, "polygons"), function(x) slot(x, "ID"))
@@ -263,7 +217,7 @@ biomassDataInit <- function(sim) {
   if (is.null(sim$rasterToMatch)) {
     if (!suppliedElsewhere("rasterToMatch", sim)) {
       message("There is no rasterToMatch supplied; will attempt to use biomassMap")
-      
+
       biomassMap <- Cache(prepInputs,
                           targetFile = asPath(basename(biomassMapFilename)),
                           archive = asPath(c("kNN-StructureBiomass.tar",
@@ -276,10 +230,10 @@ biomassDataInit <- function(sim) {
                           datatype = "INT2U",
                           filename2 = TRUE, overwrite = TRUE,
                           userTags = cacheTags)
-      
+
       sim$rasterToMatch <- biomassMap
       message("  Rasterizing the studyAreaLarge polygon map")
-      
+
       # Layers provided by David Andison sometimes have LTHRC, sometimes LTHFC ... chose whichever
       LTHxC <- grep("(LTH.+C)",names(sim$studyAreaLarge), value = TRUE)
       fieldName <- if (length(LTHxC)) {
@@ -289,7 +243,7 @@ biomassDataInit <- function(sim) {
           names(sim$studyAreaLarge)[1]
         } else NULL
       }
-      
+
       sim$rasterToMatch <- crop(fasterizeFromSp(sim$studyAreaLarge, sim$rasterToMatch, fieldName),
                                 sim$studyAreaLarge)
       sim$rasterToMatch <- Cache(writeRaster, sim$rasterToMatch,
@@ -302,7 +256,7 @@ biomassDataInit <- function(sim) {
            " or in a module that gets loaded prior to ", currentModule(sim))
     }
   }
-  
+
   if (!suppliedElsewhere("sppNameVector", sim)) {
     ## default to 6 species (see below)
     sim$sppNameVector <- c("Abie_sp", "Pice_gla", "Pice_mar", "Pinu_ban", "Pinu_con", "Popu_tre")
@@ -331,7 +285,7 @@ biomassDataInit <- function(sim) {
                                sppMerge = sim$sppMerge,
                                knnNamesCol = "KNN",
                                sppEndNamesCol = "LandR",
-                               thresh = 10, 
+                               thresh = 10,
                                url = extractURL("speciesLayers"),
                                userTags = c(cacheTags, "speciesLayers"))
 
@@ -342,5 +296,57 @@ biomassDataInit <- function(sim) {
     sim$sppNameVector <- speciesLayersList$sppNameVector
   }
 
+  if (!suppliedElsewhere("Pickell") | !suppliedElsewhere("CASFRIRas")) {
+    ## download a small file to confirm access to private Google Drive files
+    aaa <- testthat::capture_error({
+      googledrive::drive_auth(use_oob = TRUE, verbose = TRUE, cache = .cacheVal)
+      file_url <- "https://drive.google.com/file/d/1sJoZajgHtsrOTNOE3LL8MtnTASzY0mo7/view?usp=sharing"
+      googledrive::drive_download(googledrive::as_id(file_url), path = tempfile(),
+                                  overwrite = TRUE, verbose = TRUE)
+    })
+
+    if (is.null(aaa)) { # means got the file
+      if (!suppliedElsewhere("Pickell")) {
+        dPath <- asPath(dataPath(sim))
+        cacheTags <- c(currentModule(sim), "event:init", "stable")
+
+        message("  Loading CASFRI and Pickell et al. layers")
+        ## Ceres: i keep having problems with cached prepInputs here. outside Cache removed ## TODO: restore it
+        sim$Pickell <- prepInputs(targetFile = asPath("SPP_1990_100m_NAD83_LCC_BYTE_VEG_NO_TIES_FILLED_FINAL.dat"),
+                                  url = extractURL("Pickell"),
+                                  archive = asPath("SPP_1990_100m_NAD83_LCC_BYTE_VEG_NO_TIES_FILLED_FINAL.zip"),
+                                  alsoExtract = asPath("SPP_1990_100m_NAD83_LCC_BYTE_VEG_NO_TIES_FILLED_FINAL.hdr"),
+                                  destinationPath = dPath,
+                                  fun = "raster::raster",
+                                  studyArea = sim$studyArea,
+                                  rasterToMatch = sim$rasterToMatch,
+                                  method = "bilinear",
+                                  datatype = "INT2U",
+                                  filename2 = TRUE,
+                                  overwrite = TRUE,
+                                  userTags = c(cacheTags, "Pickell"))
+      }
+
+      if (!suppliedElsewhere("CASFRIRas")) {
+        CASFRItiffFile <- asPath(file.path(dPath, "Landweb_CASFRI_GIDs.tif"))
+        CASFRIattrFile <- asPath(file.path(dPath, "Landweb_CASFRI_GIDs_attributes3.csv"))
+        CASFRIheaderFile <- asPath(file.path(dPath,"Landweb_CASFRI_GIDs_README.txt"))
+
+        sim$CASFRIRas <- prepInputs(targetFile = asPath("Landweb_CASFRI_GIDs.tif"), ## TODO: restore use of Cache
+                                    archive = asPath("CASFRI for Landweb.zip"),
+                                    url = extractURL("CASFRIRas"),
+                                    alsoExtract = c(CASFRItiffFile, CASFRIattrFile, CASFRIheaderFile),
+                                    destinationPath = dPath,
+                                    fun = "raster::raster",
+                                    studyArea = sim$studyArea,
+                                    rasterToMatch = sim$rasterToMatch,
+                                    method = "bilinear",
+                                    datatype = "INT4U",
+                                    filename2 = TRUE,
+                                    overwrite = TRUE,
+                                    userTags =  c(cacheTags, "CASFRIRas"))
+      }
+    }
+  }
   return(invisible(sim))
 }
