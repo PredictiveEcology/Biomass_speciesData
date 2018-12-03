@@ -46,7 +46,7 @@ defineModule(sim, list(
     expectsInput("rasterToMatch", "RasterLayer",
                  desc = "Raster layer of study area used for cropping, masking and projecting.
                  Defaults to the kNN biomass map masked with `studyArea`",
-                 sourceURL = NA),
+                 sourceURL = "http://tree.pfc.forestry.ca/kNN-StructureBiomass.tar"),
     expectsInput("speciesEquivalency", c("data.table"),
                  desc = "table of species equivalencies. See pemisc::sppEquivalencies_CA for further information",
                  sourceURL = ""),
@@ -72,8 +72,8 @@ defineModule(sim, list(
   outputObjects = bind_rows(
     createsOutput("speciesLayers", "RasterStack",
                   desc = "biomass percentage raster layers by species in Canada species map"),
-    createsOutput("sppNameVector",  c("character", "matrix"), ## TODO: no longer a matrix?
-                  desc = "vector or matrix of species to select. If matrix, should have two columns of raw and 'end' species names")
+    createsOutput("sppNameVector",  "character",
+                  desc = "vector of species names to select.")
   )
 ))
 
@@ -94,41 +94,29 @@ doEvent.BiomassSpeciesData <- function(sim, eventTime, eventType) {
 
 ### template initialization
 biomassDataInit <- function(sim) {
-  ## load Pickell Pickell et al. and CASFRI
-
-  ## TODO: remove this whole session cache file block?
-  if (!exists("sessionCacheFile")) {
-    sessionCacheFile <<- tempfile()
-  }
-  isKnownUser <- (!grepl("shiny", Sys.info()["user"]))
-  .cacheVal <<- if (isKnownUser) {
-    oauthFilePath <- file.path(modulePath(sim), "..", ".httr-oauth")
-    options(httr_oauth_cache = oauthFilePath)
-    oauthFilePath
-  } else if (grepl("VIC-A", Sys.info()["nodename"])) {
-    sessionCacheFile
-  } else {
-    FALSE
-  }
-
+  cacheTags <- c(currentModule(sim), "function:biomassDataInit")
+  dPath <- asPath(dataPath(sim))
 
   message("Load CASFRI data and headers, and convert to long format, and define species groups")
   if (P(sim)$.useParallel > 1) data.table::setDTthreads(P(sim)$.useParallel)
 
-  loadedCASFRI <- Cache(loadCASFRI, ## TODO: restore use of Cache
-                        CASFRIRas = CASFRIRas,
+  CASFRIattrFile <- asPath(file.path(dPath, "Landweb_CASFRI_GIDs_attributes3.csv"))  ## TODO: duplicated from .inputObjects
+  CASFRIheaderFile <- asPath(file.path(dPath,"Landweb_CASFRI_GIDs_README.txt")) ## TODO: duplicated from .inputObjects
+
+  loadedCASFRI <- Cache(loadCASFRI,
+                        CASFRIRas = sim$CASFRIRas,
                         attrFile = CASFRIattrFile,
                         headerFile = CASFRIheaderFile,
                         sppNameVector = sim$sppNameVector,
                         speciesEquivalency = sim$speciesEquivalency,
                         sppEndNamesCol = "LandR",
                         sppMerge = sim$sppMerge,
-                        userTags = c("function:loadCASFRI", "BigDataTable"))
+                        userTags = c(cacheTags, "function:loadCASFRI", "BigDataTable"))
 
   message("Make stack of species layers from Pickell's layer")
 
   ## check if all species found in kNN database are in CASFRI
-  uniqueKeepSp <- unique(loadedCASFRI$keepSpecies$spGroup)
+  uniqueKeepSp <- unique(loadedCASFRI$keepSpecies$spGroup) ## TODO: the names don't match at all (#6)
   if (!all(names(sim$speciesLayers) %in% uniqueKeepSp))
     warning("some kNN species not in CASFRI layers.")
 
@@ -137,7 +125,7 @@ biomassDataInit <- function(sim) {
     opt <- options(reproducible.useCache = TRUE) ## TODO: temporary workaround
 
   PickellSpStack <- Cache(makePickellStack,
-                          PickellRaster = Pickell,
+                          PickellRaster = sim$Pickell,
                           uniqueKeepSp = uniqueKeepSp,
                           speciesKnn = names(sim$speciesLayers),
                           destinationPath = dPath,
@@ -149,7 +137,7 @@ biomassDataInit <- function(sim) {
 
   message('Make stack from CASFRI data and headers')
   CASFRISpStack <- Cache(CASFRItoSpRasts,
-                         CASFRIRas = CASFRIRas,
+                         CASFRIRas = sim$CASFRIRas,
                          loadedCASFRI = loadedCASFRI,
                          speciesKnn = names(sim$speciesLayers),
                          destinationPath = dPath,
@@ -198,11 +186,6 @@ biomassDataInit <- function(sim) {
     .GlobalEnv$.Random.seed <- seedToKeep
   }
 
-  if (!suppliedElsewhere("studyArea", sim)) {
-    message("'studyArea' was not provided by user. Using the same as 'studyAreaLarge'.")
-    sim$studyArea <- sim$studyAreaLarge
-  }
-
   if (!is(sim$studyAreaLarge, "SpatialPolygonsDataFrame")) {
     dfData <- if (is.null(rownames(sim$studyAreaLarge))) {
       polyID <- sapply(slot(sim$studyAreaLarge, "polygons"), function(x) slot(x, "ID"))
@@ -214,6 +197,11 @@ biomassDataInit <- function(sim) {
     sim$studyAreaLarge <- SpatialPolygonsDataFrame(sim$studyAreaLarge, data = dfData)
   }
 
+  if (!suppliedElsewhere("studyArea", sim)) {
+    message("'studyArea' was not provided by user. Using the same as 'studyAreaLarge'.")
+    sim$studyArea <- sim$studyAreaLarge
+  }
+
   if (is.null(sim$rasterToMatch)) {
     if (!suppliedElsewhere("rasterToMatch", sim)) {
       message("There is no rasterToMatch supplied; will attempt to use biomassMap")
@@ -222,7 +210,7 @@ biomassDataInit <- function(sim) {
                           targetFile = asPath(basename(biomassMapFilename)),
                           archive = asPath(c("kNN-StructureBiomass.tar",
                                              "NFI_MODIS250m_kNN_Structure_Biomass_TotalLiveAboveGround_v0.zip")),
-                          url = "http://tree.pfc.forestry.ca/kNN-StructureBiomass.tar",  ## TODO: maybe put this URL in rasterToMatch metadata?
+                          url = extractURL("rasterToMatch"),
                           destinationPath = dPath,
                           studyArea = sim$studyArea,   ## TODO: should this be studyAreaLarge? in RTM below it is...
                           useSAcrs = TRUE,
@@ -297,6 +285,21 @@ biomassDataInit <- function(sim) {
   }
 
   if (!suppliedElsewhere("Pickell") | !suppliedElsewhere("CASFRIRas")) {
+    ## TODO: remove this whole session cache file block? @Eliot why is this needed?
+    if (!exists("sessionCacheFile")) {
+      sessionCacheFile <- tempfile()
+    }
+    isKnownUser <- (!grepl("shiny", Sys.info()["user"]))
+    .cacheVal <- if (isKnownUser) {
+      oauthFilePath <- file.path(modulePath(sim), "..", ".httr-oauth")
+      options(httr_oauth_cache = oauthFilePath)
+      oauthFilePath
+    } else if (grepl("VIC-A", Sys.info()["nodename"])) {
+      sessionCacheFile
+    } else {
+      FALSE
+    }
+
     ## download a small file to confirm access to private Google Drive files
     aaa <- testthat::capture_error({
       googledrive::drive_auth(use_oob = TRUE, verbose = TRUE, cache = .cacheVal)
@@ -307,24 +310,21 @@ biomassDataInit <- function(sim) {
 
     if (is.null(aaa)) { # means got the file
       if (!suppliedElsewhere("Pickell")) {
-        dPath <- asPath(dataPath(sim))
-        cacheTags <- c(currentModule(sim), "event:init", "stable")
-
-        message("  Loading CASFRI and Pickell et al. layers")
-        ## Ceres: i keep having problems with cached prepInputs here. outside Cache removed ## TODO: restore it
-        sim$Pickell <- prepInputs(targetFile = asPath("SPP_1990_100m_NAD83_LCC_BYTE_VEG_NO_TIES_FILLED_FINAL.dat"),
-                                  url = extractURL("Pickell"),
-                                  archive = asPath("SPP_1990_100m_NAD83_LCC_BYTE_VEG_NO_TIES_FILLED_FINAL.zip"),
-                                  alsoExtract = asPath("SPP_1990_100m_NAD83_LCC_BYTE_VEG_NO_TIES_FILLED_FINAL.hdr"),
-                                  destinationPath = dPath,
-                                  fun = "raster::raster",
-                                  studyArea = sim$studyArea,
-                                  rasterToMatch = sim$rasterToMatch,
-                                  method = "bilinear",
-                                  datatype = "INT2U",
-                                  filename2 = TRUE,
-                                  overwrite = TRUE,
-                                  userTags = c(cacheTags, "Pickell"))
+        message("  Loading Pickell et al. layers...")
+        sim$Pickell <- Cache(prepInputs,
+                             targetFile = asPath("SPP_1990_100m_NAD83_LCC_BYTE_VEG_NO_TIES_FILLED_FINAL.dat"),
+                             url = extractURL("Pickell"),
+                             archive = asPath("SPP_1990_100m_NAD83_LCC_BYTE_VEG_NO_TIES_FILLED_FINAL.zip"),
+                             alsoExtract = asPath("SPP_1990_100m_NAD83_LCC_BYTE_VEG_NO_TIES_FILLED_FINAL.hdr"),
+                             destinationPath = dPath,
+                             fun = "raster::raster",
+                             studyArea = sim$studyArea,
+                             rasterToMatch = sim$rasterToMatch,
+                             method = "bilinear", ## ignore warning re: ngb (#5)
+                             datatype = "INT2U",
+                             filename2 = TRUE,
+                             overwrite = TRUE,
+                             userTags = c(cacheTags, "Pickell", "stable"))
       }
 
       if (!suppliedElsewhere("CASFRIRas")) {
@@ -332,21 +332,26 @@ biomassDataInit <- function(sim) {
         CASFRIattrFile <- asPath(file.path(dPath, "Landweb_CASFRI_GIDs_attributes3.csv"))
         CASFRIheaderFile <- asPath(file.path(dPath,"Landweb_CASFRI_GIDs_README.txt"))
 
-        sim$CASFRIRas <- prepInputs(targetFile = asPath("Landweb_CASFRI_GIDs.tif"), ## TODO: restore use of Cache
-                                    archive = asPath("CASFRI for Landweb.zip"),
-                                    url = extractURL("CASFRIRas"),
-                                    alsoExtract = c(CASFRItiffFile, CASFRIattrFile, CASFRIheaderFile),
-                                    destinationPath = dPath,
-                                    fun = "raster::raster",
-                                    studyArea = sim$studyArea,
-                                    rasterToMatch = sim$rasterToMatch,
-                                    method = "bilinear",
-                                    datatype = "INT4U",
-                                    filename2 = TRUE,
-                                    overwrite = TRUE,
-                                    userTags =  c(cacheTags, "CASFRIRas"))
+        message("  Loading CASFRI layers...")
+        sim$CASFRIRas <- Cache(prepInputs,
+                               targetFile = asPath("Landweb_CASFRI_GIDs.tif"),
+                               archive = asPath("CASFRI for Landweb.zip"),
+                               url = extractURL("CASFRIRas"),
+                               alsoExtract = c(CASFRItiffFile, CASFRIattrFile, CASFRIheaderFile),
+                               destinationPath = dPath,
+                               fun = "raster::raster",
+                               studyArea = sim$studyArea,
+                               rasterToMatch = sim$rasterToMatch,
+                               method = "bilinear", ## ignore warning re: ngb (#5)
+                               datatype = "INT4U",
+                               filename2 = TRUE,
+                               overwrite = TRUE,
+                               userTags =  c(cacheTags, "CASFRIRas", "stable"))
       }
+    } else {
+      stop("Unable to access data on Google Drive. Are you sure you have access to these private files?")
     }
   }
   return(invisible(sim))
 }
+
