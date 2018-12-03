@@ -100,13 +100,10 @@ biomassDataInit <- function(sim) {
   message("Load CASFRI data and headers, and convert to long format, and define species groups")
   if (P(sim)$.useParallel > 1) data.table::setDTthreads(P(sim)$.useParallel)
 
-  CASFRIattrFile <- asPath(file.path(dPath, "Landweb_CASFRI_GIDs_attributes3.csv"))  ## TODO: duplicated from .inputObjects
-  CASFRIheaderFile <- asPath(file.path(dPath,"Landweb_CASFRI_GIDs_README.txt")) ## TODO: duplicated from .inputObjects
-
   loadedCASFRI <- Cache(loadCASFRI,
                         CASFRIRas = sim$CASFRIRas,
-                        attrFile = CASFRIattrFile,
-                        headerFile = CASFRIheaderFile,
+                        attrFile = mod$CASFRIattrFile,
+                        headerFile = mod$CASFRIheaderFile, ## TODO: this isn't used internally
                         sppNameVector = sim$sppNameVector,
                         speciesEquivalency = sim$speciesEquivalency,
                         sppEndNamesCol = "LandR",
@@ -285,71 +282,44 @@ biomassDataInit <- function(sim) {
   }
 
   if (!suppliedElsewhere("Pickell") | !suppliedElsewhere("CASFRIRas")) {
-    ## TODO: remove this whole session cache file block? @Eliot why is this needed?
-    if (!exists("sessionCacheFile")) {
-      sessionCacheFile <- tempfile()
-    }
-    isKnownUser <- (!grepl("shiny", Sys.info()["user"]))
-    .cacheVal <- if (isKnownUser) {
-      oauthFilePath <- file.path(modulePath(sim), "..", ".httr-oauth")
-      options(httr_oauth_cache = oauthFilePath)
-      oauthFilePath
-    } else if (grepl("VIC-A", Sys.info()["nodename"])) {
-      sessionCacheFile
-    } else {
-      FALSE
+    if (!suppliedElsewhere("Pickell")) {
+      message("  Loading Pickell et al. layers...")
+      sim$Pickell <- Cache(prepInputs,
+                           targetFile = asPath("SPP_1990_100m_NAD83_LCC_BYTE_VEG_NO_TIES_FILLED_FINAL.dat"),
+                           url = extractURL("Pickell"),
+                           archive = asPath("SPP_1990_100m_NAD83_LCC_BYTE_VEG_NO_TIES_FILLED_FINAL.zip"),
+                           alsoExtract = asPath("SPP_1990_100m_NAD83_LCC_BYTE_VEG_NO_TIES_FILLED_FINAL.hdr"),
+                           destinationPath = dPath,
+                           fun = "raster::raster",
+                           studyArea = sim$studyArea,
+                           rasterToMatch = sim$rasterToMatch,
+                           method = "bilinear", ## ignore warning re: ngb (#5)
+                           datatype = "INT2U",
+                           filename2 = TRUE,
+                           overwrite = TRUE,
+                           userTags = c(cacheTags, "Pickell", "stable"))
     }
 
-    ## download a small file to confirm access to private Google Drive files
-    aaa <- testthat::capture_error({
-      googledrive::drive_auth(use_oob = TRUE, verbose = TRUE, cache = .cacheVal)
-      file_url <- "https://drive.google.com/file/d/1sJoZajgHtsrOTNOE3LL8MtnTASzY0mo7/view?usp=sharing"
-      googledrive::drive_download(googledrive::as_id(file_url), path = tempfile(),
-                                  overwrite = TRUE, verbose = TRUE)
-    })
+    if (!suppliedElsewhere("CASFRIRas")) {
+      mod$CASFRItiffFile <- asPath(file.path(dPath, "Landweb_CASFRI_GIDs.tif"))
+      mod$CASFRIattrFile <- asPath(file.path(dPath, "Landweb_CASFRI_GIDs_attributes3.csv"))
+      mod$CASFRIheaderFile <- asPath(file.path(dPath,"Landweb_CASFRI_GIDs_README.txt"))
 
-    if (is.null(aaa)) { # means got the file
-      if (!suppliedElsewhere("Pickell")) {
-        message("  Loading Pickell et al. layers...")
-        sim$Pickell <- Cache(prepInputs,
-                             targetFile = asPath("SPP_1990_100m_NAD83_LCC_BYTE_VEG_NO_TIES_FILLED_FINAL.dat"),
-                             url = extractURL("Pickell"),
-                             archive = asPath("SPP_1990_100m_NAD83_LCC_BYTE_VEG_NO_TIES_FILLED_FINAL.zip"),
-                             alsoExtract = asPath("SPP_1990_100m_NAD83_LCC_BYTE_VEG_NO_TIES_FILLED_FINAL.hdr"),
+      message("  Loading CASFRI layers...")
+      sim$CASFRIRas <- Cache(prepInputs,
+                             targetFile = asPath("Landweb_CASFRI_GIDs.tif"),
+                             archive = asPath("CASFRI for Landweb.zip"),
+                             url = extractURL("CASFRIRas"),
+                             alsoExtract = c(mod$CASFRItiffFile, mod$CASFRIattrFile, mod$CASFRIheaderFile),
                              destinationPath = dPath,
                              fun = "raster::raster",
                              studyArea = sim$studyArea,
                              rasterToMatch = sim$rasterToMatch,
                              method = "bilinear", ## ignore warning re: ngb (#5)
-                             datatype = "INT2U",
+                             datatype = "INT4U",
                              filename2 = TRUE,
                              overwrite = TRUE,
-                             userTags = c(cacheTags, "Pickell", "stable"))
-      }
-
-      if (!suppliedElsewhere("CASFRIRas")) {
-        CASFRItiffFile <- asPath(file.path(dPath, "Landweb_CASFRI_GIDs.tif"))
-        CASFRIattrFile <- asPath(file.path(dPath, "Landweb_CASFRI_GIDs_attributes3.csv"))
-        CASFRIheaderFile <- asPath(file.path(dPath,"Landweb_CASFRI_GIDs_README.txt"))
-
-        message("  Loading CASFRI layers...")
-        sim$CASFRIRas <- Cache(prepInputs,
-                               targetFile = asPath("Landweb_CASFRI_GIDs.tif"),
-                               archive = asPath("CASFRI for Landweb.zip"),
-                               url = extractURL("CASFRIRas"),
-                               alsoExtract = c(CASFRItiffFile, CASFRIattrFile, CASFRIheaderFile),
-                               destinationPath = dPath,
-                               fun = "raster::raster",
-                               studyArea = sim$studyArea,
-                               rasterToMatch = sim$rasterToMatch,
-                               method = "bilinear", ## ignore warning re: ngb (#5)
-                               datatype = "INT4U",
-                               filename2 = TRUE,
-                               overwrite = TRUE,
-                               userTags =  c(cacheTags, "CASFRIRas", "stable"))
-      }
-    } else {
-      stop("Unable to access data on Google Drive. Are you sure you have access to these private files?")
+                             userTags =  c(cacheTags, "CASFRIRas", "stable"))
     }
   }
   return(invisible(sim))
