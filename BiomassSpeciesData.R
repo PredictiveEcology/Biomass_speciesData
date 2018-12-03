@@ -21,10 +21,6 @@ defineModule(sim, list(
                   "PredictiveEcology/pemisc@development"),
   parameters = rbind(
     #defineParameter("paramName", "paramClass", value, min, max, "parameter description"),
-    defineParameter(".crsUsed", "character",
-                    paste("+proj=lcc +lat_1=49 +lat_2=77 +lat_0=0 +lon_0=-95",
-                          "+x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0"),
-                    NA, NA, "CRS to be used. Defaults to the biomassMap projection"), ## TODO: remove .crsUsed
     defineParameter(".plotInitialTime", "numeric", NA, NA, NA,
                     "This describes the simulation time at which the first plot event should occur"),
     defineParameter(".plotInterval", "numeric", NA, NA, NA,
@@ -40,9 +36,6 @@ defineModule(sim, list(
                     "Used in reading csv file with fread. Will be passed to data.table::setDTthreads")
   ),
   inputObjects = bind_rows(
-    expectsInput("biomassMap", "RasterLayer",
-                 desc = "total biomass raster layer in study area, default is Canada national biomass map",
-                 sourceURL = "http://tree.pfc.forestry.ca/kNN-StructureBiomass.tar"), ## TODO: use rasterToMatch instead of biomassMap
     expectsInput("CASFRIRas", "RasterStack",
                  desc = "biomass percentage raster layers by species in Canada species map, created by Pickell et al., UBC, resolution 100m x 100m from LandSat and kNN based on CASFRI.",
                  sourceURL = "https://drive.google.com/file/d/1y0ofr2H0c_IEMIpx19xf3_VTBheY0C9h/view?usp=sharing"),
@@ -50,6 +43,10 @@ defineModule(sim, list(
                  desc = paste("biomass percentage raster layers by species in Canada species map,",
                               "created by Pickell et al., UBC, resolution 100m x 100m from LandSat and kNN based on CASFRI."),
                  sourceURL = "https://drive.google.com/open?id=1M_L-7ovDpJLyY8dDOxG3xQTyzPx2HSg4"),
+    expectsInput("rasterToMatch", "RasterLayer",
+                 desc = "Raster layer of study area used for cropping, masking and projecting. 
+                 Defaults to the Knn biomass map masked with `studyArea`",
+                 sourceURL = NA), 
     expectsInput("speciesEquivalency", c("data.table"),
                  desc = "table of species equivalencies. See pemisc::sppEquivalencies_CA for further information",
                  sourceURL = ""),
@@ -64,15 +61,13 @@ defineModule(sim, list(
     expectsInput("sppNameVector", c("character"),
                  desc = "vector of species to select", sourceURL = ""),
     expectsInput("studyArea", "SpatialPolygonsDataFrame",
-                 desc = paste("multipolygon to use as the study area,",
-                              "with attribute LTHFC describing the fire return interval.",
-                              "Defaults to a square shapefile in Southwestern Alberta, Canada."),
-                 sourceURL = ""), ## TODO: I don't believe fire return interval is needed for this module!
+                 desc =  paste("Multipolygon to use as the study area,",
+                               "Defaults to a square shapefile in Southwestern Alberta, Canada."),
+                 sourceURL = NA), 
     expectsInput("studyAreaLarge", "SpatialPolygonsDataFrame",
-                 desc = paste("multipolygon (larger area than studyArea) to use for parameter estimation,",
-                              "with attribute LTHFC describing the fire return interval.",
+                 desc = paste("multipolygon (larger area than studyArea) to use for parameter estimation.",
                               "Defaults to a square shapefile in Southwestern Alberta, Canada."),
-                 sourceURL = "") ## TODO: I don't believe fire return interval is needed for this module!
+                 sourceURL = NA)
   ),
   outputObjects = bind_rows(
     createsOutput("speciesLayers", "RasterStack",
@@ -137,7 +132,7 @@ biomassDataInit <- function(sim) {
                           destinationPath = dPath,
                           fun = "raster::raster",
                           studyArea = sim$studyArea,
-                          rasterToMatch = sim$biomassMap, ## TODO: use sim$rasterToMatch instead of biomassMap
+                          rasterToMatch = sim$rasterToMatch,
                           method = "bilinear",
                           datatype = "INT2U",
                           filename2 = TRUE,
@@ -155,7 +150,7 @@ biomassDataInit <- function(sim) {
                             destinationPath = dPath,
                             fun = "raster::raster",
                             studyArea = sim$studyArea,
-                            rasterToMatch = sim$biomassMap, ## TODO: use sim$rasterToMatch instead of biomassMap
+                            rasterToMatch = sim$rasterToMatch, 
                             method = "bilinear",
                             datatype = "INT4U",
                             filename2 = TRUE,
@@ -195,7 +190,7 @@ biomassDataInit <- function(sim) {
 
     if (exists("opt", inherits = FALSE)) options(opt) ## TODO: temporary workaround with above
 
-    crs(PickellSpStack) <- crs(sim$biomassMap) # bug in writeRaster
+    crs(PickellSpStack) <- crs(sim$rasterToMatch) # bug in writeRaster
 
     message('Make stack from CASFRI data and headers')
     CASFRISpStack <- Cache(CASFRItoSpRasts,
@@ -213,19 +208,19 @@ biomassDataInit <- function(sim) {
                       destinationPath = dPath,
                       userTags = c(cacheTags, "function:overlayStacks", "Pickell_CASFRI"))
 
-    crs(outStack) <- crs(sim$biomassMap) # bug in writeRaster ## TODO: use sim$rasterToMatch instead of biomassMap
+    crs(outStack) <- crs(sim$rasterToMatch) # bug in writeRaster
 
     message("Overlay Pickell_CASFRI with open data set stacks")
-    specieslayers2 <- Cache(overlayStacks,
+    speciesLayers2 <- Cache(overlayStacks,
                             highQualityStack = outStack,
                             lowQualityStack = sim$speciesLayers,
                             outputFilenameSuffix = "CASFRI_Pickell_kNN",
                             destinationPath = dPath,
                             userTags = c(cacheTags, "function:overlayStacks", "CASFRI_Pickell_kNN"))
-    crs(specieslayers2) <- crs(sim$biomassMap) ## TODO: use sim$rasterToMatch instead of biomassMap
+    crs(speciesLayers2) <- crs(sim$rasterToMatch) 
 
     ## replace species layers
-    sim$speciesLayers <- specieslayers2
+    sim$speciesLayers <- speciesLayers2
     message("Using overlaid datasets from CASFRI, Pickell and CFS kNN")
   }
 
@@ -237,39 +232,77 @@ biomassDataInit <- function(sim) {
   cacheTags = c(currentModule(sim), "function:.inputObjects")
 
   if (!suppliedElsewhere("studyAreaLarge", sim)) {
-    message("'studyAreaLarge' was not provided by user. Using a polygon in Southwestern Alberta, Canada.")
-
-    canadaMap <- Cache(getData, 'GADM', country = 'CAN', level = 1, path = asPath(dPath),
-                       cacheRepo = getPaths()$cachePath, quick = FALSE)
-    smallPolygonCoords = list(
-      coords = data.frame(x = c(-115.9022, -114.9815, -114.3677, -113.4470, -113.5084,
-                                -114.4291, -115.3498, -116.4547, -117.1298, -117.3140),
-                          y = c(50.45516, 50.45516, 50.51654, 50.51654, 51.62139,
-                                52.72624, 52.54210, 52.48072, 52.11243, 51.25310))
-    )
-
-    sim$studyAreaLarge <- SpatialPolygons(list(Polygons(list(
-      Polygon(smallPolygonCoords$coords)), ID = "swAB_polygon")),
-      proj4string = crs(canadaMap))
+    message("'studyAreaLarge' was not provided by user. Using a polygon in southwestern Alberta, Canada,")
+    
+    polyCenter <- SpatialPoints(coords = data.frame(x = c(-1349980), y = c(6986895)),
+                                proj4string = CRS(paste("+proj=lcc +lat_1=49 +lat_2=77 +lat_0=0 +lon_0=-95 +x_0=0 +y_0=0",
+                                                        "+datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0")))
+    
+    seedToKeep <- .GlobalEnv$.Random.seed
+    set.seed(1234)
+    sim$studyAreaLarge <- SpaDES.tools::randomPolygon(x = polyCenter, hectares = 10000)
+    .GlobalEnv$.Random.seed <- seedToKeep
   }
 
   if (!suppliedElsewhere("studyArea", sim)) {
     message("'studyArea' was not provided by user. Using the same as 'studyAreaLarge'.")
     sim$studyArea <- sim$studyAreaLarge
   }
-
-  ## check projection
-  ## TODO: check more than just projection; remove .crsUsed, use rasterToMatch
-  if (!identical(as.character(P(sim)$.crsUsed),
-                 as.character(crs(sim$studyAreaLarge)))) {
-    sim$studyAreaLarge <- spTransform(sim$studyAreaLarge, P(sim)$.crsUsed) #faster without Cache
+  
+  if (!is(sim$studyAreaLarge, "SpatialPolygonsDataFrame")) {
+    dfData <- if (is.null(rownames(sim$studyAreaLarge))) {
+      polyID <- sapply(slot(sim$studyAreaLarge, "polygons"), function(x) slot(x, "ID"))
+      data.frame("field" = as.character(seq_along(length(sim$studyAreaLarge))), row.names = polyID)
+    } else {
+      polyID <- sapply(slot(sim$studyAreaLarge, "polygons"), function(x) slot(x, "ID"))
+      data.frame("field" = rownames(sim$studyAreaLarge), row.names = polyID)
+    }
+    sim$studyAreaLarge <- SpatialPolygonsDataFrame(sim$studyAreaLarge, data = dfData)
   }
 
-  if (!identical(as.character(P(sim)$.crsUsed),
-                 as.character(crs(sim$studyArea)))) {
-    sim$studyArea <- spTransform(sim$studyArea, P(sim)$.crsUsed) #faster without Cache
+  if (is.null(sim$rasterToMatch)) {
+    if (!suppliedElsewhere("rasterToMatch", sim)) {
+      message("There is no rasterToMatch supplied; will attempt to use biomassMap")
+      
+      biomassMap <- Cache(prepInputs,
+                          targetFile = asPath(basename(biomassMapFilename)),
+                          archive = asPath(c("kNN-StructureBiomass.tar",
+                                             "NFI_MODIS250m_kNN_Structure_Biomass_TotalLiveAboveGround_v0.zip")),
+                          url = "http://tree.pfc.forestry.ca/kNN-StructureBiomass.tar",  ## TODO: maybe put this URL in rasterToMatch metadata?
+                          destinationPath = dPath,
+                          studyArea = sim$studyArea,   ## TODO: should this be studyAreaLarge? in RTM below it is...
+                          useSAcrs = TRUE,
+                          method = "bilinear",
+                          datatype = "INT2U",
+                          filename2 = TRUE, overwrite = TRUE,
+                          userTags = cacheTags)
+      
+      sim$rasterToMatch <- biomassMap
+      message("  Rasterizing the studyAreaLarge polygon map")
+      
+      # Layers provided by David Andison sometimes have LTHRC, sometimes LTHFC ... chose whichever
+      LTHxC <- grep("(LTH.+C)",names(sim$studyAreaLarge), value = TRUE)
+      fieldName <- if (length(LTHxC)) {
+        LTHxC
+      } else {
+        if (length(names(sim$studyAreaLarge)) > 1) {   ## study region may be a simple polygon
+          names(sim$studyAreaLarge)[1]
+        } else NULL
+      }
+      
+      sim$rasterToMatch <- crop(fasterizeFromSp(sim$studyAreaLarge, sim$rasterToMatch, fieldName),
+                                sim$studyAreaLarge)
+      sim$rasterToMatch <- Cache(writeRaster, sim$rasterToMatch,
+                                 filename = file.path(dataPath(sim), "rasterToMatch.tif"),
+                                 datatype = "INT2U", overwrite = TRUE)
+    } else {
+      stop("rasterToMatch is going to be supplied, but ", currentModule(sim), " requires it ",
+           "as part of its .inputObjects. Please make it accessible to ", currentModule(sim),
+           " in the .inputObjects by passing it in as an object in simInit(objects = list(rasterToMatch = aRaster)",
+           " or in a module that gets loaded prior to ", currentModule(sim))
+    }
   }
-
+  
   if (!suppliedElsewhere("sppNameVector", sim)) {
     ## default to 6 species (see below)
     sim$sppNameVector <- c("Abie_sp", "Pice_gla", "Pice_mar", "Pinu_ban", "Pinu_con", "Popu_tre")
@@ -288,42 +321,25 @@ biomassDataInit <- function(sim) {
     sim$speciesEquivalency[KNN == "Abie_Las", LandR := "Abie_sp"]
   }
 
-  if (!suppliedElsewhere("biomassMap", sim)) { ## TODO: use rasterToMatch
-    biomassMapFilename <- file.path(dPath, "NFI_MODIS250m_kNN_Structure_Biomass_TotalLiveAboveGround_v0.tif")
-    sim$biomassMap <- Cache(prepInputs,
-                            targetFile = asPath(basename(biomassMapFilename)),
-                            archive = asPath(c("kNN-StructureBiomass.tar",
-                                               "NFI_MODIS250m_kNN_Structure_Biomass_TotalLiveAboveGround_v0.zip")),
-                            url = extractURL("biomassMap", sim),
-                            destinationPath = dPath,
-                            studyArea = sim$studyArea,
-                            useSAcrs = TRUE,
-                            method = "bilinear",
-                            datatype = "INT2U",
-                            filename2 = TRUE,
-                            overwrite = TRUE,
-                            userTags = c(cacheTags, "biomassMap"))
-  }
-
-  if (!suppliedElsewhere("speciesLayers")) { ## TODO: rule should check for sppNameVector
-    specieslayersList <- Cache(loadkNNSpeciesLayers,
+  if (!suppliedElsewhere("speciesLayers")) {
+    speciesLayersList <- Cache(loadkNNSpeciesLayers,
                                dPath = dPath,
-                               rasterToMatch = sim$biomassMap, ## TODO: use rasterToMatch
+                               rasterToMatch = sim$rasterToMatch,
                                studyArea = sim$studyAreaLarge,
                                sppNameVector = sim$sppNameVector,
                                speciesEquivalency = sim$speciesEquivalency,
                                sppMerge = sim$sppMerge,
                                knnNamesCol = "KNN",
                                sppEndNamesCol = "LandR",
-                               thresh = 10, ## TODO: do we use this? not used in ProprietaryData
+                               thresh = 10, 
                                url = extractURL("speciesLayers"),
                                userTags = c(cacheTags, "speciesLayers"))
 
-    sim$speciesLayers <- specieslayersList$speciesLayers
+    sim$speciesLayers <- speciesLayersList$speciesLayers
 
     ## update the list of original species to use;
     ## as kNN is the lowest resolution, if species weren't found they will be excluded
-    sim$sppNameVector <- specieslayersList$sppNameVector
+    sim$sppNameVector <- speciesLayersList$sppNameVector
   }
 
   return(invisible(sim))
