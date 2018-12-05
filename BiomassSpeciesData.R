@@ -58,7 +58,7 @@ defineModule(sim, list(
                               "If none, create an empty list. Defaults to merging",
                               "of Pinus contorta and P. banksiana into Pinus sp."),
                  sourceURL = ""),
-    expectsInput("sppNameVector", c("character"),
+    expectsInput("sppNameVector", "character",
                  desc = "vector of species to select", sourceURL = ""),
     expectsInput("studyArea", "SpatialPolygonsDataFrame",
                  desc =  paste("Multipolygon to use as the study area,",
