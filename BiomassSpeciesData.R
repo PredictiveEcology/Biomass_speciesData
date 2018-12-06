@@ -75,7 +75,7 @@ defineModule(sim, list(
     createsOutput("sppNameVector",  "character",
                   desc = "vector of species names to select.")
   )
-))
+  ))
 
 ## event types
 #   - type `init` is required for initialiazation
@@ -94,28 +94,29 @@ doEvent.BiomassSpeciesData <- function(sim, eventTime, eventType) {
 
 ### template initialization
 biomassDataInit <- function(sim) {
+  browser()
   cacheTags <- c(currentModule(sim), "function:biomassDataInit")
   dPath <- asPath(dataPath(sim))
 
-  message("Load CASFRI data and headers, and convert to long format, and define species groups")
+  # message("Load CASFRI data and headers, and convert to long format, and define species groups")
   if (P(sim)$.useParallel > 1) data.table::setDTthreads(P(sim)$.useParallel)
-
-  loadedCASFRI <- Cache(loadCASFRI,
-                        CASFRIRas = sim$CASFRIRas,
-                        attrFile = mod$CASFRIattrFile,
-                        headerFile = mod$CASFRIheaderFile, ## TODO: this isn't used internally
-                        sppNameVector = sim$sppNameVector,
-                        speciesEquivalency = sim$speciesEquivalency,
-                        sppEndNamesCol = "LandR",
-                        sppMerge = sim$sppMerge,
-                        userTags = c(cacheTags, "function:loadCASFRI", "BigDataTable"))
+  #
+  # loadedCASFRI <- Cache(loadCASFRI,
+  #                       CASFRIRas = sim$CASFRIRas,
+  #                       attrFile = mod$CASFRIattrFile,
+  #                       headerFile = mod$CASFRIheaderFile, ## TODO: this isn't used internally
+  #                       sppNameVector = sim$sppNameVector,
+  #                       speciesEquivalency = sim$speciesEquivalency,
+  #                       sppEndNamesCol = "LandR",
+  #                       sppMerge = sim$sppMerge,
+  #                       userTags = c(cacheTags, "function:loadCASFRI", "BigDataTable"))
 
   message("Make stack of species layers from Pickell's layer")
 
   ## check if all species found in kNN database are in CASFRI
-  uniqueKeepSp <- unique(loadedCASFRI$keepSpecies$spGroup) ## TODO: the names don't match at all (#6)
-  if (!all(names(sim$speciesLayers) %in% uniqueKeepSp))
-    warning("some kNN species not in CASFRI layers.")
+  # uniqueKeepSp <- unique(loadedCASFRI$keepSpecies$spGroup) ## TODO: the names don't match at all (#6)
+  # if (!all(names(sim$speciesLayers) %in% uniqueKeepSp))
+  #   warning("some kNN species not in CASFRI layers.")
 
   ## TODO: weird bug when useCache = "overwrite"
   if (getOption("reproducible.useCache") == "overwrite")
@@ -132,13 +133,13 @@ biomassDataInit <- function(sim) {
 
   crs(PickellSpStack) <- crs(sim$rasterToMatch) # bug in writeRaster
 
-  message('Make stack from CASFRI data and headers')
-  CASFRISpStack <- Cache(CASFRItoSpRasts,
-                         CASFRIRas = sim$CASFRIRas,
-                         loadedCASFRI = loadedCASFRI,
-                         speciesKnn = names(sim$speciesLayers),
-                         destinationPath = dPath,
-                         userTags = c(cacheTags, "function:CASFRItoSpRasts", "CASFRIstack"))
+  # message('Make stack from CASFRI data and headers')
+  # CASFRISpStack <- Cache(CASFRItoSpRasts,
+  #                        CASFRIRas = sim$CASFRIRas,
+  #                        loadedCASFRI = loadedCASFRI,
+  #                        speciesKnn = names(sim$speciesLayers),
+  #                        destinationPath = dPath,
+  #                        userTags = c(cacheTags, "function:CASFRItoSpRasts", "CASFRIstack"))
 
   message("Overlay Pickell and CASFRI stacks")
   outStack <- Cache(overlayStacks,
@@ -301,27 +302,89 @@ biomassDataInit <- function(sim) {
     }
 
     if (!suppliedElsewhere("CASFRIRas")) {
-      mod$CASFRItiffFile <- asPath(file.path(dPath, "Landweb_CASFRI_GIDs.tif"))
-      mod$CASFRIattrFile <- asPath(file.path(dPath, "Landweb_CASFRI_GIDs_attributes3.csv"))
-      mod$CASFRIheaderFile <- asPath(file.path(dPath,"Landweb_CASFRI_GIDs_README.txt"))
-
-      message("  Loading CASFRI layers...")
-      sim$CASFRIRas <- Cache(prepInputs,
-                             targetFile = asPath("Landweb_CASFRI_GIDs.tif"),
-                             archive = asPath("CASFRI for Landweb.zip"),
-                             url = extractURL("CASFRIRas"),
-                             alsoExtract = c(mod$CASFRItiffFile, mod$CASFRIattrFile, mod$CASFRIheaderFile),
-                             destinationPath = dPath,
-                             fun = "raster::raster",
-                             studyArea = sim$studyArea,
-                             rasterToMatch = sim$rasterToMatch,
-                             method = "bilinear", ## ignore warning re: ngb (#5)
-                             datatype = "INT4U",
-                             filename2 = TRUE,
-                             overwrite = TRUE,
-                             userTags =  c(cacheTags, "CASFRIRas", "stable"))
+      browser()
+      prepSpeciesLayers_CASFRI(dPath, url = extractURL("CASFRIRas"),
+                               studyArea = sim$studyArea,
+                               rasterToMatch = sim$rasterToMatch,
+                               sppNameVector = sim$sppNameVector,
+                               speciesEquivalency = sim$speciesEquivalency,
+                               sppMerge = sim$sppMerge)
+      # mod$CASFRItiffFile <- asPath(file.path(dPath, "Landweb_CASFRI_GIDs.tif"))
+      # mod$CASFRIattrFile <- asPath(file.path(dPath, "Landweb_CASFRI_GIDs_attributes3.csv"))
+      # mod$CASFRIheaderFile <- asPath(file.path(dPath,"Landweb_CASFRI_GIDs_README.txt"))
+      #
+      # message("  Loading CASFRI layers...")
+      # sim$CASFRIRas <- Cache(prepInputs,
+      #                        targetFile = asPath("Landweb_CASFRI_GIDs.tif"),
+      #                        archive = asPath("CASFRI for Landweb.zip"),
+      #                        url = extractURL("CASFRIRas"),
+      #                        alsoExtract = c(mod$CASFRItiffFile, mod$CASFRIattrFile, mod$CASFRIheaderFile),
+      #                        destinationPath = dPath,
+      #                        fun = "raster::raster",
+      #                        studyArea = sim$studyArea,
+      #                        rasterToMatch = sim$rasterToMatch,
+      #                        method = "bilinear", ## ignore warning re: ngb (#5)
+      #                        datatype = "INT4U",
+      #                        filename2 = TRUE,
+      #                        overwrite = TRUE,
+      #                        userTags =  c(cacheTags, "CASFRIRas", "stable"))
     }
   }
   return(invisible(sim))
 }
 
+prepSpeciesLayers_CASFRI <- function(destinationPath, url, studyArea, rasterToMatch,
+                                     sppNameVector,
+                                     speciesEquivalency,
+                                     sppMerge) {
+
+  CASFRItiffFile <- asPath(file.path(destinationPath, "Landweb_CASFRI_GIDs.tif"))
+  CASFRIattrFile <- asPath(file.path(destinationPath, "Landweb_CASFRI_GIDs_attributes3.csv"))
+  CASFRIheaderFile <- asPath(file.path(destinationPath,"Landweb_CASFRI_GIDs_README.txt"))
+
+  message("  Loading CASFRI layers...")
+  CASFRIRas <- Cache(prepInputs,
+                         #targetFile = asPath("Landweb_CASFRI_GIDs.tif"),
+                         targetFile = asPath(basename(CASFRItiffFile)),
+                         archive = asPath("CASFRI for Landweb.zip"),
+                         url = extractURL("CASFRIRas"),
+                         alsoExtract = c(CASFRItiffFile, CASFRIattrFile, CASFRIheaderFile),
+                         destinationPath = destinationPath,
+                         fun = "raster::raster",
+                         studyArea = studyArea,
+                         rasterToMatch = rasterToMatch,
+                         method = "bilinear", ## ignore warning re: ngb (#5)
+                         datatype = "INT4U",
+                         filename2 = NULL, #TRUE,
+                         overwrite = TRUE,
+                         userTags =  c("CASFRIRas", "stable"))
+
+  message("Load CASFRI data and headers, and convert to long format, and define species groups")
+  #if (P(sim)$.useParallel > 1) data.table::setDTthreads(P(sim)$.useParallel)
+
+  loadedCASFRI <- Cache(loadCASFRI,
+                        CASFRIRas = CASFRIRas,
+                        attrFile = CASFRIattrFile,
+                        headerFile = CASFRIheaderFile, ## TODO: this isn't used internally
+                        sppNameVector = pemisc::equivalentName(sppNameVector, speciesEquivalency, "CASFRI"),
+                        speciesEquivalency = speciesEquivalency,
+                        sppEndNamesCol = "LandR",
+                        sppMerge = sppMerge,
+                        userTags = c("function:loadCASFRI", "BigDataTable"))
+
+
+  #uniqueKeepSp <- unique(loadedCASFRI$keepSpecies$spGroup) ## TODO: the names don't match at all (#6)
+  #if (!all(names(sim$speciesLayers) %in% uniqueKeepSp))
+  #  warning("some kNN species not in CASFRI layers.")
+
+  message('Make stack from CASFRI data and headers')
+  CASFRISpStack <- Cache(CASFRItoSpRasts,
+                         CASFRIRas = CASFRIRas,
+                         loadedCASFRI = loadedCASFRI,
+                         speciesKnn = pemisc::equivalentName(sppNameVector, speciesEquivalency, "KNN"),
+                         destinationPath = destinationPath,
+                         userTags = c("function:CASFRItoSpRasts", "CASFRIstack"))
+
+  browser()
+  return(CASFRISpStack)
+}

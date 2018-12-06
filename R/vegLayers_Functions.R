@@ -38,6 +38,7 @@ loadCASFRI <- function(CASFRIRas, attrFile, headerFile, sppNameVector, speciesEq
   }
 
   ## select species not based on abundance but on user inputs:
+  browser()
   keepSpecies <- whSpecies(CASFRIattr, sppNameVector, speciesEquivalency, sppEndNamesCol, sppMerge)
 
   CASFRIattrLong <- melt(CASFRIattr, id.vars = c("GID"),
@@ -183,6 +184,7 @@ makePickellStack <- function(PickellRaster, uniqueKeepSp, speciesKnn, destinatio
 
 CASFRItoSpRasts <- function(CASFRIRas, loadedCASFRI, speciesKnn, destinationPath) {
   ## create list and template raster
+  browser()
   spRasts <- list()
   spRas <- raster(CASFRIRas) %>% setValues(., NA_integer_)
 
