@@ -173,25 +173,7 @@ biomassDataInit <- function(sim) {
   if (!suppliedElsewhere("studyAreaLarge", sim)) {
     message("'studyAreaLarge' was not provided by user. Using a polygon in southwestern Alberta, Canada,")
 
-    polyCenter <- SpatialPoints(coords = data.frame(x = c(-1349980), y = c(6986895)),
-                                proj4string = CRS(paste("+proj=lcc +lat_1=49 +lat_2=77 +lat_0=0 +lon_0=-95 +x_0=0 +y_0=0",
-                                                        "+datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0")))
-
-    seedToKeep <- .GlobalEnv$.Random.seed
-    set.seed(1234)
-    sim$studyAreaLarge <- SpaDES.tools::randomPolygon(x = polyCenter, hectares = 10000)
-    .GlobalEnv$.Random.seed <- seedToKeep  ## TODO: pass seed via arg; don't fetch from global env
-  }
-
-  if (!is(sim$studyAreaLarge, "SpatialPolygonsDataFrame")) {
-    dfData <- if (is.null(rownames(sim$studyAreaLarge))) {
-      polyID <- sapply(slot(sim$studyAreaLarge, "polygons"), function(x) slot(x, "ID"))
-      data.frame("field" = as.character(seq_along(length(sim$studyAreaLarge))), row.names = polyID)
-    } else {
-      polyID <- sapply(slot(sim$studyAreaLarge, "polygons"), function(x) slot(x, "ID"))
-      data.frame("field" = rownames(sim$studyAreaLarge), row.names = polyID)
-    }
-    sim$studyAreaLarge <- SpatialPolygonsDataFrame(sim$studyAreaLarge, data = dfData)
+    sim$studyAreaLarge <- randomStudyArea(seed = 1234)
   }
 
   if (!suppliedElsewhere("studyArea", sim)) {
