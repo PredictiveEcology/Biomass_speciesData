@@ -94,7 +94,6 @@ doEvent.BiomassSpeciesData <- function(sim, eventTime, eventType) {
 
 ### template initialization
 biomassDataInit <- function(sim) {
-  browser()
   cacheTags <- c(currentModule(sim), "function:biomassDataInit")
   dPath <- asPath(dataPath(sim))
 
@@ -301,14 +300,16 @@ biomassDataInit <- function(sim) {
                            userTags = c(cacheTags, "Pickell", "stable"))
     }
 
-    if (!suppliedElsewhere("CASFRIRas")) {
+    if (!suppliedElsewhere("CASFRISpStack")) {
       browser()
-      prepSpeciesLayers_CASFRI(dPath, url = extractURL("CASFRIRas"),
-                               studyArea = sim$studyArea,
-                               rasterToMatch = sim$rasterToMatch,
-                               sppNameVector = sim$sppNameVector,
-                               speciesEquivalency = sim$speciesEquivalency,
-                               sppMerge = sim$sppMerge)
+      CASFRISpStack <- Cache(prepSpeciesLayers_CASFRI, destinationPath = dPath, # this is generic files (preProcess)
+                             outputPath = outputPath(sim), # this will be the studyArea-specific files (postProcess)
+                             url = extractURL("CASFRIRas"),
+                             studyArea = sim$studyArea,
+                             rasterToMatch = sim$rasterToMatch,
+                             sppNameVector = sim$sppNameVector,
+                             speciesEquivalency = sim$speciesEquivalency,
+                             sppMerge = sim$sppMerge)
       # mod$CASFRItiffFile <- asPath(file.path(dPath, "Landweb_CASFRI_GIDs.tif"))
       # mod$CASFRIattrFile <- asPath(file.path(dPath, "Landweb_CASFRI_GIDs_attributes3.csv"))
       # mod$CASFRIheaderFile <- asPath(file.path(dPath,"Landweb_CASFRI_GIDs_README.txt"))
@@ -333,7 +334,7 @@ biomassDataInit <- function(sim) {
   return(invisible(sim))
 }
 
-prepSpeciesLayers_CASFRI <- function(destinationPath, url, studyArea, rasterToMatch,
+prepSpeciesLayers_CASFRI <- function(destinationPath, outputPath, url, studyArea, rasterToMatch,
                                      sppNameVector,
                                      speciesEquivalency,
                                      sppMerge) {
@@ -345,7 +346,7 @@ prepSpeciesLayers_CASFRI <- function(destinationPath, url, studyArea, rasterToMa
   message("  Loading CASFRI layers...")
   CASFRIRas <- Cache(prepInputs,
                          #targetFile = asPath("Landweb_CASFRI_GIDs.tif"),
-                         targetFile = asPath(basename(CASFRItiffFile)),
+                         targetFile = basename(CASFRItiffFile),
                          archive = asPath("CASFRI for Landweb.zip"),
                          url = extractURL("CASFRIRas"),
                          alsoExtract = c(CASFRItiffFile, CASFRIattrFile, CASFRIheaderFile),
@@ -378,13 +379,16 @@ prepSpeciesLayers_CASFRI <- function(destinationPath, url, studyArea, rasterToMa
   #  warning("some kNN species not in CASFRI layers.")
 
   message('Make stack from CASFRI data and headers')
-  CASFRISpStack <- Cache(CASFRItoSpRasts,
-                         CASFRIRas = CASFRIRas,
-                         loadedCASFRI = loadedCASFRI,
-                         speciesKnn = pemisc::equivalentName(sppNameVector, speciesEquivalency, "KNN"),
-                         destinationPath = destinationPath,
-                         userTags = c("function:CASFRItoSpRasts", "CASFRIstack"))
+  CASFRISpStack <- #Cache(CASFRItoSpRasts,
+    CASFRItoSpRasts(CASFRIRas = CASFRIRas,
+                         #loadedCASFRI = loadedCASFRI,
+                         CASFRIattrLong = loadedCASFRI$CASFRIattrLong,
+                         keepSpecies = loadedCASFRI$keepSpecies,
+                         CASFRIdt = loadedCASFRI$CASFRIdt,
+                         #speciesLandR = pemisc::equivalentName(sppNameVector, speciesEquivalency, "LandR"), # don't want this because the spMerges are not here - use keepSpecies object
+                         destinationPath = outputPath#,
+                         #userTags = c("function:CASFRItoSpRasts", "CASFRIstack")
+                         )
 
-  browser()
   return(CASFRISpStack)
 }
