@@ -180,7 +180,7 @@ biomassDataInit <- function(sim) {
     seedToKeep <- .GlobalEnv$.Random.seed
     set.seed(1234)
     sim$studyAreaLarge <- SpaDES.tools::randomPolygon(x = polyCenter, hectares = 10000)
-    .GlobalEnv$.Random.seed <- seedToKeep
+    .GlobalEnv$.Random.seed <- seedToKeep  ## TODO: pass seed via arg; don't fetch from global env
   }
 
   if (!is(sim$studyAreaLarge, "SpatialPolygonsDataFrame")) {
