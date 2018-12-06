@@ -47,8 +47,8 @@ defineModule(sim, list(
                  desc = "Raster layer of study area used for cropping, masking and projecting.
                  Defaults to the kNN biomass map masked with `studyArea`",
                  sourceURL = "http://tree.pfc.forestry.ca/kNN-StructureBiomass.tar"),
-    expectsInput("speciesEquivalency", c("data.table"),
-                 desc = "table of species equivalencies. See pemisc::sppEquivalencies_CA for further information",
+    expectsInput("speciesEquivalency", "data.table",
+                 desc = "table of species equivalencies. See pemisc::sppEquivalencies_CA.",
                  sourceURL = ""),
     expectsInput("speciesLayers", "RasterStack",
                  desc = "biomass percentage raster layers by species in Canada species map",
