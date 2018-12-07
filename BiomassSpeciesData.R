@@ -153,15 +153,15 @@ biomassDataInit <- function(sim) {
   dPath <- asPath(dataPath(sim), 1)
   cacheTags <- c(currentModule(sim), "function:.inputObjects")
 
-  if (!suppliedElsewhere("studyAreaLarge", sim)) {
-    message("'studyAreaLarge' was not provided by user. Using a polygon in southwestern Alberta, Canada,")
+  if (!suppliedElsewhere("studyArea", sim)) {
+    message("'studyArea' was not provided by user. Using a polygon in southwestern Alberta, Canada,")
 
-    sim$studyAreaLarge <- randomStudyArea(seed = 1234)
+    sim$studyArea <- randomStudyArea(seed = 1234)
   }
 
-  if (!suppliedElsewhere("studyArea", sim)) {
-    message("'studyArea' was not provided by user. Using the same as 'studyAreaLarge'.")
-    sim$studyArea <- sim$studyAreaLarge
+  if (!suppliedElsewhere("studyAreaLarge", sim)) {
+    message("'studyAreaLarge' was not provided by user. Using the same as 'studyArea'.")
+    sim$studyAreaLarge <- sim$studyArea
   }
 
   if (is.null(sim$rasterToMatch)) {
