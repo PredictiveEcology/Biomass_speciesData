@@ -361,7 +361,9 @@ prepSpeciesLayers_ForestInventory <- function(destinationPath, outputPath,
                                       speciesEquivalencyColumn,
                                       sppMerge) {
 
-  CClayerNames <- c("Pine", "Black Spruce", "Deciduous", "Fir", "White Spruce")
+  # This includes LandType because it will use that at the bottom of this function to
+  #  remove NAs
+  CClayerNames <- c("Pine", "Black Spruce", "Deciduous", "Fir", "White Spruce", "LandType")
   CClayerNamesWDots <- gsub(" ", ".", CClayerNames)
   CClayerNamesLandR <- equivalentName(CClayerNamesWDots, speciesEquivalency, speciesEquivalencyColumn)
   CClayerNamesFiles <- paste0(gsub(" ", "", CClayerNames), "1.tif")
@@ -383,13 +385,15 @@ prepSpeciesLayers_ForestInventory <- function(destinationPath, outputPath,
                targetFile = CClayerNamesFiles, filename2 = NULL, ## TODO: check this for file creation sadness
                alsoExtract = "similar", leaflet = FALSE, method = "ngb")
 
-  ccs <- ml@metadata[CC == TRUE & !(layerName == "CC TSF"), ]
+  ccs <- ml@metadata[CC == TRUE & !(layerName == "LandType"), ]
   CCs <- maps(ml, layerName = ccs$layerName)
   CCstack <- raster::stack(CCs)
   #CCstack[NA_ids] <- NA
   CCstack[CCstack[] < 0] <- 0
   CCstack[CCstack[] > 10] <- 10
   CCstack <- CCstack * 10 # convert back to percent
+  NA_ids <- which(is.na(ml$LandType[]) | ml$LandType[] == 5)
+  CCstack[NA_ids] <- NA
 
   names(CCstack) <- equivalentName(names(CCstack), speciesEquivalency, "LandWeb")
 
