@@ -21,8 +21,10 @@ defineModule(sim, list(
                   "PredictiveEcology/pemisc@development"),
   parameters = rbind(
     #defineParameter("paramName", "paramClass", value, min, max, "parameter description"),
-    defineParameter("types", "character", c("KNN"), NA, NA,
+    defineParameter("types", "character", "KNN", NA, NA,
                     "The possible data sources. These must correspond to a function named paste0('prepSpeciesLayers_', type)"),
+    defineParameter("speciesEquivalencyColumn", "character", "LandR", NA, NA,
+                    "The column in sim$specieEquivalency data.table to use as a naming convention"),
     defineParameter(".plotInitialTime", "numeric", NA, NA, NA,
                     "This describes the simulation time at which the first plot event should occur"),
     defineParameter(".plotInterval", "numeric", NA, NA, NA,
@@ -101,6 +103,7 @@ biomassDataInit <- function(sim) {
 
   if (!exists("speciesLayers", envir = envir(sim), inherits = FALSE))
     sim$speciesLayers <- list()
+
   for (type in P(sim)$types) {
     fnName <- paste0("prepSpeciesLayers_", type)
     whereIsFnName <- pryr::where(fnName)
@@ -117,96 +120,32 @@ biomassDataInit <- function(sim) {
       stop(fnName, " does not exist. Please make it accessible in a package, as an object, ",
            " or in the .GlobalEnv")
     }
-    speciesLayersNew <- Cache(get(fnName),
+    fn <- get(fnName)
+    speciesLayersNew <- Cache(fn,
                               destinationPath = dPath, # this is generic files (preProcess)
                               outputPath = outputPath(sim), # this will be the studyArea-specific files (postProcess)
-                              #url = extractURL("speciesLayers"),
                               studyArea = sim$studyArea,
                               rasterToMatch = sim$rasterToMatch,
                               sppNameVector = sim$sppNameVector,
                               speciesEquivalency = sim$speciesEquivalency,
-                              sppMerge = sim$sppMerge)
-    if (length(sim$speciesLayers) > 0) {
-      sim$speciesLayers <- overlayStacks(highQualityStack = speciesLayersNew,
-                                     lowQualityStack = sim$speciesLayers,
-                                     destinationPath = dPath)
-      rm(speciesLayersNew)
+                              speciesEquivalencyColumn = P(sim)$speciesEquivalencyColumn,
+                              sppMerge = sim$sppMerge,
+                              userTags = cacheTags)
+    sim$speciesLayers <- if (length(sim$speciesLayers) > 0) {
+      overlayStacks(highQualityStack = speciesLayersNew,
+                    lowQualityStack = sim$speciesLayers,
+                    destinationPath = dPath)
     } else {
-      sim$speciesLayers <- speciesLayersNew
-      rm(speciesLayersNew)
+      speciesLayersNew
     }
+    rm(speciesLayersNew)
 
   }
 
-  # message("Load CASFRI data and headers, and convert to long format, and define species groups")
-  if (P(sim)$.useParallel > 1) data.table::setDTthreads(P(sim)$.useParallel)
-  #
-  # loadedCASFRI <- Cache(loadCASFRI,
-  #                       CASFRIRas = sim$CASFRIRas,
-  #                       attrFile = mod$CASFRIattrFile,
-  #                       headerFile = mod$CASFRIheaderFile, ## TODO: this isn't used internally
-  #                       sppNameVector = sim$sppNameVector,
-  #                       speciesEquivalency = sim$speciesEquivalency,
-  #                       sppEndNamesCol = "LandR",
-  #                       sppMerge = sim$sppMerge,
-  #                       userTags = c(cacheTags, "function:loadCASFRI", "BigDataTable"))
-
-  #message("Make stack of species layers from Pickell's layer")
-
-  ## check if all species found in kNN database are in CASFRI
-  # uniqueKeepSp <- unique(loadedCASFRI$keepSpecies$spGroup) ## TODO: the names don't match at all (#6)
-  # if (!all(names(sim$speciesLayers) %in% uniqueKeepSp))
-  #   warning("some kNN species not in CASFRI layers.")
-
-  ## TODO: weird bug when useCache = "overwrite"
-  #if (getOption("reproducible.useCache") == "overwrite")
-  #  opt <- options(reproducible.useCache = TRUE) ## TODO: temporary workaround
-
-  # PickellSpStack <- Cache(makePickellStack,
-  #                         PickellRaster = sim$Pickell,
-  #                         uniqueKeepSp = uniqueKeepSp,
-  #                         speciesKnn = names(sim$speciesLayers),
-  #                         destinationPath = dPath,
-  #                         userTags = c(cacheTags, "function:makePickellStack", "PickellStack"))
-
-  #if (exists("opt", inherits = FALSE)) options(opt) ## TODO: temporary workaround with above
-
-  #crs(PickellSpStack) <- crs(sim$rasterToMatch) # bug in writeRaster
-
-  # message('Make stack from CASFRI data and headers')
-  # CASFRISpStack <- Cache(CASFRItoSpRasts,
-  #                        CASFRIRas = sim$CASFRIRas,
-  #                        loadedCASFRI = loadedCASFRI,
-  #                        speciesKnn = names(sim$speciesLayers),
-  #                        destinationPath = dPath,
-  #                        userTags = c(cacheTags, "function:CASFRItoSpRasts", "CASFRIstack"))
-
-  #message("Overlay Pickell and CASFRI stacks")
-  #outStack <- Cache(overlayStacks,
-  #                  highQualityStack = CASFRISpStack,
-  #                  lowQualityStack = PickellSpStack,
-  #                  outputFilenameSuffix = "CASFRI_Pickell",
-  #                  destinationPath = dPath,
-  #                  userTags = c(cacheTags, "function:overlayStacks", "Pickell_CASFRI"))
-
-  #crs(outStack) <- crs(sim$rasterToMatch) # bug in writeRaster
-
-  #message("Overlay Pickell_CASFRI with open data set stacks")
-  #speciesLayers2 <- Cache(overlayStacks,
-  #                        highQualityStack = outStack,
-  #                        lowQualityStack = sim$speciesLayers,
-  #                        outputFilenameSuffix = "CASFRI_Pickell_kNN",
-  #                        destinationPath = dPath,
-  #                        userTags = c(cacheTags, "function:overlayStacks", "CASFRI_Pickell_kNN"))
-  #crs(speciesLayers2) <- crs(sim$rasterToMatch)
-
-  ## replace species layers
-  #sim$speciesLayers <- speciesLayers2
   singular <- length(P(sim)$types) == 1
   message("sim$speciesLayers is from ", paste(P(sim)$types, collapse = ", "),
           "overlaid in that sequence, higher quality last"[!singular])
 
-  browser()
   return(invisible(sim))
 }
 
@@ -297,88 +236,13 @@ biomassDataInit <- function(sim) {
   }
 
   if (!suppliedElsewhere("speciesEquivalency", sim)) {
-    data("sppEquivalencies_CA", package = "pemisc")
+    data("sppEquivalencies_CA", package = "pemisc", envir = environment())
     sim$speciesEquivalency <- as.data.table(sppEquivalencies_CA)
 
     ## By default, Abies_las is renamed to Abies_sp
     sim$speciesEquivalency[KNN == "Abie_Las", LandR := "Abie_sp"]
   }
 
-  if (!suppliedElsewhere("speciesLayers")) {
-    # speciesLayersList <- Cache(loadkNNSpeciesLayers,
-    #                            dPath = dPath,
-    #                            rasterToMatch = sim$rasterToMatch,
-    #                            studyArea = sim$studyAreaLarge,
-    #                            sppNameVector = sim$sppNameVector,
-    #                            speciesEquivalency = sim$speciesEquivalency,
-    #                            sppMerge = sim$sppMerge,
-    #                            knnNamesCol = "KNN",
-    #                            sppEndNamesCol = "LandR",
-    #                            thresh = 10,
-    #                            url = extractURL("speciesLayers"),
-    #                            userTags = c(cacheTags, "speciesLayers"))
-    #
-    # sim$speciesLayers <- speciesLayersList$speciesLayers
-    #
-    # ## update the list of original species to use;
-    # ## as kNN is the lowest resolution, if species weren't found they will be excluded
-    # sim$sppNameVector <- speciesLayersList$sppNameVector
-  }
-
-  # if (!suppliedElsewhere("Pickell") | !suppliedElsewhere("CASFRIRas")) {
-  #   if (!suppliedElsewhere("Pickell")) {
-  #     message("  Loading Pickell et al. layers...")
-      # sim$Pickell <- Cache(prepInputs,
-      #                      targetFile = asPath("SPP_1990_100m_NAD83_LCC_BYTE_VEG_NO_TIES_FILLED_FINAL.dat"),
-      #                      url = extractURL("Pickell"),
-      #                      archive = asPath("SPP_1990_100m_NAD83_LCC_BYTE_VEG_NO_TIES_FILLED_FINAL.zip"),
-      #                      alsoExtract = asPath("SPP_1990_100m_NAD83_LCC_BYTE_VEG_NO_TIES_FILLED_FINAL.hdr"),
-      #                      destinationPath = dPath,
-      #                      fun = "raster::raster",
-      #                      studyArea = sim$studyArea,
-      #                      rasterToMatch = sim$rasterToMatch,
-      #                      method = "bilinear", ## ignore warning re: ngb (#5)
-      #                      datatype = "INT2U",
-      #                      filename2 = TRUE,
-      #                      overwrite = TRUE,
-      #                      userTags = c(cacheTags, "Pickell", "stable"))
-    # }
-
-    #if (!suppliedElsewhere("CASFRISpStack")) {
-    #  browser()
-    # if ("CASFRI" %in% P(sim)$types)
-    #   speciesLayers[["CASFRI"]] <- Cache(prepSpeciesLayers_CASFRI,
-    #                                      destinationPath = dPath, # this is generic files (preProcess)
-    #                                      outputPath = outputPath(sim), # this will be the studyArea-specific files (postProcess)
-    #                                      url = paste0("sourceURL", type),
-    #                                      studyArea = sim$studyArea,
-    #                                      rasterToMatch = sim$rasterToMatch,
-    #                                      sppNameVector = sim$sppNameVector,
-    #                                      speciesEquivalency = sim$speciesEquivalency,
-    #                                      sppMerge = sim$sppMerge)
-
-
-      # mod$CASFRItiffFile <- asPath(file.path(dPath, "Landweb_CASFRI_GIDs.tif"))
-      # mod$CASFRIattrFile <- asPath(file.path(dPath, "Landweb_CASFRI_GIDs_attributes3.csv"))
-      # mod$CASFRIheaderFile <- asPath(file.path(dPath,"Landweb_CASFRI_GIDs_README.txt"))
-      #
-      # message("  Loading CASFRI layers...")
-      # sim$CASFRIRas <- Cache(prepInputs,
-      #                        targetFile = asPath("Landweb_CASFRI_GIDs.tif"),
-      #                        archive = asPath("CASFRI for Landweb.zip"),
-      #                        url = extractURL("CASFRIRas"),
-      #                        alsoExtract = c(mod$CASFRItiffFile, mod$CASFRIattrFile, mod$CASFRIheaderFile),
-      #                        destinationPath = dPath,
-      #                        fun = "raster::raster",
-      #                        studyArea = sim$studyArea,
-      #                        rasterToMatch = sim$rasterToMatch,
-      #                        method = "bilinear", ## ignore warning re: ngb (#5)
-      #                        datatype = "INT4U",
-      #                        filename2 = TRUE,
-      #                        overwrite = TRUE,
-      #                        userTags =  c(cacheTags, "CASFRIRas", "stable"))
-    #}
-#  }
   return(invisible(sim))
 }
 
@@ -387,6 +251,7 @@ prepSpeciesLayers_CASFRI <- function(destinationPath, outputPath,
                                      studyArea, rasterToMatch,
                                      sppNameVector,
                                      speciesEquivalency,
+                                     speciesEquivalencyColumn,
                                      sppMerge) {
   CASFRItiffFile <- asPath(file.path(destinationPath, "Landweb_CASFRI_GIDs.tif"))
   CASFRIattrFile <- asPath(file.path(destinationPath, "Landweb_CASFRI_GIDs_attributes3.csv"))
@@ -418,7 +283,7 @@ prepSpeciesLayers_CASFRI <- function(destinationPath, outputPath,
                         headerFile = CASFRIheaderFile, ## TODO: this isn't used internally
                         sppNameVector = pemisc::equivalentName(sppNameVector, speciesEquivalency, "CASFRI"),
                         speciesEquivalency = speciesEquivalency,
-                        sppEndNamesCol = "LandR",
+                        sppEndNamesCol = speciesEquivalencyColumn,
                         sppMerge = sppMerge,
                         userTags = c("function:loadCASFRI", "BigDataTable",
                                      "speciesLayers", "KNN"))
@@ -448,25 +313,20 @@ prepSpeciesLayers_KNN <- function(destinationPath, outputPath,
                                   studyArea, rasterToMatch,
                                   sppNameVector,
                                   speciesEquivalency,
+                                  speciesEquivalencyColumn,
                                   sppMerge) {
-  speciesLayers <- Cache(loadkNNSpeciesLayers,
-                         dPath = destinationPath,
-                         rasterToMatch = rasterToMatch,
-                         studyArea = studyArea,
-                         sppNameVector = sppNameVector,
-                         speciesEquivalency = speciesEquivalency,
-                         sppMerge = sppMerge,
-                         knnNamesCol = "KNN",
-                         sppEndNamesCol = "LandR",
-                         thresh = 10,
-                         url = url,
-                         userTags = c("speciesLayers", "KNN"))
-
-  #sim$speciesLayers <- speciesLayersList$speciesLayers
-
-  ## update the list of original species to use;
-  ## as kNN is the lowest resolution, if species weren't found they will be excluded
-  #sim$sppNameVector <- speciesLayersList$sppNameVector
+  loadkNNSpeciesLayers(
+    dPath = destinationPath,
+    rasterToMatch = rasterToMatch,
+    studyArea = studyArea,
+    sppNameVector = sppNameVector,
+    speciesEquivalency = speciesEquivalency,
+    sppMerge = sppMerge,
+    knnNamesCol = "KNN",
+    sppEndNamesCol = speciesEquivalencyColumn,
+    thresh = 10,
+    url = url,
+    userTags = c("speciesLayers", "KNN"))
 
 }
 
@@ -476,6 +336,7 @@ prepSpeciesLayers_Pickell <- function(destinationPath, outputPath,
                                   studyArea, rasterToMatch,
                                   sppNameVector,
                                   speciesEquivalency,
+                                  speciesEquivalencyColumn,
                                   sppMerge) {
   speciesLayers <- Cache(prepInputs,
                      targetFile = asPath("SPP_1990_100m_NAD83_LCC_BYTE_VEG_NO_TIES_FILLED_FINAL.dat"),
@@ -492,13 +353,12 @@ prepSpeciesLayers_Pickell <- function(destinationPath, outputPath,
                      overwrite = TRUE,
                      userTags = c("speciesLayers", "KNN", "Pickell", "stable"))
 
-  PickellSpStack <- Cache(makePickellStack,
+  Cache(makePickellStack,
                           PickellRaster = speciesLayers,
                           sppNameVector = sppNameVector,
                           speciesEquivalency = speciesEquivalency,
+                          speciesEquivalencyColumn = speciesEquivalencyColumn,
                           sppMerge = sppMerge,
-                          #uniqueKeepSp = sppNameVector,
-                          #speciesKnn = names(speciesLayers),
                           destinationPath = destinationPath,
                           userTags = c("speciesLayers", "KNN", "Pickell", "stable"))
 
@@ -510,9 +370,12 @@ prepSpeciesLayers_ForestInventory <- function(destinationPath, outputPath,
                                       studyArea, rasterToMatch,
                                       sppNameVector,
                                       speciesEquivalency,
+                                      speciesEquivalencyColumn,
                                       sppMerge) {
 
   CClayerNames <- c("Pine", "Black Spruce", "Deciduous", "Fir", "White Spruce")
+  CClayerNamesWDots <- gsub(" ", ".", CClayerNames)
+  CClayerNamesLandR <- equivalentName(CClayerNamesWDots, speciesEquivalency, speciesEquivalencyColumn)
   CClayerNamesFiles <- paste0(gsub(" ", "", CClayerNames), "1.tif")
 
   options(map.useParallel = FALSE)
@@ -538,8 +401,10 @@ prepSpeciesLayers_ForestInventory <- function(destinationPath, outputPath,
   #CCstack[NA_ids] <- NA
   CCstack[CCstack[] < 0] <- 0
   CCstack[CCstack[] > 10] <- 10
-  CCstack * 10 # convert back to percent
+  CCstack <- CCstack * 10 # convert back to percent
 
+  names(CCstack) <- equivalentName(names(CCstack), speciesEquivalency, "LandWeb")
 
+  CCstack
 
 }
