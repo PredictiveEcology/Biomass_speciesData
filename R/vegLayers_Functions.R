@@ -1,27 +1,16 @@
 loadCASFRI <- function(CASFRIRas, attrFile, headerFile, sppNameVector, speciesEquivalency,
                        sppEndNamesCol, sppMerge) {
-  CASFRIattr <- Cache(fread, asPath(attrFile))
-  if (length(names(CASFRIattr)) < dim(CASFRIattr)[2]) {
-    ## Cache brings a table with partial headers when it's called for the second
-    ## time after names are changed (data.table issue); do it again, overwriting Cache.
-    CASFRIattr <- Cache(fread, asPath(attrFile), useCache = "overwrite")
-  }
-  ## WORKAROUND: manually extracted the column names because the text file is
-  ## very inconsistent (blank lines and uses mix of tabs and spaces as delimiters)
-  CASFRIheader <- c("GID", "CAS_ID", "SPECIES_1", "SPECIES_PER_1", "SPECIES_2",
-                    "SPECIES_PER_2", "SPECIES_3", "SPECIES_PER_3", "SPECIES_4",
-                    "SPECIES_PER_4", "SPECIES_5", "SPECIES_PER_5",
-                    "LYR_CROWN_CLOSURE_LOWER", "LYR_CROWN_CLOSURE_UPPER",
-                    "LYR_HEIGHT_LOWER", "LYR_HEIGHT_UPPER", "WETLAND_TYPE",
-                    "SOIL_MOIST_REG", "AGE", "NAT_NON_VEG", "NON_FOR_ANTH",
-                    "NON_FOR_VEG", "HAS_DST", "HAS_NFL", "HAS_LYR")
-  #CASFRIheader <- fread(headerFile, skip = 14, nrows = 50, header = FALSE, sep = "\t") ## doesn't work
+  CASFRIheader <- fread(headerFile, skip = 14, nrows = 49, header = FALSE, sep = "", fill = TRUE)
+  header <- apply(CASFRIheader, 1, function(x) sub(pattern = "(\t+| ).*$", "", x))
+  CASFRIheader <- header[nchar(header) != 0]
 
-  setnames(CASFRIattr, CASFRIheader)
-  set(CASFRIattr, NULL, grep(CASFRIheader, pattern = "^SPECIES|^GID|^AGE", invert = TRUE), NULL)
-  #setnames(CASFRIattr, CASFRIheader$V1)
-  #set(CASFRIattr, , grep(CASFRIheader$V1, pattern = "^SPECIES|^GID|^AGE", invert = TRUE), NULL)
+  wantedColumns <- grep(CASFRIheader, pattern = "^SPECIES|^GID|^AGE")
+
+  CASFRIattr <- fread(asPath(attrFile), select = wantedColumns)
+
+  setnames(CASFRIattr, CASFRIheader[wantedColumns])
   setkey(CASFRIattr, "GID")
+
   NAVals <- c("XXXX MISS", "UNDEF", "XXXX ERRC")
   for (i in 1:5) {
     set(CASFRIattr, which(CASFRIattr[[paste0("SPECIES_", i)]] %in% NAVals),
@@ -60,48 +49,52 @@ loadCASFRI <- function(CASFRIRas, attrFile, headerFile, sppNameVector, speciesEq
 }
 
 whSpecies <- function(CASFRIattr, sppNameVector, speciesEquivalency, sppEndNamesCol, sppMerge) {
-  keepSpecies <- na.omit(data.table(keepSpecies = unique(CASFRIattr$SPECIES_1)))
+  keepSpecies <- na.omit(data.table(CASFRI = unique(CASFRIattr$SPECIES_1)))
 
   ## convert to LandR format - remove the "." in "spp."
-  keepSpecies$keepSpecies2 <- sub(".", "", keepSpecies$keepSpecies, fixed = TRUE) %>%
-    equivalentName(., speciesEquivalency, sppEndNamesCol)
+  keepSpecies[, (sppEndNamesCol) := list(equivalentName(
+    sub(".", "", CASFRI, fixed = TRUE), speciesEquivalency, sppEndNamesCol))]
 
   ## species groups according to user-supplied list
   sppMerge2 <- data.table(toMerge = unlist(sppMerge, use.names = FALSE),
                           endName = rep(names(sppMerge), times = sapply(sppMerge, length)))
   sppMerge2$toMerge <- equivalentName(sppMerge2$toMerge, speciesEquivalency, sppEndNamesCol)
-  keepSpecies[sppMerge2, on = "keepSpecies2==toMerge"]
-  keepSpecies <- sppMerge2[keepSpecies, on = "toMerge==keepSpecies2"]
-  setnames(keepSpecies, c("toMerge", "endName"), c("keepSpecies2", "spGroup"))
+  #keepSpecies[sppMerge2, on = paste0(sppEndNamesCol,"==toMerge")]
+  keepSpecies <- sppMerge2[keepSpecies, on = paste0("toMerge==", sppEndNamesCol)]
+  setnames(keepSpecies, c("toMerge", "endName"), c(sppEndNamesCol, "spGroup"))
 
   ## Because some sister species are usually poorly distinguished in the CASFRI data,
   ## some need to be pooled.
   ## add Picea engelmannii x glauca hybrid if one of the others is in the list
-  setkey(keepSpecies, keepSpecies)
+  setkey(keepSpecies, CASFRI)
   if (any(sppNameVector %in% c("Pice_eng", "Pice_gla")))
-    keepSpecies["Pice hybr", spGroup := "Pice_sp"]
+    keepSpecies["Pice hybr", spGroup := equivalentName("Popu_sp", speciesEquivalency, sppEndNamesCol)]
 
   ## add other Populus to Populus sp if there is Populus in the list
   if (any(grep("Popu", sppNameVector)))
-    keepSpecies[grep("Popu spp.", "Popu balb", "Popu balt", "Popu hybr", "Popu delt"),
-                spGroup := "Popu_tre"]
+    keepSpecies[CASFRI %in% c("Popu spp.", "Popu balb", "Popu balt", "Popu hybr", "Popu delt", "Popu trem"),
+                spGroup := equivalentName("Popu_tre", speciesEquivalency, sppEndNamesCol)]
 
   ## add other Betula to Betula sp if there is Betula in the list
   if (any(grep("Betu", sppNameVector)))
     keepSpecies[c("Betu papy", "Betu neoa" , "Betu spp."),
-                spGroup := "Popu_tre"]
+                spGroup := equivalentName("Popu_tre", speciesEquivalency, sppEndNamesCol)]
 
   ## fill empty groups
-  keepSpecies[is.na(spGroup), spGroup := keepSpecies2]
+  keepSpecies[is.na(spGroup), spGroup := get(sppEndNamesCol)]
 
   ## Finally, filter species
   ## (note that there might be more species than in the original data)
-  keepSpecies <- keepSpecies[keepSpecies2 %in% sppNameVector]
+  keepSpecies <- keepSpecies[get(sppEndNamesCol) %in%
+                               equivalentName(sppNameVector, speciesEquivalency, sppEndNamesCol)]
 
   keepSpecies
 }
 
-makePickellStack <- function(PickellRaster, uniqueKeepSp, speciesKnn, destinationPath) {
+makePickellStack <- function(PickellRaster, sppNameVector,
+                             speciesEquivalency, speciesEquivalencyColumn,
+                             sppMerge,
+                             destinationPath) {
   ## bring to memory and replace water, non veg by NAs
   PickellRaster[] <- PickellRaster[]
   PickellRaster[PickellRaster[] %in% c(230, 220, 255)] <- NA_integer_
@@ -112,14 +105,28 @@ makePickellStack <- function(PickellRaster, uniqueKeepSp, speciesKnn, destinatio
 
   rasterOptions(maxmemory = 1e9)
 
+  sppEndNamesCol <- speciesEquivalencyColumn
+
   ## species in Pickel's data
   PickellSpp <- c("Pice_mar", "Pice_gla", "Pinu_sp", "Popu_tre")
+  PickellSpp <- equivalentName(PickellSpp, speciesEquivalency, sppEndNamesCol)
+
+  keepSpecies <- na.omit(data.table(unique(PickellSpp)))
+  names(keepSpecies) <- sppEndNamesCol
+  ## species groups according to user-supplied list
+  sppMerge2 <- data.table(toMerge = unlist(sppMerge, use.names = FALSE),
+                          endName = rep(names(sppMerge), times = sapply(sppMerge, length)))
+  sppMerge2$toMerge <- equivalentName(sppMerge2$toMerge, speciesEquivalency, sppEndNamesCol)
+  #keepSpecies[sppMerge2, on = paste0(sppEndNamesCol,"==toMerge")]
+  keepSpecies <- sppMerge2[keepSpecies, on = paste0("endName==", sppEndNamesCol)]
+
+  sppNameVectorMerged <- unique(keepSpecies$endName)
 
   ## selected Knn spp absent from Pickell's data
-  NA_Sp <- setdiff(speciesKnn, PickellSpp)
+  NA_Sp <- setdiff(sppNameVectorMerged, PickellSpp)
 
   ## selected Knn spp present in Pickell's data
-  sppTODO <- intersect(speciesKnn, PickellSpp)
+  sppTODO <- intersect(sppNameVectorMerged, PickellSpp)
 
   ## All NA_Sp species codes should be in CASFRI spp list
   if (length(NA_Sp))
@@ -136,10 +143,10 @@ makePickellStack <- function(PickellRaster, uniqueKeepSp, speciesKnn, destinatio
   }
 
   ## converting existing species codes into percentages
-  for (sp in lapply(sppTODO, grep, uniqueKeepSp, value = TRUE)) {
+  for (sp in sppTODO) {
     message("  converting Pickell's codes to pct cover raster, for ", sp)
 
-    if (sp == "Pice_gla") {
+    if (sp == equivalentName("Pice_gla", speciesEquivalency, speciesEquivalencyColumn)) {
       spRasts[[sp]] <- spRas
       spRasts[[sp]][PickellRaster[] %in% c(41, 42, 43)] <- 60
       spRasts[[sp]][PickellRaster[] %in% c(44)] <- 80
@@ -148,7 +155,7 @@ makePickellStack <- function(PickellRaster, uniqueKeepSp, speciesKnn, destinatio
                             filename = asPath(file.path(destinationPath, paste0("Pickell", sp, ".tif"))),
                             overwrite = TRUE, datatype = "INT1U")
     }
-    if (sp == "Pice_mar") {
+    if (sp == equivalentName("Pice_mar", speciesEquivalency, speciesEquivalencyColumn)) {
       spRasts[[sp]] <- spRas
       spRasts[[sp]][PickellRaster[] %in% c(23, 26)] <- 60
       spRasts[[sp]][PickellRaster[] %in% c(22)] <- 80
@@ -157,7 +164,7 @@ makePickellStack <- function(PickellRaster, uniqueKeepSp, speciesKnn, destinatio
                             filename = asPath(file.path(destinationPath, paste0("Pickell", sp, ".tif"))),
                             overwrite = TRUE, datatype = "INT1U")
     }
-    if (sp == "Pinu_sp") {
+    if (sp == equivalentName("Pinu_sp", speciesEquivalency, speciesEquivalencyColumn)) {
       spRasts[[sp]] <- spRas
       spRasts[[sp]][PickellRaster[] %in% c(31, 32, 34)] <- 60
       spRasts[[sp]][PickellRaster[] %in% c(33)] <- 80
@@ -166,7 +173,7 @@ makePickellStack <- function(PickellRaster, uniqueKeepSp, speciesKnn, destinatio
                             filename = asPath(file.path(destinationPath, paste0("Pickell", sp, ".tif"))),
                             overwrite = TRUE, datatype = "INT1U")
     }
-    if (sp == "Popu_tre") {
+    if (sp == equivalentName("Popu_tre", speciesEquivalency, speciesEquivalencyColumn)) {
       spRasts[[sp]] <- spRas
       spRasts[[sp]][PickellRaster[] %in% c(14)] <- 60
       spRasts[[sp]][PickellRaster[] %in% c(11)] <- 80
@@ -181,18 +188,20 @@ makePickellStack <- function(PickellRaster, uniqueKeepSp, speciesKnn, destinatio
 
 ## ---------------------------------------------------------------------------------
 
-CASFRItoSpRasts <- function(CASFRIRas, loadedCASFRI, speciesKnn, destinationPath) {
+CASFRItoSpRasts <- function(CASFRIRas, CASFRIattrLong, keepSpecies, CASFRIdt, #loadedCASFRI,
+                            #speciesLandR,
+                            destinationPath) {
   ## create list and template raster
   spRasts <- list()
   spRas <- raster(CASFRIRas) %>% setValues(., NA_integer_)
 
   ## selected spp absent from CASFRI data
-  NA_Sp <- setdiff(speciesKnn, unique(loadedCASFRI$keepSpecies$spGroup))
+  NA_Sp <- which(is.na(keepSpecies$CASFRI))#setdiff(speciesLandR, unique(keepSpecies$spGroup))
 
   ## All NA_Sp species codes should be in CASFRI spp list
   if (length(NA_Sp))
     warning(cat("Not all selected species are in loadedCASFRI. Check if this is correct:\n",
-                paste(paste0(NA_Sp, collapse = ", "), "absent\n")))
+                paste(paste0(keepSpecies$CASFRI[NA_Sp], collapse = ", "), "absent\n")))
 
   ## empty rasters for NA_sp
   for (sp in NA_Sp) {
@@ -203,16 +212,16 @@ CASFRItoSpRasts <- function(CASFRIRas, loadedCASFRI, speciesKnn, destinationPath
                            overwrite = TRUE, datatype = "INT2U")
   }
 
-  sppTODO <- intersect(unique(loadedCASFRI$keepSpecies$spGroup), speciesKnn)
+  sppTODO <- unique(keepSpecies$spGroup)
 
   for (sp in sppTODO) {
     spRasts[[sp]] <- spRas
     message("starting ", sp)
-    aa2 <- loadedCASFRI$CASFRIattrLong[
-      value %in% loadedCASFRI$keepSpecies[spGroup == sp, keepSpecies]][
+    aa2 <- CASFRIattrLong[
+      value %in% keepSpecies[spGroup == sp, CASFRI]][
         , min(100L, sum(pct)), by = GID]
     setkey(aa2, GID)
-    cc <- aa2[loadedCASFRI$CASFRIdt] %>% na.omit()
+    cc <- aa2[CASFRIdt] %>% na.omit()
     rm(aa2)
     spRasts[[sp]][cc$rastInd] <- cc$V1
     message("  ", sp, " writing to disk")
