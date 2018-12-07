@@ -16,7 +16,7 @@ defineModule(sim, list(
   timeunit = "year",
   citation = list("citation.bib"),
   documentation = list("README.txt", "BiomassSpeciesData.Rmd"),
-  reqdPkgs = list("data.table", "googledrive", "gdalUtils", "magrittr", "raster", ## TODO: is gdalUtils actually used?
+  reqdPkgs = list("data.table", "googledrive", "gdalUtils", "magrittr", "pryr", "raster", ## TODO: is gdalUtils actually used?
                   "reproducible", "SpaDES.core", "SpaDES.tools",
                   "PredictiveEcology/pemisc@development"),
   parameters = rbind(
@@ -153,15 +153,15 @@ biomassDataInit <- function(sim) {
   dPath <- asPath(dataPath(sim), 1)
   cacheTags <- c(currentModule(sim), "function:.inputObjects")
 
-  if (!suppliedElsewhere("studyAreaLarge", sim)) {
-    message("'studyAreaLarge' was not provided by user. Using a polygon in southwestern Alberta, Canada,")
+  if (!suppliedElsewhere("studyArea", sim)) {
+    message("'studyArea' was not provided by user. Using a polygon in southwestern Alberta, Canada,")
 
-    sim$studyAreaLarge <- randomStudyArea(seed = 1234)
+    sim$studyArea <- randomStudyArea(seed = 1234)
   }
 
-  if (!suppliedElsewhere("studyArea", sim)) {
-    message("'studyArea' was not provided by user. Using the same as 'studyAreaLarge'.")
-    sim$studyArea <- sim$studyAreaLarge
+  if (!suppliedElsewhere("studyAreaLarge", sim)) {
+    message("'studyAreaLarge' was not provided by user. Using the same as 'studyArea'.")
+    sim$studyAreaLarge <- sim$studyArea
   }
 
   if (is.null(sim$rasterToMatch)) {
@@ -174,7 +174,7 @@ biomassDataInit <- function(sim) {
                                              "NFI_MODIS250m_kNN_Structure_Biomass_TotalLiveAboveGround_v0.zip")),
                           url = extractURL("rasterToMatch"),
                           destinationPath = dPath,
-                          studyArea = sim$studyArea,   ## TODO: should this be studyAreaLarge? in RTM below it is...
+                          studyArea = sim$studyAreaLarge,   ## TODO: should this be studyAreaLarge? in RTM below it is...
                           useSAcrs = TRUE,
                           method = "bilinear",
                           datatype = "INT2U",
@@ -183,7 +183,7 @@ biomassDataInit <- function(sim) {
 
       sim$rasterToMatch <- biomassMap
       message("  Rasterizing the studyAreaLarge polygon map")
-
+      #TODO: check whether this LandWeb centric stuf is necessary. Does rasterToMatch need FRI? see Issue #10
       # Layers provided by David Andison sometimes have LTHRC, sometimes LTHFC ... chose whichever
       LTHxC <- grep("(LTH.+C)",names(sim$studyAreaLarge), value = TRUE)
       fieldName <- if (length(LTHxC)) {
@@ -247,20 +247,20 @@ prepSpeciesLayers_CASFRI <- function(destinationPath, outputPath,
 
   message("  Loading CASFRI layers...")
   CASFRIRas <- Cache(prepInputs,
-                         #targetFile = asPath("Landweb_CASFRI_GIDs.tif"),
-                         targetFile = basename(CASFRItiffFile),
-                         archive = asPath("CASFRI for Landweb.zip"),
-                         url = extractURL("CASFRIRas"),
-                         alsoExtract = c(CASFRItiffFile, CASFRIattrFile, CASFRIheaderFile),
-                         destinationPath = destinationPath,
-                         fun = "raster::raster",
-                         studyArea = studyArea,
-                         rasterToMatch = rasterToMatch,
-                         method = "bilinear", ## ignore warning re: ngb (#5)
-                         datatype = "INT4U",
-                         filename2 = NULL, #TRUE,
-                         overwrite = TRUE,
-                         userTags =  c("CASFRIRas", "stable"))
+                     #targetFile = asPath("Landweb_CASFRI_GIDs.tif"),
+                     targetFile = basename(CASFRItiffFile),
+                     archive = asPath("CASFRI for Landweb.zip"),
+                     url = url,
+                     alsoExtract = c(CASFRItiffFile, CASFRIattrFile, CASFRIheaderFile),
+                     destinationPath = destinationPath,
+                     fun = "raster::raster",
+                     studyArea = studyArea,
+                     rasterToMatch = rasterToMatch,
+                     method = "bilinear", ## ignore warning re: ngb (#5)
+                     datatype = "INT4U",
+                     filename2 = NULL, #TRUE,
+                     overwrite = TRUE,
+                     userTags =  c("CASFRIRas", "stable"))
 
   message("Load CASFRI data and headers, and convert to long format, and define species groups")
   #if (P(sim)$.useParallel > 1) data.table::setDTthreads(P(sim)$.useParallel)
@@ -275,7 +275,6 @@ prepSpeciesLayers_CASFRI <- function(destinationPath, outputPath,
                         sppMerge = sppMerge,
                         userTags = c("function:loadCASFRI", "BigDataTable",
                                      "speciesLayers", "KNN"))
-
 
   #uniqueKeepSp <- unique(loadedCASFRI$keepSpecies$spGroup) ## TODO: the names don't match at all (#6)
   #if (!all(names(sim$speciesLayers) %in% uniqueKeepSp))
@@ -315,31 +314,31 @@ prepSpeciesLayers_KNN <- function(destinationPath, outputPath,
     thresh = 10,
     url = url,
     userTags = c("speciesLayers", "KNN"))
-
 }
 
 
 prepSpeciesLayers_Pickell <- function(destinationPath, outputPath,
-                                  url = "https://drive.google.com/open?id=1M_L-7ovDpJLyY8dDOxG3xQTyzPx2HSg4",
-                                  studyArea, rasterToMatch,
-                                  sppNameVector,
-                                  speciesEquivalency,
-                                  speciesEquivalencyColumn,
-                                  sppMerge) {
+                                      url = "https://drive.google.com/open?id=1M_L-7ovDpJLyY8dDOxG3xQTyzPx2HSg4",
+                                      studyArea, rasterToMatch,
+                                      sppNameVector,
+                                      speciesEquivalency,
+                                      speciesEquivalencyColumn,
+                                      sppMerge) {
+
   speciesLayers <- Cache(prepInputs,
-                     targetFile = asPath("SPP_1990_100m_NAD83_LCC_BYTE_VEG_NO_TIES_FILLED_FINAL.dat"),
-                     #url = extractURL("Pickell"),
-                     archive = asPath("SPP_1990_100m_NAD83_LCC_BYTE_VEG_NO_TIES_FILLED_FINAL.zip"),
-                     alsoExtract = asPath("SPP_1990_100m_NAD83_LCC_BYTE_VEG_NO_TIES_FILLED_FINAL.hdr"),
-                     destinationPath = destinationPath,
-                     fun = "raster::raster",
-                     studyArea = studyArea,
-                     rasterToMatch = rasterToMatch,
-                     method = "bilinear", ## ignore warning re: ngb (#5)
-                     datatype = "INT2U",
-                     filename2 = NULL,
-                     overwrite = TRUE,
-                     userTags = c("speciesLayers", "KNN", "Pickell", "stable"))
+                         targetFile = asPath("SPP_1990_100m_NAD83_LCC_BYTE_VEG_NO_TIES_FILLED_FINAL.dat"),
+                         url = url,
+                         archive = asPath("SPP_1990_100m_NAD83_LCC_BYTE_VEG_NO_TIES_FILLED_FINAL.zip"),
+                         alsoExtract = asPath("SPP_1990_100m_NAD83_LCC_BYTE_VEG_NO_TIES_FILLED_FINAL.hdr"),
+                         destinationPath = destinationPath,
+                         fun = "raster::raster",
+                         studyArea = studyArea,
+                         rasterToMatch = rasterToMatch,
+                         method = "bilinear", ## ignore warning re: ngb (#5)
+                         datatype = "INT2U",
+                         filename2 = NULL,
+                         overwrite = TRUE,
+                         userTags = c("speciesLayers", "KNN", "Pickell", "stable"))
 
   makePickellStack(PickellRaster = speciesLayers,
                    sppNameVector = sppNameVector,
@@ -396,5 +395,4 @@ prepSpeciesLayers_ForestInventory <- function(destinationPath, outputPath,
   names(CCstack) <- equivalentName(names(CCstack), speciesEquivalency, "LandWeb")
 
   CCstack
-
 }
