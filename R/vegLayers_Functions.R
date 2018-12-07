@@ -91,7 +91,9 @@ whSpecies <- function(CASFRIattr, sppNameVector, speciesEquivalency, sppEndNames
   keepSpecies
 }
 
-makePickellStack <- function(PickellRaster, uniqueKeepSp, speciesKnn, destinationPath) {
+makePickellStack <- function(PickellRaster, sppNameVector,
+                             speciesEquivalency, sppMerge,
+                             destinationPath) {
   ## bring to memory and replace water, non veg by NAs
   PickellRaster[] <- PickellRaster[]
   PickellRaster[PickellRaster[] %in% c(230, 220, 255)] <- NA_integer_
@@ -102,14 +104,28 @@ makePickellStack <- function(PickellRaster, uniqueKeepSp, speciesKnn, destinatio
 
   rasterOptions(maxmemory = 1e9)
 
+  sppEndNamesCol <- "LandR"
+
   ## species in Pickel's data
   PickellSpp <- c("Pice_mar", "Pice_gla", "Pinu_sp", "Popu_tre")
+  PickellSpp <- equivalentName(PickellSpp, speciesEquivalency, sppEndNamesCol)
+
+  keepSpecies <- na.omit(data.table(unique(PickellSpp)))
+  names(keepSpecies) <- sppEndNamesCol
+  ## species groups according to user-supplied list
+  sppMerge2 <- data.table(toMerge = unlist(sppMerge, use.names = FALSE),
+                          endName = rep(names(sppMerge), times = sapply(sppMerge, length)))
+  sppMerge2$toMerge <- equivalentName(sppMerge2$toMerge, speciesEquivalency, sppEndNamesCol)
+  #keepSpecies[sppMerge2, on = paste0(sppEndNamesCol,"==toMerge")]
+  keepSpecies <- sppMerge2[keepSpecies, on = paste0("endName==", sppEndNamesCol)]
+
+  sppNameVectorMerged <- unique(keepSpecies$endName)
 
   ## selected Knn spp absent from Pickell's data
-  NA_Sp <- setdiff(speciesKnn, PickellSpp)
+  NA_Sp <- setdiff(sppNameVectorMerged, PickellSpp)
 
   ## selected Knn spp present in Pickell's data
-  sppTODO <- intersect(speciesKnn, PickellSpp)
+  sppTODO <- intersect(sppNameVectorMerged, PickellSpp)
 
   ## All NA_Sp species codes should be in CASFRI spp list
   if (length(NA_Sp))
@@ -126,7 +142,7 @@ makePickellStack <- function(PickellRaster, uniqueKeepSp, speciesKnn, destinatio
   }
 
   ## converting existing species codes into percentages
-  for (sp in lapply(sppTODO, grep, uniqueKeepSp, value = TRUE)) {
+  for (sp in sppTODO) {
     message("  converting Pickell's codes to pct cover raster, for ", sp)
 
     if (sp == "Pice_gla") {
