@@ -174,7 +174,7 @@ biomassDataInit <- function(sim) {
                                              "NFI_MODIS250m_kNN_Structure_Biomass_TotalLiveAboveGround_v0.zip")),
                           url = extractURL("rasterToMatch"),
                           destinationPath = dPath,
-                          studyArea = sim$studyArea,   ## TODO: should this be studyAreaLarge? in RTM below it is...
+                          studyArea = sim$studyAreaLarge,   ## TODO: should this be studyAreaLarge? in RTM below it is...
                           useSAcrs = TRUE,
                           method = "bilinear",
                           datatype = "INT2U",
@@ -183,8 +183,8 @@ biomassDataInit <- function(sim) {
 
       sim$rasterToMatch <- biomassMap
       message("  Rasterizing the studyAreaLarge polygon map")
-
-      # Layers provided by David Andison sometimes have LTHRC, sometimes LTHFC ... chose whichever
+      #TODO: check whether this LandWeb centric stuf is necessary. Does rasterToMatch need FRI? see Issue #10
+      # Layers provided by David Andison sometimes have LTHRC, sometimes LTHFC ... chose whichever 
       LTHxC <- grep("(LTH.+C)",names(sim$studyAreaLarge), value = TRUE)
       fieldName <- if (length(LTHxC)) {
         LTHxC
