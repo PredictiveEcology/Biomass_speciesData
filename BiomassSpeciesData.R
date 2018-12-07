@@ -341,14 +341,12 @@ prepSpeciesLayers_Pickell <- function(destinationPath, outputPath,
                      overwrite = TRUE,
                      userTags = c("speciesLayers", "KNN", "Pickell", "stable"))
 
-  Cache(makePickellStack,
-                          PickellRaster = speciesLayers,
-                          sppNameVector = sppNameVector,
-                          speciesEquivalency = speciesEquivalency,
-                          speciesEquivalencyColumn = speciesEquivalencyColumn,
-                          sppMerge = sppMerge,
-                          destinationPath = destinationPath,
-                          userTags = c("speciesLayers", "KNN", "Pickell", "stable"))
+  makePickellStack(PickellRaster = speciesLayers,
+                   sppNameVector = sppNameVector,
+                   speciesEquivalency = speciesEquivalency,
+                   speciesEquivalencyColumn = speciesEquivalencyColumn,
+                   sppMerge = sppMerge,
+                   destinationPath = destinationPath)
 
 }
 
