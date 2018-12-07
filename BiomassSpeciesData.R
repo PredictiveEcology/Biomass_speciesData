@@ -99,7 +99,7 @@ doEvent.BiomassSpeciesData <- function(sim, eventTime, eventType) {
 ### template initialization
 biomassDataInit <- function(sim) {
   cacheTags <- c(currentModule(sim), "function:biomassDataInit")
-  dPath <- asPath(dataPath(sim))
+  dPath <- asPath(getOption("reproducible.destinationPath", dataPath(sim)))
 
   if (!exists("speciesLayers", envir = envir(sim), inherits = FALSE))
     sim$speciesLayers <- list()
