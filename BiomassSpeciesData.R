@@ -392,7 +392,7 @@ prepSpeciesLayers_ForestInventory <- function(destinationPath, outputPath,
   NA_ids <- which(is.na(ml$LandType[]) | ml$LandType[] == 5)
   CCstack[NA_ids] <- NA
 
-  names(CCstack) <- equivalentName(names(CCstack), speciesEquivalency, "LandWeb")
+  names(CCstack) <- equivalentName(names(CCstack), speciesEquivalency, speciesEquivalencyColumn)
 
   CCstack
 }
