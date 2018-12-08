@@ -1,12 +1,14 @@
 loadCASFRI <- function(CASFRIRas, attrFile, headerFile, sppNameVector, speciesEquivalency,
                        sppEndNamesCol, sppMerge) {
 
+  # The ones we want
   sppEquiv <- speciesEquivalency[!is.na(speciesEquivalency[[sppEndNamesCol]]),]
   if (missing(sppNameVector))
     sppNameVector <- unique(sppEquiv[[sppEndNamesCol]])
-  if (missing(sppMerge))
-    sppMerge <- unique(sppEquiv[[sppEndNamesCol]][duplicated(sppEquiv[[sppEndNamesCol]])])
+  sppNameVectorCASFRI <- equivalentName(sppNameVector, sppEquiv,  column = "CASFRI", multi = TRUE)
 
+
+  # CASFRI stuff
   CASFRIheader <- fread(headerFile, skip = 14, nrows = 49, header = FALSE, sep = "", fill = TRUE)
   header <- apply(CASFRIheader, 1, function(x) sub(pattern = "(\t+| ).*$", "", x))
   CASFRIheader <- header[nchar(header) != 0]
@@ -33,10 +35,8 @@ loadCASFRI <- function(CASFRIRas, attrFile, headerFile, sppNameVector, speciesEq
         paste0("SPECIES_", i), NA_character_)
   }
 
-  ## select species not based on abundance but on user inputs:
-  keepSpecies <- whSpecies(CASFRIattr, sppNameVector, sppEquiv, sppEndNamesCol, sppMerge)
+  #keepSpecies <- whSpecies(CASFRIattr, sppNameVector, sppEquiv, sppEndNamesCol, sppMerge)
 
-  browser()
   CASFRIattrLong <- melt(CASFRIattr, id.vars = c("GID"),
                          measure.vars = paste0("SPECIES_", 1:5))
   CA2 <- melt(CASFRIattr, id.vars = c("GID"),
@@ -51,55 +51,56 @@ loadCASFRI <- function(CASFRIRas, attrFile, headerFile, sppNameVector, speciesEq
   setkey(CASFRIdt, GID)
   set(CASFRIdt, NULL, "isNA", NULL)
 
-  return(list(keepSpecies = keepSpecies,
+  CASFRIattrLong <- CASFRIattrLong[value %in% sppNameVectorCASFRI]
+  return(list(#keepSpecies = keepSpecies,
               CASFRIattrLong = CASFRIattrLong,
               CASFRIdt = CASFRIdt))
 }
 
-whSpecies <- function(CASFRIattr, sppNameVector, speciesEquivalency, sppEndNamesCol, sppMerge) {
-  browser()
-  keepSpecies <- na.omit(data.table(CASFRI = unique(CASFRIattr$SPECIES_1)))
-
-  ## convert to LandR format - remove the "." in "spp."
-  keepSpecies[, (sppEndNamesCol) := list(equivalentName(
-    sub(".", "", CASFRI, fixed = TRUE), speciesEquivalency, sppEndNamesCol))]
-
-  ## species groups according to user-supplied list
-  sppMerge2 <- data.table(toMerge = unlist(sppMerge, use.names = FALSE),
-                          endName = rep(names(sppMerge), times = sapply(sppMerge, length)))
-  sppMerge2$toMerge <- equivalentName(sppMerge2$toMerge, speciesEquivalency, sppEndNamesCol)
-  #keepSpecies[sppMerge2, on = paste0(sppEndNamesCol,"==toMerge")]
-  keepSpecies <- sppMerge2[keepSpecies, on = paste0("toMerge==", sppEndNamesCol)]
-  setnames(keepSpecies, c("toMerge", "endName"), c(sppEndNamesCol, "spGroup"))
-
-  ## Because some sister species are usually poorly distinguished in the CASFRI data,
-  ## some need to be pooled.
-  ## add Picea engelmannii x glauca hybrid if one of the others is in the list
-  setkey(keepSpecies, CASFRI)
-  if (any(sppNameVector %in% c("Pice_eng", "Pice_gla")))
-    keepSpecies["Pice hybr", spGroup := equivalentName("Popu_sp", speciesEquivalency, sppEndNamesCol)]
-
-  ## add other Populus to Populus sp if there is Populus in the list
-  if (any(grep("Popu", sppNameVector)))
-    keepSpecies[CASFRI %in% c("Popu spp.", "Popu balb", "Popu balt", "Popu hybr", "Popu delt", "Popu trem"),
-                spGroup := equivalentName("Popu_tre", speciesEquivalency, sppEndNamesCol)]
-
-  ## add other Betula to Betula sp if there is Betula in the list
-  if (any(grep("Betu", sppNameVector)))
-    keepSpecies[c("Betu papy", "Betu neoa" , "Betu spp."),
-                spGroup := equivalentName("Popu_tre", speciesEquivalency, sppEndNamesCol)]
-
-  ## fill empty groups
-  keepSpecies[is.na(spGroup), spGroup := get(sppEndNamesCol)]
-
-  ## Finally, filter species
-  ## (note that there might be more species than in the original data)
-  keepSpecies <- keepSpecies[get(sppEndNamesCol) %in%
-                               equivalentName(sppNameVector, speciesEquivalency, sppEndNamesCol)]
-
-  keepSpecies
-}
-
+# whSpecies <- function(CASFRIattr, sppNameVector, sppEquiv, sppEndNamesCol, sppMerges) {
+#   browser()
+#   keepSpecies <- na.omit(data.table(CASFRI = unique(CASFRIattr$SPECIES_1)))
+#
+#   ## convert to LandR format - remove the "." in "spp."
+#   keepSpecies[, (sppEndNamesCol) := list(equivalentName(
+#     sub(".", "", CASFRI, fixed = TRUE), sppEquiv, sppEndNamesCol))]
+#
+#   ## species groups according to user-supplied list
+#   sppMerge2 <- data.table(toMerge = unlist(sppMerge, use.names = FALSE),
+#                           endName = rep(names(sppMerge), times = sapply(sppMerge, length)))
+#   sppMerge2$toMerge <- equivalentName(sppMerge2$toMerge, sppEquiv, sppEndNamesCol)
+#   #keepSpecies[sppMerge2, on = paste0(sppEndNamesCol,"==toMerge")]
+#   keepSpecies <- sppMerge2[keepSpecies, on = paste0("toMerge==", sppEndNamesCol)]
+#   setnames(keepSpecies, c("toMerge", "endName"), c(sppEndNamesCol, "spGroup"))
+#
+#   ## Because some sister species are usually poorly distinguished in the CASFRI data,
+#   ## some need to be pooled.
+#   ## add Picea engelmannii x glauca hybrid if one of the others is in the list
+#   setkey(keepSpecies, CASFRI)
+#   if (any(sppNameVector %in% c("Pice_eng", "Pice_gla")))
+#     keepSpecies["Pice hybr", spGroup := equivalentName("Popu_sp", sppEquiv, sppEndNamesCol)]
+#
+#   ## add other Populus to Populus sp if there is Populus in the list
+#   if (any(grep("Popu", sppNameVector)))
+#     keepSpecies[CASFRI %in% c("Popu spp.", "Popu balb", "Popu balt", "Popu hybr", "Popu delt", "Popu trem"),
+#                 spGroup := equivalentName("Popu_tre", sppEquiv, sppEndNamesCol)]
+#
+#   ## add other Betula to Betula sp if there is Betula in the list
+#   if (any(grep("Betu", sppNameVector)))
+#     keepSpecies[c("Betu papy", "Betu neoa" , "Betu spp."),
+#                 spGroup := equivalentName("Popu_tre", sppEquiv, sppEndNamesCol)]
+#
+#   ## fill empty groups
+#   keepSpecies[is.na(spGroup), spGroup := get(sppEndNamesCol)]
+#
+#   ## Finally, filter species
+#   ## (note that there might be more species than in the original data)
+#   keepSpecies <- keepSpecies[get(sppEndNamesCol) %in%
+#                                equivalentName(sppNameVector, sppEquiv, sppEndNamesCol)]
+#
+#   keepSpecies
+# }
+#
 makePickellStack <- function(PickellRaster, sppNameVector,
                              speciesEquivalency, speciesEquivalencyColumn,
                              sppMerge,
@@ -197,15 +198,30 @@ makePickellStack <- function(PickellRaster, sppNameVector,
 
 ## ---------------------------------------------------------------------------------
 
-CASFRItoSpRasts <- function(CASFRIRas, CASFRIattrLong, keepSpecies, CASFRIdt, #loadedCASFRI,
-                            #speciesLandR,
+CASFRItoSpRasts <- function(CASFRIRas, CASFRIattrLong,
+                            CASFRIdt,
+                            speciesEquivalency,
+                            sppEndNamesCol,
                             destinationPath) {
+  # The ones we want
+  sppEquiv <- speciesEquivalency[!is.na(speciesEquivalency[[sppEndNamesCol]]),]
+
+  # Take this from the speciesEquivalency table; user cannot supply manually
+  sppNameVector <- unique(sppEquiv[[sppEndNamesCol]])
+  names(sppNameVector) <- sppNameVector
+
+  # This
+  sppListMergesCASFRI <-lapply(sppNameVector, function(x)
+    equivalentName(x, sppEquiv,  column = "CASFRI", multi = TRUE)
+  )
+
   ## create list and template raster
   spRasts <- list()
   spRas <- raster(CASFRIRas) %>% setValues(., NA_integer_)
 
+  ## NOT SURE IF THESE LINES ABOUT NA are relevant -- ELiot Dec 7
   ## selected spp absent from CASFRI data
-  NA_Sp <- which(is.na(keepSpecies$CASFRI))#setdiff(speciesLandR, unique(keepSpecies$spGroup))
+  NA_Sp <- which(is.na(sppListMergesCASFRI))#setdiff(speciesLandR, unique(keepSpecies$spGroup))
 
   ## All NA_Sp species codes should be in CASFRI spp list
   if (length(NA_Sp))
@@ -221,13 +237,16 @@ CASFRItoSpRasts <- function(CASFRIRas, CASFRIattrLong, keepSpecies, CASFRIdt, #l
                            overwrite = TRUE, datatype = "INT2U")
   }
 
-  sppTODO <- unique(keepSpecies$spGroup)
+  sppTODO <- unique(names(sppListMergesCASFRI))
 
   for (sp in sppTODO) {
+    spCASFRI <- sppListMergesCASFRI[[sp]]
     spRasts[[sp]] <- spRas
     message("starting ", sp)
+    if (length(spCASFRI) > 1)
+      message("  Merging ", paste(spCASFRI, collapse = ", "), "; becoming: ", sp)
     aa2 <- CASFRIattrLong[
-      value %in% keepSpecies[spGroup == sp, CASFRI]][
+      value %in% spCASFRI][
         , min(100L, sum(pct)), by = GID]
     setkey(aa2, GID)
     cc <- aa2[CASFRIdt] %>% na.omit()

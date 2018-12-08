@@ -269,7 +269,7 @@ prepSpeciesLayers_CASFRI <- function(destinationPath, outputPath,
   #if (P(sim)$.useParallel > 1) data.table::setDTthreads(P(sim)$.useParallel)
 
   #Cache
-  loadedCASFRI <- loadCASFRI(
+  loadedCASFRI <- Cache(loadCASFRI,
                         CASFRIRas = CASFRIRas,
                         attrFile = CASFRIattrFile,
                         headerFile = CASFRIheaderFile, ## TODO: this isn't used internally
@@ -286,15 +286,14 @@ prepSpeciesLayers_CASFRI <- function(destinationPath, outputPath,
   #  warning("some kNN species not in CASFRI layers.")
 
   message('Make stack from CASFRI data and headers')
-  CASFRISpStack <- #Cache(CASFRItoSpRasts,
+  CASFRISpStack <-
     CASFRItoSpRasts(CASFRIRas = CASFRIRas,
-                         #loadedCASFRI = loadedCASFRI,
+                    speciesEquivalency = speciesEquivalency,
+                    sppEndNamesCol = speciesEquivalencyColumn,
+
                          CASFRIattrLong = loadedCASFRI$CASFRIattrLong,
-                         keepSpecies = loadedCASFRI$keepSpecies,
                          CASFRIdt = loadedCASFRI$CASFRIdt,
-                         #speciesLandR = pemisc::equivalentName(sppNameVector, speciesEquivalency, "LandR"), # don't want this because the spMerges are not here - use keepSpecies object
                          destinationPath = outputPath#,
-                         #userTags = c("function:CASFRItoSpRasts", "CASFRIstack")
                          )
 
   return(CASFRISpStack)
