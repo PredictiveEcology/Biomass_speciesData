@@ -1,8 +1,8 @@
-loadCASFRI <- function(CASFRIRas, attrFile, headerFile, sppNameVector, speciesEquivalency,
+loadCASFRI <- function(CASFRIRas, attrFile, headerFile, sppNameVector, sppEquiv,
                        sppEndNamesCol, sppMerge) {
 
   # The ones we want
-  sppEquiv <- speciesEquivalency[!is.na(speciesEquivalency[[sppEndNamesCol]]),]
+  sppEquiv <- sppEquiv[!is.na(sppEquiv[[sppEndNamesCol]]),]
   if (missing(sppNameVector))
     sppNameVector <- unique(sppEquiv[[sppEndNamesCol]])
   sppNameVectorCASFRI <- equivalentName(sppNameVector, sppEquiv,  column = "CASFRI", multi = TRUE)
@@ -102,7 +102,7 @@ loadCASFRI <- function(CASFRIRas, attrFile, headerFile, sppNameVector, speciesEq
 # }
 #
 makePickellStack <- function(PickellRaster, sppNameVector,
-                             speciesEquivalency, speciesEquivalencyColumn,
+                             sppEquiv, sppEquivCol,
                              sppMerge,
                              destinationPath) {
   ## bring to memory and replace water, non veg by NAs
@@ -115,18 +115,18 @@ makePickellStack <- function(PickellRaster, sppNameVector,
 
   rasterOptions(maxmemory = 1e9)
 
-  sppEndNamesCol <- speciesEquivalencyColumn
+  sppEndNamesCol <- sppEquivCol
 
   ## species in Pickel's data
   PickellSpp <- c("Pice_mar", "Pice_gla", "Pinu_sp", "Popu_tre")
-  PickellSpp <- equivalentName(PickellSpp, speciesEquivalency, sppEndNamesCol)
+  PickellSpp <- equivalentName(PickellSpp, sppEquiv, sppEndNamesCol)
 
   keepSpecies <- na.omit(data.table(unique(PickellSpp)))
   names(keepSpecies) <- sppEndNamesCol
   ## species groups according to user-supplied list
   sppMerge2 <- data.table(toMerge = unlist(sppMerge, use.names = FALSE),
                           endName = rep(names(sppMerge), times = sapply(sppMerge, length)))
-  sppMerge2$toMerge <- equivalentName(sppMerge2$toMerge, speciesEquivalency, sppEndNamesCol)
+  sppMerge2$toMerge <- equivalentName(sppMerge2$toMerge, sppEquiv, sppEndNamesCol)
   #keepSpecies[sppMerge2, on = paste0(sppEndNamesCol,"==toMerge")]
   keepSpecies <- sppMerge2[keepSpecies, on = paste0("endName==", sppEndNamesCol)]
 
@@ -156,7 +156,7 @@ makePickellStack <- function(PickellRaster, sppNameVector,
   for (sp in sppTODO) {
     message("  converting Pickell's codes to pct cover raster, for ", sp)
 
-    if (sp == equivalentName("Pice_gla", speciesEquivalency, speciesEquivalencyColumn)) {
+    if (sp == equivalentName("Pice_gla", sppEquiv, sppEquivCol)) {
       spRasts[[sp]] <- spRas
       spRasts[[sp]][PickellRaster[] %in% c(41, 42, 43)] <- 60
       spRasts[[sp]][PickellRaster[] %in% c(44)] <- 80
@@ -165,7 +165,7 @@ makePickellStack <- function(PickellRaster, sppNameVector,
                             filename = asPath(file.path(destinationPath, paste0("Pickell", sp, ".tif"))),
                             overwrite = TRUE, datatype = "INT1U")
     }
-    if (sp == equivalentName("Pice_mar", speciesEquivalency, speciesEquivalencyColumn)) {
+    if (sp == equivalentName("Pice_mar", sppEquiv, sppEquivCol)) {
       spRasts[[sp]] <- spRas
       spRasts[[sp]][PickellRaster[] %in% c(23, 26)] <- 60
       spRasts[[sp]][PickellRaster[] %in% c(22)] <- 80
@@ -174,7 +174,7 @@ makePickellStack <- function(PickellRaster, sppNameVector,
                             filename = asPath(file.path(destinationPath, paste0("Pickell", sp, ".tif"))),
                             overwrite = TRUE, datatype = "INT1U")
     }
-    if (sp == equivalentName("Pinu_sp", speciesEquivalency, speciesEquivalencyColumn)) {
+    if (sp == equivalentName("Pinu_sp", sppEquiv, sppEquivCol)) {
       spRasts[[sp]] <- spRas
       spRasts[[sp]][PickellRaster[] %in% c(31, 32, 34)] <- 60
       spRasts[[sp]][PickellRaster[] %in% c(33)] <- 80
@@ -183,7 +183,7 @@ makePickellStack <- function(PickellRaster, sppNameVector,
                             filename = asPath(file.path(destinationPath, paste0("Pickell", sp, ".tif"))),
                             overwrite = TRUE, datatype = "INT1U")
     }
-    if (sp == equivalentName("Popu_tre", speciesEquivalency, speciesEquivalencyColumn)) {
+    if (sp == equivalentName("Popu_tre", sppEquiv, sppEquivCol)) {
       spRasts[[sp]] <- spRas
       spRasts[[sp]][PickellRaster[] %in% c(14)] <- 60
       spRasts[[sp]][PickellRaster[] %in% c(11)] <- 80
@@ -200,13 +200,13 @@ makePickellStack <- function(PickellRaster, sppNameVector,
 
 CASFRItoSpRasts <- function(CASFRIRas, CASFRIattrLong,
                             CASFRIdt,
-                            speciesEquivalency,
+                            sppEquiv,
                             sppEndNamesCol,
                             destinationPath) {
   # The ones we want
-  sppEquiv <- speciesEquivalency[!is.na(speciesEquivalency[[sppEndNamesCol]]),]
+  sppEquiv <- sppEquiv[!is.na(sppEquiv[[sppEndNamesCol]]),]
 
-  # Take this from the speciesEquivalency table; user cannot supply manually
+  # Take this from the sppEquiv table; user cannot supply manually
   sppNameVector <- unique(sppEquiv[[sppEndNamesCol]])
   names(sppNameVector) <- sppNameVector
 
