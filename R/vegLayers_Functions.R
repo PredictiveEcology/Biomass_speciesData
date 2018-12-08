@@ -1,10 +1,10 @@
 loadCASFRI <- function(CASFRIRas, attrFile, headerFile, sppNameVector, sppEquiv,
-                       sppEndNamesCol, sppMerge) {
+                       sppEquivCol, sppMerge) {
 
   # The ones we want
-  sppEquiv <- sppEquiv[!is.na(sppEquiv[[sppEndNamesCol]]),]
+  sppEquiv <- sppEquiv[!is.na(sppEquiv[[sppEquivCol]]),]
   if (missing(sppNameVector))
-    sppNameVector <- unique(sppEquiv[[sppEndNamesCol]])
+    sppNameVector <- unique(sppEquiv[[sppEquivCol]])
   sppNameVectorCASFRI <- equivalentName(sppNameVector, sppEquiv,  column = "CASFRI", multi = TRUE)
 
 
@@ -35,7 +35,7 @@ loadCASFRI <- function(CASFRIRas, attrFile, headerFile, sppNameVector, sppEquiv,
         paste0("SPECIES_", i), NA_character_)
   }
 
-  #keepSpecies <- whSpecies(CASFRIattr, sppNameVector, sppEquiv, sppEndNamesCol, sppMerge)
+  #keepSpecies <- whSpecies(CASFRIattr, sppNameVector, sppEquiv, sppEquivCol, sppMerge)
 
   CASFRIattrLong <- melt(CASFRIattr, id.vars = c("GID"),
                          measure.vars = paste0("SPECIES_", 1:5))
@@ -57,46 +57,46 @@ loadCASFRI <- function(CASFRIRas, attrFile, headerFile, sppNameVector, sppEquiv,
               CASFRIdt = CASFRIdt))
 }
 
-# whSpecies <- function(CASFRIattr, sppNameVector, sppEquiv, sppEndNamesCol, sppMerges) {
+# whSpecies <- function(CASFRIattr, sppNameVector, sppEquiv, sppEquivCol, sppMerges) {
 #   browser()
 #   keepSpecies <- na.omit(data.table(CASFRI = unique(CASFRIattr$SPECIES_1)))
 #
 #   ## convert to LandR format - remove the "." in "spp."
-#   keepSpecies[, (sppEndNamesCol) := list(equivalentName(
-#     sub(".", "", CASFRI, fixed = TRUE), sppEquiv, sppEndNamesCol))]
+#   keepSpecies[, (sppEquivCol) := list(equivalentName(
+#     sub(".", "", CASFRI, fixed = TRUE), sppEquiv, sppEquivCol))]
 #
 #   ## species groups according to user-supplied list
 #   sppMerge2 <- data.table(toMerge = unlist(sppMerge, use.names = FALSE),
 #                           endName = rep(names(sppMerge), times = sapply(sppMerge, length)))
-#   sppMerge2$toMerge <- equivalentName(sppMerge2$toMerge, sppEquiv, sppEndNamesCol)
-#   #keepSpecies[sppMerge2, on = paste0(sppEndNamesCol,"==toMerge")]
-#   keepSpecies <- sppMerge2[keepSpecies, on = paste0("toMerge==", sppEndNamesCol)]
-#   setnames(keepSpecies, c("toMerge", "endName"), c(sppEndNamesCol, "spGroup"))
+#   sppMerge2$toMerge <- equivalentName(sppMerge2$toMerge, sppEquiv, sppEquivCol)
+#   #keepSpecies[sppMerge2, on = paste0(sppEquivCol,"==toMerge")]
+#   keepSpecies <- sppMerge2[keepSpecies, on = paste0("toMerge==", sppEquivCol)]
+#   setnames(keepSpecies, c("toMerge", "endName"), c(sppEquivCol, "spGroup"))
 #
 #   ## Because some sister species are usually poorly distinguished in the CASFRI data,
 #   ## some need to be pooled.
 #   ## add Picea engelmannii x glauca hybrid if one of the others is in the list
 #   setkey(keepSpecies, CASFRI)
 #   if (any(sppNameVector %in% c("Pice_eng", "Pice_gla")))
-#     keepSpecies["Pice hybr", spGroup := equivalentName("Popu_sp", sppEquiv, sppEndNamesCol)]
+#     keepSpecies["Pice hybr", spGroup := equivalentName("Popu_sp", sppEquiv, sppEquivCol)]
 #
 #   ## add other Populus to Populus sp if there is Populus in the list
 #   if (any(grep("Popu", sppNameVector)))
 #     keepSpecies[CASFRI %in% c("Popu spp.", "Popu balb", "Popu balt", "Popu hybr", "Popu delt", "Popu trem"),
-#                 spGroup := equivalentName("Popu_tre", sppEquiv, sppEndNamesCol)]
+#                 spGroup := equivalentName("Popu_tre", sppEquiv, sppEquivCol)]
 #
 #   ## add other Betula to Betula sp if there is Betula in the list
 #   if (any(grep("Betu", sppNameVector)))
 #     keepSpecies[c("Betu papy", "Betu neoa" , "Betu spp."),
-#                 spGroup := equivalentName("Popu_tre", sppEquiv, sppEndNamesCol)]
+#                 spGroup := equivalentName("Popu_tre", sppEquiv, sppEquivCol)]
 #
 #   ## fill empty groups
-#   keepSpecies[is.na(spGroup), spGroup := get(sppEndNamesCol)]
+#   keepSpecies[is.na(spGroup), spGroup := get(sppEquivCol)]
 #
 #   ## Finally, filter species
 #   ## (note that there might be more species than in the original data)
-#   keepSpecies <- keepSpecies[get(sppEndNamesCol) %in%
-#                                equivalentName(sppNameVector, sppEquiv, sppEndNamesCol)]
+#   keepSpecies <- keepSpecies[get(sppEquivCol) %in%
+#                                equivalentName(sppNameVector, sppEquiv, sppEquivCol)]
 #
 #   keepSpecies
 # }
@@ -115,20 +115,18 @@ makePickellStack <- function(PickellRaster, sppNameVector,
 
   rasterOptions(maxmemory = 1e9)
 
-  sppEndNamesCol <- sppEquivCol
-
   ## species in Pickel's data
   PickellSpp <- c("Pice_mar", "Pice_gla", "Pinu_sp", "Popu_tre")
-  PickellSpp <- equivalentName(PickellSpp, sppEquiv, sppEndNamesCol)
+  PickellSpp <- equivalentName(PickellSpp, sppEquiv, sppEquivCol)
 
   keepSpecies <- na.omit(data.table(unique(PickellSpp)))
-  names(keepSpecies) <- sppEndNamesCol
+  names(keepSpecies) <- sppEquivCol
   ## species groups according to user-supplied list
   sppMerge2 <- data.table(toMerge = unlist(sppMerge, use.names = FALSE),
                           endName = rep(names(sppMerge), times = sapply(sppMerge, length)))
-  sppMerge2$toMerge <- equivalentName(sppMerge2$toMerge, sppEquiv, sppEndNamesCol)
-  #keepSpecies[sppMerge2, on = paste0(sppEndNamesCol,"==toMerge")]
-  keepSpecies <- sppMerge2[keepSpecies, on = paste0("endName==", sppEndNamesCol)]
+  sppMerge2$toMerge <- equivalentName(sppMerge2$toMerge, sppEquiv, sppEquivCol)
+  #keepSpecies[sppMerge2, on = paste0(sppEquivCol,"==toMerge")]
+  keepSpecies <- sppMerge2[keepSpecies, on = paste0("endName==", sppEquivCol)]
 
   sppNameVectorMerged <- unique(keepSpecies$endName)
 
@@ -198,16 +196,13 @@ makePickellStack <- function(PickellRaster, sppNameVector,
 
 ## ---------------------------------------------------------------------------------
 
-CASFRItoSpRasts <- function(CASFRIRas, CASFRIattrLong,
-                            CASFRIdt,
-                            sppEquiv,
-                            sppEndNamesCol,
-                            destinationPath) {
+CASFRItoSpRasts <- function(CASFRIRas, CASFRIattrLong, CASFRIdt,
+                            sppEquiv, sppEquivCol, destinationPath) {
   # The ones we want
-  sppEquiv <- sppEquiv[!is.na(sppEquiv[[sppEndNamesCol]]),]
+  sppEquiv <- sppEquiv[!is.na(sppEquiv[[sppEquivCol]]),]
 
   # Take this from the sppEquiv table; user cannot supply manually
-  sppNameVector <- unique(sppEquiv[[sppEndNamesCol]])
+  sppNameVector <- unique(sppEquiv[[sppEquivCol]])
   names(sppNameVector) <- sppNameVector
 
   # This

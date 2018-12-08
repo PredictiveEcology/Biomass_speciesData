@@ -273,10 +273,8 @@ prepSpeciesLayers_CASFRI <- function(destinationPath, outputPath,
                         CASFRIRas = CASFRIRas,
                         attrFile = CASFRIattrFile,
                         headerFile = CASFRIheaderFile, ## TODO: this isn't used internally
-                        #sppNameVector = pemisc::equivalentName(sppNameVector, sppEquiv, "CASFRI"),
                         sppEquiv = sppEquiv,
-                        sppEndNamesCol = sppEquivCol#,
-                        #sppMerge = sppMerge,
+                        sppEquivCol = sppEquivCol#,
                         #userTags = c("function:loadCASFRI", "BigDataTable",
                                      #"speciesLayers", "KNN")
   )
@@ -288,7 +286,7 @@ prepSpeciesLayers_CASFRI <- function(destinationPath, outputPath,
   message('Make stack from CASFRI data and headers')
   CASFRISpStack <- CASFRItoSpRasts(CASFRIRas = CASFRIRas,
                                    sppEquiv = sppEquiv,
-                                   sppEndNamesCol = sppEquivCol,
+                                   sppEquivCol = sppEquivCol,
                                    CASFRIattrLong = loadedCASFRI$CASFRIattrLong,
                                    CASFRIdt = loadedCASFRI$CASFRIdt,
                                    destinationPath = outputPath)
@@ -307,7 +305,7 @@ prepSpeciesLayers_KNN <- function(destinationPath, outputPath,
     studyArea = studyArea,
     sppEquiv = sppEquiv,
     knnNamesCol = "KNN",
-    sppEndNamesCol = sppEquivCol,
+    sppEquivCol = sppEquivCol,
     thresh = 10,
     url = url,
     userTags = c("speciesLayers", "KNN"))
