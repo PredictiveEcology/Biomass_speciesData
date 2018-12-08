@@ -1,5 +1,12 @@
 loadCASFRI <- function(CASFRIRas, attrFile, headerFile, sppNameVector, speciesEquivalency,
                        sppEndNamesCol, sppMerge) {
+
+  sppEquiv <- speciesEquivalency[!is.na(speciesEquivalency[[sppEndNamesCol]]),]
+  if (missing(sppNameVector))
+    sppNameVector <- unique(sppEquiv[[sppEndNamesCol]])
+  if (missing(sppMerge))
+    sppMerge <- unique(sppEquiv[[sppEndNamesCol]][duplicated(sppEquiv[[sppEndNamesCol]])])
+
   CASFRIheader <- fread(headerFile, skip = 14, nrows = 49, header = FALSE, sep = "", fill = TRUE)
   header <- apply(CASFRIheader, 1, function(x) sub(pattern = "(\t+| ).*$", "", x))
   CASFRIheader <- header[nchar(header) != 0]
@@ -27,8 +34,9 @@ loadCASFRI <- function(CASFRIRas, attrFile, headerFile, sppNameVector, speciesEq
   }
 
   ## select species not based on abundance but on user inputs:
-  keepSpecies <- whSpecies(CASFRIattr, sppNameVector, speciesEquivalency, sppEndNamesCol, sppMerge)
+  keepSpecies <- whSpecies(CASFRIattr, sppNameVector, sppEquiv, sppEndNamesCol, sppMerge)
 
+  browser()
   CASFRIattrLong <- melt(CASFRIattr, id.vars = c("GID"),
                          measure.vars = paste0("SPECIES_", 1:5))
   CA2 <- melt(CASFRIattr, id.vars = c("GID"),
@@ -49,6 +57,7 @@ loadCASFRI <- function(CASFRIRas, attrFile, headerFile, sppNameVector, speciesEq
 }
 
 whSpecies <- function(CASFRIattr, sppNameVector, speciesEquivalency, sppEndNamesCol, sppMerge) {
+  browser()
   keepSpecies <- na.omit(data.table(CASFRI = unique(CASFRIattr$SPECIES_1)))
 
   ## convert to LandR format - remove the "." in "spp."

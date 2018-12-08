@@ -62,8 +62,8 @@ defineModule(sim, list(
                               "If none, create an empty list. Defaults to merging",
                               "of Pinus contorta and P. banksiana into Pinus sp."),
                  sourceURL = ""),
-    expectsInput("sppNameVector", "character",
-                 desc = "vector of species to select", sourceURL = ""),
+    # expectsInput("sppNameVector", "character",
+    #              desc = "vector of species to select", sourceURL = ""),
     expectsInput("studyArea", "SpatialPolygonsDataFrame",
                  desc =  paste("Multipolygon to use as the study area,",
                                "Defaults to a square shapefile in Southwestern Alberta, Canada."),
@@ -76,8 +76,8 @@ defineModule(sim, list(
   outputObjects = bind_rows(
     createsOutput("speciesLayers", "RasterStack",
                   desc = "biomass percentage raster layers by species in Canada species map"),
-    createsOutput("sppNameVector",  "character",
-                  desc = "vector of species names to select.")
+    # createsOutput("sppNameVector",  "character",
+    #               desc = "vector of species names to select.")
   )
   ))
 
@@ -126,10 +126,10 @@ biomassDataInit <- function(sim) {
                               outputPath = outputPath(sim), # this will be the studyArea-specific files (postProcess)
                               studyArea = sim$studyArea,
                               rasterToMatch = sim$rasterToMatch,
-                              sppNameVector = sim$sppNameVector,
+                              #sppNameVector = sim$sppNameVector,
                               speciesEquivalency = sim$speciesEquivalency,
                               speciesEquivalencyColumn = P(sim)$speciesEquivalencyColumn,
-                              sppMerge = sim$sppMerge,
+                              #sppMerge = sim$sppMerge,
                               userTags = cacheTags)
     sim$speciesLayers <- if (length(sim$speciesLayers) > 0) {
       overlayStacks(highQualityStack = speciesLayersNew,
@@ -209,10 +209,10 @@ biomassDataInit <- function(sim) {
     }
   }
 
-  if (!suppliedElsewhere("sppNameVector", sim)) {
-    ## default to 6 species (see below)
-    sim$sppNameVector <- c("Abie_sp", "Pice_gla", "Pice_mar", "Pinu_ban", "Pinu_con", "Popu_tre")
-  }
+  # if (!suppliedElsewhere("sppNameVector", sim)) {
+  #   ## default to 6 species (see below)
+  #   sim$sppNameVector <- c("Abie_sp", "Pice_gla", "Pice_mar", "Pinu_ban", "Pinu_con", "Popu_tre")
+  # }
 
   if (!suppliedElsewhere("sppMerge", sim)) {
     ## two merged into one (Pinu_ban, Pinu_con to Pinu_sp)
@@ -239,10 +239,11 @@ biomassDataInit <- function(sim) {
 prepSpeciesLayers_CASFRI <- function(destinationPath, outputPath,
                                      url = "https://drive.google.com/file/d/1y0ofr2H0c_IEMIpx19xf3_VTBheY0C9h/view?usp=sharing",
                                      studyArea, rasterToMatch,
-                                     sppNameVector,
+                                     #sppNameVector,
                                      speciesEquivalency,
-                                     speciesEquivalencyColumn,
-                                     sppMerge) {
+                                     speciesEquivalencyColumn#,
+                                     #sppMerge
+                                     ) {
   CASFRItiffFile <- asPath(file.path(destinationPath, "Landweb_CASFRI_GIDs.tif"))
   CASFRIattrFile <- asPath(file.path(destinationPath, "Landweb_CASFRI_GIDs_attributes3.csv"))
   CASFRIheaderFile <- asPath(file.path(destinationPath,"Landweb_CASFRI_GIDs_README.txt"))
@@ -267,16 +268,18 @@ prepSpeciesLayers_CASFRI <- function(destinationPath, outputPath,
   message("Load CASFRI data and headers, and convert to long format, and define species groups")
   #if (P(sim)$.useParallel > 1) data.table::setDTthreads(P(sim)$.useParallel)
 
-  loadedCASFRI <- Cache(loadCASFRI,
+  #Cache
+  loadedCASFRI <- loadCASFRI(
                         CASFRIRas = CASFRIRas,
                         attrFile = CASFRIattrFile,
                         headerFile = CASFRIheaderFile, ## TODO: this isn't used internally
-                        sppNameVector = pemisc::equivalentName(sppNameVector, speciesEquivalency, "CASFRI"),
+                        #sppNameVector = pemisc::equivalentName(sppNameVector, speciesEquivalency, "CASFRI"),
                         speciesEquivalency = speciesEquivalency,
-                        sppEndNamesCol = speciesEquivalencyColumn,
-                        sppMerge = sppMerge,
-                        userTags = c("function:loadCASFRI", "BigDataTable",
-                                     "speciesLayers", "KNN"))
+                        sppEndNamesCol = speciesEquivalencyColumn#,
+                        #sppMerge = sppMerge,
+                        #userTags = c("function:loadCASFRI", "BigDataTable",
+                                     #"speciesLayers", "KNN")
+  )
 
   #uniqueKeepSp <- unique(loadedCASFRI$keepSpecies$spGroup) ## TODO: the names don't match at all (#6)
   #if (!all(names(sim$speciesLayers) %in% uniqueKeepSp))
@@ -300,17 +303,18 @@ prepSpeciesLayers_CASFRI <- function(destinationPath, outputPath,
 prepSpeciesLayers_KNN <- function(destinationPath, outputPath,
                                   url = "http://tree.pfc.forestry.ca/kNN-Species.tar",
                                   studyArea, rasterToMatch,
-                                  sppNameVector,
+                                  #sppNameVector,
                                   speciesEquivalency,
-                                  speciesEquivalencyColumn,
-                                  sppMerge) {
+                                  speciesEquivalencyColumn#,
+                                  #sppMerge
+                                  ) {
   loadkNNSpeciesLayers(
     dPath = destinationPath,
     rasterToMatch = rasterToMatch,
     studyArea = studyArea,
-    sppNameVector = sppNameVector,
+    #sppNameVector = sppNameVector,
     speciesEquivalency = speciesEquivalency,
-    sppMerge = sppMerge,
+    #sppMerge = sppMerge,
     knnNamesCol = "KNN",
     sppEndNamesCol = speciesEquivalencyColumn,
     thresh = 10,
@@ -322,10 +326,11 @@ prepSpeciesLayers_KNN <- function(destinationPath, outputPath,
 prepSpeciesLayers_Pickell <- function(destinationPath, outputPath,
                                       url = "https://drive.google.com/open?id=1M_L-7ovDpJLyY8dDOxG3xQTyzPx2HSg4",
                                       studyArea, rasterToMatch,
-                                      sppNameVector,
+                                      #sppNameVector,
                                       speciesEquivalency,
-                                      speciesEquivalencyColumn,
-                                      sppMerge) {
+                                      speciesEquivalencyColumn#,
+                                      #sppMerge
+                                      ) {
 
   speciesLayers <- Cache(prepInputs,
                          targetFile = asPath("SPP_1990_100m_NAD83_LCC_BYTE_VEG_NO_TIES_FILLED_FINAL.dat"),
@@ -343,10 +348,10 @@ prepSpeciesLayers_Pickell <- function(destinationPath, outputPath,
                          userTags = c("speciesLayers", "KNN", "Pickell", "stable"))
 
   makePickellStack(PickellRaster = speciesLayers,
-                   sppNameVector = sppNameVector,
+                   #sppNameVector = sppNameVector,
                    speciesEquivalency = speciesEquivalency,
                    speciesEquivalencyColumn = speciesEquivalencyColumn,
-                   sppMerge = sppMerge,
+                   #sppMerge = sppMerge,
                    destinationPath = destinationPath)
 
 }
@@ -355,10 +360,11 @@ prepSpeciesLayers_Pickell <- function(destinationPath, outputPath,
 prepSpeciesLayers_ForestInventory <- function(destinationPath, outputPath,
                                       url = "https://drive.google.com/file/d/1JnKeXrw0U9LmrZpixCDooIm62qiv4_G1/view?usp=sharing",
                                       studyArea, rasterToMatch,
-                                      sppNameVector,
+                                      #sppNameVector,
                                       speciesEquivalency,
-                                      speciesEquivalencyColumn,
-                                      sppMerge) {
+                                      speciesEquivalencyColumn#,
+                                      #sppMerge
+                                      ) {
 
   # This includes LandType because it will use that at the bottom of this function to
   #  remove NAs
