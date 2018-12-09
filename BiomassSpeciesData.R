@@ -351,10 +351,10 @@ prepSpeciesLayers_ForestInventory <- function(destinationPath, outputPath,
                                               sppEquivCol) {
 
   # The ones we want
-  sppEquiv <- speciesEquivalency[!is.na(speciesEquivalency[[speciesEquivalencyColumn]]),]
+  sppEquiv <- sppEquiv[!is.na(sppEquiv[[sppEquivColumn]]),]
 
-  # Take this from the speciesEquivalency table; user cannot supply manually
-  sppNameVector <- unique(sppEquiv[[speciesEquivalencyColumn]])
+  # Take this from the sppEquiv table; user cannot supply manually
+  sppNameVector <- unique(sppEquiv[[sppEquivCol]])
   names(sppNameVector) <- sppNameVector
 
   # This
@@ -366,7 +366,7 @@ prepSpeciesLayers_ForestInventory <- function(destinationPath, outputPath,
   #  remove NAs
   CClayerNames <- c("Pine", "Black Spruce", "Deciduous", "Fir", "White Spruce", "LandType")
   CClayerNamesWDots <- gsub(" ", ".", CClayerNames)
-  CClayerNamesLandR <- equivalentName(CClayerNamesWDots, speciesEquivalency, speciesEquivalencyColumn, multi = TRUE)
+  CClayerNamesLandR <- equivalentName(CClayerNamesWDots, sppEquiv, sppEquivCol, multi = TRUE)
   CClayerNamesFiles <- paste0(gsub(" ", "", CClayerNames), "1.tif")
   browser()
   options(map.useParallel = FALSE)
