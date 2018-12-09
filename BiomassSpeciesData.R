@@ -368,7 +368,6 @@ prepSpeciesLayers_ForestInventory <- function(destinationPath, outputPath,
   CClayerNamesWDots <- gsub(" ", ".", CClayerNames)
   CClayerNamesLandR <- equivalentName(CClayerNamesWDots, sppEquiv, sppEquivCol, multi = TRUE)
   CClayerNamesFiles <- paste0(gsub(" ", "", CClayerNames), "1.tif")
-  browser()
   options(map.useParallel = FALSE)
   ml <- mapAdd(rasterToMatch, isRasterToMatch = TRUE, layerName = "rasterToMatch",
                #useSAcrs = TRUE, #poly = TRUE,
@@ -393,7 +392,7 @@ prepSpeciesLayers_ForestInventory <- function(destinationPath, outputPath,
   CCstack[CCstack[] > 10] <- 10
   CCstack <- CCstack * 10 # convert back to percent
   NA_ids <- which(is.na(ml$LandType[]) | ml$LandType[] == 5)
-  message("  Setting NA and 5 in LandType to NA in speciesLayers")
+  message("  Setting NA and 5 in LandType to NA in speciesLayers in ForestInventory data")
   CCstack[NA_ids] <- NA
 
   names(CCstack) <- equivalentName(names(CCstack), sppEquiv, sppEquivCol)
