@@ -129,7 +129,7 @@ biomassDataInit <- function(sim) {
                               rasterToMatch = sim$rasterToMatch,
                               #sppNameVector = sim$sppNameVector,
                               sppEquiv = sim$sppEquiv,
-                              sppEquivCol = P(sim)$sppEquivCol,
+                              sppEquivCol = P(sim)$sppEquivCol
                               #sppMerge = sim$sppMerge,
                               #userTags = cacheTags
                               )
