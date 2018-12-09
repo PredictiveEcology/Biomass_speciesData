@@ -106,27 +106,27 @@ makePickellStack <- function(PickellRaster, sppNameVector,
                              sppMerge,
                              destinationPath) {
   ## bring to memory and replace water, non veg by NAs
-  sppEquiv <- speciesEquivalency[!is.na(speciesEquivalency[[sppEndNamesCol]]),]
+  sppEquiv <- sppEquiv[!is.na(sppEquiv[[sppEquivCol]]),]
 
-  # Take this from the speciesEquivalency table; user cannot supply manually
-  sppNameVector <- unique(sppEquiv[[sppEndNamesCol]])
+  # Take this from the sppEquiv table; user cannot supply manually
+  sppNameVector <- unique(sppEquiv[[sppEquivCol]])
   names(sppNameVector) <- sppNameVector
 
-  PickellSpp <- c("Pice_mar", "Pice_gla", "Pinu_sp", "Popu_tre")
+  PickellSpp <- c("Pice_mar", "Pice_gla", "Pinu_con", "Popu_tre") # pick LandR as standard
   names(PickellSpp) <- PickellSpp
 
-  # Pick the full LandR dataset, which should be broad. We will change to sppEndNamesCol
+  # Pick the full LandR dataset, which should be broad. We will change to sppEquivCol
   #   below
   sppOfInterest <- equivalentName(sppNameVector, sppEquiv, "LandR", multi = TRUE)
   sppInPickell <- lapply(PickellSpp, function(sp)
     equivalentName(sp, sppEquiv, "LandR", multi = TRUE)
   )
-  # Check that each of the layers that Pickell did are actually desired in speciesEquivalency
+  # Check that each of the layers that Pickell did are actually desired in sppEquiv
   needPickel <- sapply(sppInPickell, function(sp) {
     any(sp %in% sppOfInterest)
   })
-  # These are the ones in Pickell data set that we want according to speciesEquivalency
-  PickellSpp <- equivalentName(PickellSpp[needPickel], sppEquiv, sppEndNamesCol)
+  # These are the ones in Pickell data set that we want according to sppEquiv
+  PickellSpp <- equivalentName(PickellSpp[needPickel], sppEquiv, sppEquivCol)
 
   PickellRaster[] <- PickellRaster[]
   PickellRaster[PickellRaster[] %in% c(230, 220, 255)] <- NA_integer_
@@ -138,13 +138,13 @@ makePickellStack <- function(PickellRaster, sppNameVector,
   rasterOptions(maxmemory = 1e9)
 
   # keepSpecies <- na.omit(data.table(unique(PickellSpp)))
-  # names(keepSpecies) <- sppEndNamesCol
+  # names(keepSpecies) <- sppEquivCol
   # ## species groups according to user-supplied list
   # sppMerge2 <- data.table(toMerge = unlist(sppMerge, use.names = FALSE),
   #                         endName = rep(names(sppMerge), times = sapply(sppMerge, length)))
-  # sppMerge2$toMerge <- equivalentName(sppMerge2$toMerge, speciesEquivalency, sppEndNamesCol)
-  # #keepSpecies[sppMerge2, on = paste0(sppEndNamesCol,"==toMerge")]
-  # keepSpecies <- sppMerge2[keepSpecies, on = paste0("endName==", sppEndNamesCol)]
+  # sppMerge2$toMerge <- equivalentName(sppMerge2$toMerge, sppEquiv, sppEquivCol)
+  # #keepSpecies[sppMerge2, on = paste0(sppEquivCol,"==toMerge")]
+  # keepSpecies <- sppMerge2[keepSpecies, on = paste0("endName==", sppEquivCol)]
   #
   # sppNameVectorMerged <- unique(keepSpecies$endName)
   #

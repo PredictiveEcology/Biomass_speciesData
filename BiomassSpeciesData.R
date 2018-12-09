@@ -351,7 +351,7 @@ prepSpeciesLayers_ForestInventory <- function(destinationPath, outputPath,
                                               sppEquivCol) {
 
   # The ones we want
-  sppEquiv <- sppEquiv[!is.na(sppEquiv[[sppEquivColumn]]),]
+  sppEquiv <- sppEquiv[!is.na(sppEquiv[[sppEquivCol]]),]
 
   # Take this from the sppEquiv table; user cannot supply manually
   sppNameVector <- unique(sppEquiv[[sppEquivCol]])
