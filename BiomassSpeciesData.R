@@ -122,6 +122,7 @@ biomassDataInit <- function(sim) {
     }
     fn <- get(fnName)
     speciesLayersNew <- Cache(fn,
+    #speciesLayersNew <- fn(
                               destinationPath = dPath, # this is generic files (preProcess)
                               outputPath = outputPath(sim), # this will be the studyArea-specific files (postProcess)
                               studyArea = sim$studyArea,
@@ -130,7 +131,8 @@ biomassDataInit <- function(sim) {
                               sppEquiv = sim$sppEquiv,
                               sppEquivCol = P(sim)$sppEquivCol,
                               #sppMerge = sim$sppMerge,
-                              userTags = cacheTags)
+                              #userTags = cacheTags
+                              )
     sim$speciesLayers <- if (length(sim$speciesLayers) > 0) {
       overlayStacks(highQualityStack = speciesLayersNew,
                     lowQualityStack = sim$speciesLayers,
@@ -348,13 +350,25 @@ prepSpeciesLayers_ForestInventory <- function(destinationPath, outputPath,
                                               sppEquiv,
                                               sppEquivCol) {
 
+  # The ones we want
+  sppEquiv <- speciesEquivalency[!is.na(speciesEquivalency[[speciesEquivalencyColumn]]),]
+
+  # Take this from the speciesEquivalency table; user cannot supply manually
+  sppNameVector <- unique(sppEquiv[[speciesEquivalencyColumn]])
+  names(sppNameVector) <- sppNameVector
+
+  # This
+  sppListMergesCASFRI <-lapply(sppNameVector, function(x)
+    equivalentName(x, sppEquiv,  column = "CASFRI", multi = TRUE)
+  )
+
   # This includes LandType because it will use that at the bottom of this function to
   #  remove NAs
   CClayerNames <- c("Pine", "Black Spruce", "Deciduous", "Fir", "White Spruce", "LandType")
   CClayerNamesWDots <- gsub(" ", ".", CClayerNames)
-  CClayerNamesLandR <- equivalentName(CClayerNamesWDots, sppEquiv, sppEquivCol)
+  CClayerNamesLandR <- equivalentName(CClayerNamesWDots, speciesEquivalency, speciesEquivalencyColumn, multi = TRUE)
   CClayerNamesFiles <- paste0(gsub(" ", "", CClayerNames), "1.tif")
-
+  browser()
   options(map.useParallel = FALSE)
   ml <- mapAdd(rasterToMatch, isRasterToMatch = TRUE, layerName = "rasterToMatch",
                #useSAcrs = TRUE, #poly = TRUE,
@@ -379,6 +393,7 @@ prepSpeciesLayers_ForestInventory <- function(destinationPath, outputPath,
   CCstack[CCstack[] > 10] <- 10
   CCstack <- CCstack * 10 # convert back to percent
   NA_ids <- which(is.na(ml$LandType[]) | ml$LandType[] == 5)
+  message("  Setting NA and 5 in LandType to NA in speciesLayers")
   CCstack[NA_ids] <- NA
 
   names(CCstack) <- equivalentName(names(CCstack), sppEquiv, sppEquivCol)
