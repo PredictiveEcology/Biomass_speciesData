@@ -23,6 +23,8 @@ defineModule(sim, list(
     #defineParameter("paramName", "paramClass", value, min, max, "parameter description"),
     defineParameter("sppEquivCol", "character", "LandR", NA, NA,
                     "The column in sim$specieEquivalency data.table to use as a naming convention"),
+    defineParameter("omitNonVegPixels", "logical", TRUE, NA, NA,
+                    "If nonVegPixels object supplied, should these pixels be converted to NA in the speciesLayer stack"),
     defineParameter("types", "character", "KNN", NA, NA,
                     "The possible data sources. These must correspond to a function named paste0('prepSpeciesLayers_', type)"),
     defineParameter(".plotInitialTime", "numeric", NA, NA, NA,
@@ -40,6 +42,10 @@ defineModule(sim, list(
                     "Used in reading csv file with fread. Will be passed to data.table::setDTthreads")
   ),
   inputObjects = bind_rows(
+    expectsInput("nonVegPixels", "integer",
+                 desc = paste("A vector of pixel ids indicating non vegetation pixels,",
+                              "which will be converted to NA, if P(sim)$omitNonVegPixels is TRUE"),
+                 sourceURL = ""),
     expectsInput("rasterToMatch", "RasterLayer",
                  desc = "Raster layer of study area used for cropping, masking and projecting.
                  Defaults to the kNN biomass map masked with `studyArea`",
@@ -120,6 +126,11 @@ biomassDataInit <- function(sim) {
       speciesLayersNew
     }
     rm(speciesLayersNew)
+  }
+
+  if (isTRUE(P(sim)$omitNonVegPixels)) {
+    message("Setting all speciesLayers to NA where LandType in ForestInventories is 4")
+    sim$speciesLayers[sim$nonVegPixels] <- NA
   }
 
   singular <- length(P(sim)$types) == 1
