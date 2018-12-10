@@ -103,7 +103,6 @@ biomassDataInit <- function(sim) {
     if (is.null(envirName))
       envirName <- whereIsFnName
 
-
     message("#############################################")
     message(type, " -- Loading using ", fnName, " located in ", envirName)
     message("#############################################")
@@ -128,12 +127,11 @@ biomassDataInit <- function(sim) {
       speciesLayersNew
     }
     rm(speciesLayersNew)
-
   }
 
   singular <- length(P(sim)$types) == 1
   message("sim$speciesLayers is from ", paste(P(sim)$types, collapse = ", "),
-          "overlaid in that sequence, higher quality last"[!singular])
+          " overlaid in that sequence, higher quality last"[!singular])
 
   return(invisible(sim))
 }
@@ -155,7 +153,7 @@ biomassDataInit <- function(sim) {
 
   if (is.null(sim$rasterToMatch)) {
     if (!suppliedElsewhere("rasterToMatch", sim)) {
-      message("There is no rasterToMatch supplied; will attempt to use the kNN biomassMap")
+      message("There is no 'rasterToMatch' supplied; will attempt to use the kNN biomass map")
 
       biomassMapFilename <- file.path(dPath, "NFI_MODIS250m_kNN_Structure_Biomass_TotalLiveAboveGround_v0.tif")
 
@@ -176,7 +174,7 @@ biomassDataInit <- function(sim) {
       message("  Rasterizing the studyAreaLarge polygon map")
       #TODO: check whether this LandWeb centric stuf is necessary. Does rasterToMatch need FRI? see Issue #10
       # Layers provided by David Andison sometimes have LTHRC, sometimes LTHFC ... chose whichever
-      LTHxC <- grep("(LTH.+C)",names(sim$studyAreaLarge), value = TRUE)
+      LTHxC <- grep("(LTH.+C)", names(sim$studyAreaLarge), value = TRUE)
       fieldName <- if (length(LTHxC)) {
         LTHxC
       } else {
@@ -315,7 +313,6 @@ prepSpeciesLayers_ForestInventory <- function(destinationPath, outputPath,
                                               studyArea, rasterToMatch,
                                               sppEquiv,
                                               sppEquivCol) {
-
   # The ones we want
   sppEquiv <- sppEquiv[!is.na(sppEquiv[[sppEquivCol]]),]
 
@@ -339,6 +336,7 @@ prepSpeciesLayers_ForestInventory <- function(destinationPath, outputPath,
                #useSAcrs = TRUE, #poly = TRUE,
                #      columnNameForLabels = "NSN",
                filename2 = NULL)
+
   ml <- mapAdd(studyArea, map = ml, isStudyArea = TRUE, layerName = "studyArea",
                      useSAcrs = TRUE, #poly = TRUE,
                #      columnNameForLabels = "NSN",
@@ -346,9 +344,7 @@ prepSpeciesLayers_ForestInventory <- function(destinationPath, outputPath,
 
   ml <- mapAdd(map = ml, url = url, layerName = CClayerNames, CC = TRUE,
                destinationPath = destinationPath,
-               #studyArea = studyArea,
-               #rasterToMatch = rasterToMatch,
-               targetFile = CClayerNamesFiles, filename2 = NULL, ## TODO: check this for file creation sadness
+               targetFile = CClayerNamesFiles, filename2 = NULL,
                alsoExtract = "similar", leaflet = FALSE, method = "ngb")
 
   ccs <- ml@metadata[CC == TRUE & !(layerName == "LandType"), ]
