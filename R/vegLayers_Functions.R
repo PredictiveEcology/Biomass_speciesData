@@ -63,7 +63,7 @@ makePickellStack <- function(PickellRaster, sppEquiv, sppEquivCol, destinationPa
   sppNameVector <- unique(sppEquiv[[sppEquivCol]])
   names(sppNameVector) <- sppNameVector
 
-  PickellSpp <- c("Pice_mar", "Pice_gla", "Pinu_con", "Popu_tre")
+  PickellSpp <- c("Pice_mar", "Pice_gla", "Pinu_con", "Popu_tre") ## pick LandR an standard
   names(PickellSpp) <- PickellSpp
 
   # Pick the full LandR dataset, which should be broad. We will change to sppEquivCol below
