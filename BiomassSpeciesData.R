@@ -40,20 +40,13 @@ defineModule(sim, list(
                     "Used in reading csv file with fread. Will be passed to data.table::setDTthreads")
   ),
   inputObjects = bind_rows(
-    # expectsInput("CASFRIRas", "RasterStack",
-    #              desc = "biomass percentage raster layers by species in Canada species map, created by Pickell et al., UBC, resolution 100m x 100m from LandSat and kNN based on CASFRI.",
-    #              sourceURL = "https://drive.google.com/file/d/1y0ofr2H0c_IEMIpx19xf3_VTBheY0C9h/view?usp=sharing"),
-    # expectsInput("Pickell", "RasterStack",
-    #              desc = paste("biomass percentage raster layers by species in Canada species map,",
-    #                           "created by Pickell et al., UBC, resolution 100m x 100m from LandSat and kNN based on CASFRI."),
-    #              sourceURL = "https://drive.google.com/open?id=1M_L-7ovDpJLyY8dDOxG3xQTyzPx2HSg4"),
-    expectsInput("speciesLayers", "RasterStack",
-                 desc = "biomass percentage raster layers by species in Canada species map",
-                 sourceURL = "http://tree.pfc.forestry.ca/kNN-Species.tar"),
     expectsInput("rasterToMatch", "RasterLayer",
                  desc = "Raster layer of study area used for cropping, masking and projecting.
                  Defaults to the kNN biomass map masked with `studyArea`",
                  sourceURL = "http://tree.pfc.forestry.ca/kNN-StructureBiomass.tar"),
+    expectsInput("speciesLayers", "RasterStack",
+                 desc = "biomass percentage raster layers by species in Canada species map",
+                 sourceURL = "http://tree.pfc.forestry.ca/kNN-Species.tar"),
     expectsInput("sppEquiv", "data.table",
                  desc = "table of species equivalencies. See pemisc::sppEquivalencies_CA.",
                  sourceURL = ""),
