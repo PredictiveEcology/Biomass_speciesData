@@ -129,7 +129,7 @@ biomassDataInit <- function(sim) {
   }
 
   if (isTRUE(P(sim)$omitNonVegPixels)) {
-    message("Setting all speciesLayers to NA where LandType in ForestInventories is 4")
+    message("Setting all speciesLayers[nonVegPixels] to NA")
     sim$speciesLayers[sim$nonVegPixels] <- NA
   }
 
