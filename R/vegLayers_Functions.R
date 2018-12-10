@@ -101,33 +101,9 @@ loadCASFRI <- function(CASFRIRas, attrFile, headerFile, sppNameVector, sppEquiv,
 #   keepSpecies
 # }
 #
-makePickellStack <- function(PickellRaster, sppNameVector,
-                             sppEquiv, sppEquivCol,
-                             sppMerge,
-                             destinationPath) {
+makePickellStack <- function(PickellRaster, sppNameVector, sppEquiv, sppEquivCol,
+                             sppMerge, destinationPath) {
   ## bring to memory and replace water, non veg by NAs
-  sppEquiv <- sppEquiv[!is.na(sppEquiv[[sppEquivCol]]),]
-
-  # Take this from the sppEquiv table; user cannot supply manually
-  sppNameVector <- unique(sppEquiv[[sppEquivCol]])
-  names(sppNameVector) <- sppNameVector
-
-  PickellSpp <- c("Pice_mar", "Pice_gla", "Pinu_con", "Popu_tre") # pick LandR as standard
-  names(PickellSpp) <- PickellSpp
-
-  # Pick the full LandR dataset, which should be broad. We will change to sppEquivCol
-  #   below
-  sppOfInterest <- equivalentName(sppNameVector, sppEquiv, "LandR", multi = TRUE)
-  sppInPickell <- lapply(PickellSpp, function(sp)
-    equivalentName(sp, sppEquiv, "LandR", multi = TRUE)
-  )
-  # Check that each of the layers that Pickell did are actually desired in sppEquiv
-  needPickel <- sapply(sppInPickell, function(sp) {
-    any(sp %in% sppOfInterest)
-  })
-  # These are the ones in Pickell data set that we want according to sppEquiv
-  PickellSpp <- equivalentName(PickellSpp[needPickel], sppEquiv, sppEquivCol)
-
   PickellRaster[] <- PickellRaster[]
   PickellRaster[PickellRaster[] %in% c(230, 220, 255)] <- NA_integer_
 
@@ -137,39 +113,43 @@ makePickellStack <- function(PickellRaster, sppNameVector,
 
   rasterOptions(maxmemory = 1e9)
 
-  # keepSpecies <- na.omit(data.table(unique(PickellSpp)))
-  # names(keepSpecies) <- sppEquivCol
-  # ## species groups according to user-supplied list
-  # sppMerge2 <- data.table(toMerge = unlist(sppMerge, use.names = FALSE),
-  #                         endName = rep(names(sppMerge), times = sapply(sppMerge, length)))
-  # sppMerge2$toMerge <- equivalentName(sppMerge2$toMerge, sppEquiv, sppEquivCol)
-  # #keepSpecies[sppMerge2, on = paste0(sppEquivCol,"==toMerge")]
-  # keepSpecies <- sppMerge2[keepSpecies, on = paste0("endName==", sppEquivCol)]
-  #
-  # sppNameVectorMerged <- unique(keepSpecies$endName)
-  #
-  # ## selected Knn spp absent from Pickell's data
-  # NA_Sp <- setdiff(sppNameVectorMerged, PickellSpp)
-  #
-  # ## selected Knn spp present in Pickell's data
-  # sppTODO <- intersect(sppNameVectorMerged, PickellSpp)
+  ## species in Pickel's data
+  PickellSpp <- c("Pice_mar", "Pice_gla", "Pinu_sp", "Popu_tre")
+  PickellSpp <- equivalentName(PickellSpp, sppEquiv, sppEquivCol)
+
+  keepSpecies <- na.omit(data.table(unique(PickellSpp)))
+  names(keepSpecies) <- sppEquivCol
+  ## species groups according to user-supplied list
+  sppMerge2 <- data.table(toMerge = unlist(sppMerge, use.names = FALSE),
+                          endName = rep(names(sppMerge), times = sapply(sppMerge, length)))
+  sppMerge2$toMerge <- equivalentName(sppMerge2$toMerge, sppEquiv, sppEquivCol)
+  #keepSpecies[sppMerge2, on = paste0(sppEquivCol,"==toMerge")]
+  keepSpecies <- sppMerge2[keepSpecies, on = paste0("endName==", sppEquivCol)]
+
+  sppNameVectorMerged <- unique(keepSpecies$endName)
+
+  ## selected Knn spp absent from Pickell's data
+  NA_Sp <- setdiff(sppNameVectorMerged, PickellSpp)
+
+  ## selected Knn spp present in Pickell's data
+  sppTODO <- intersect(sppNameVectorMerged, PickellSpp)
 
   ## All NA_Sp species codes should be in CASFRI spp list
-  # if (length(NA_Sp))
-  #   warning(cat("Not all selected species are in Pickell's data. Check if this is correct:\n",
-  #               paste(paste0(NA_Sp, collapse = ", "), "absent\n")))
-  #
-  # ## empty rasters for NA_sp
-  # for (sp in NA_Sp) {
-  #   message("  running ", sp, ". Assigning NA, because absent from Pickell's data")
-  #   spRasts[[sp]] <- spRas
-  #   spRasts[[sp]] <- Cache(writeRaster,   spRasts[[sp]],
-  #                         filename = asPath(file.path(destinationPath, paste0("Pickell", sp, ".tif"))),
-  #                         overwrite = TRUE, datatype = "INT2U")
-  # }
+  if (length(NA_Sp))
+    warning(cat("Not all selected species are in Pickell's data. Check if this is correct:\n",
+                paste(paste0(NA_Sp, collapse = ", "), "absent\n")))
+
+  ## empty rasters for NA_sp
+  for (sp in NA_Sp) {
+    message("  running ", sp, ". Assigning NA, because absent from Pickell's data")
+    spRasts[[sp]] <- spRas
+    spRasts[[sp]] <- Cache(writeRaster,   spRasts[[sp]],
+                          filename = asPath(file.path(destinationPath, paste0("Pickell", sp, ".tif"))),
+                          overwrite = TRUE, datatype = "INT2U")
+  }
 
   ## converting existing species codes into percentages
-  for (sp in PickellSpp) {
+  for (sp in sppTODO) {
     message("  converting Pickell's codes to pct cover raster, for ", sp)
 
     if (sp == equivalentName("Pice_gla", sppEquiv, sppEquivCol)) {
@@ -209,7 +189,6 @@ makePickellStack <- function(PickellRaster, sppNameVector,
                             overwrite = TRUE, datatype = "INT2U")
     }
   }
-  ## species in Pickel's data
   raster::stack(spRasts)
 }
 
