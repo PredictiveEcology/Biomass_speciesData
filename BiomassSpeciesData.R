@@ -62,8 +62,6 @@ defineModule(sim, list(
                               "If none, create an empty list. Defaults to merging",
                               "of Pinus contorta and P. banksiana into Pinus sp."),
                  sourceURL = ""),
-    # expectsInput("sppNameVector", "character",
-    #              desc = "vector of species to select", sourceURL = ""),
     expectsInput("studyArea", "SpatialPolygonsDataFrame",
                  desc =  paste("Multipolygon to use as the study area,",
                                "Defaults to a square shapefile in Southwestern Alberta, Canada."),
@@ -75,11 +73,9 @@ defineModule(sim, list(
   ),
   outputObjects = bind_rows(
     createsOutput("speciesLayers", "RasterStack",
-                  desc = "biomass percentage raster layers by species in Canada species map"),
-    # createsOutput("sppNameVector",  "character",
-    #               desc = "vector of species names to select.")
+                  desc = "biomass percentage raster layers by species in Canada species map")
   )
-  ))
+))
 
 ## event types
 #   - type `init` is required for initialiazation
@@ -122,17 +118,13 @@ biomassDataInit <- function(sim) {
     }
     fn <- get(fnName)
     speciesLayersNew <- Cache(fn,
-    #speciesLayersNew <- fn(
                               destinationPath = dPath, # this is generic files (preProcess)
                               outputPath = outputPath(sim), # this will be the studyArea-specific files (postProcess)
                               studyArea = sim$studyArea,
                               rasterToMatch = sim$rasterToMatch,
-                              #sppNameVector = sim$sppNameVector,
                               sppEquiv = sim$sppEquiv,
-                              sppEquivCol = P(sim)$sppEquivCol
-                              #sppMerge = sim$sppMerge,
-                              #userTags = cacheTags
-                              )
+                              sppEquivCol = P(sim)$sppEquivCol,
+                              userTags = cacheTags)
     sim$speciesLayers <- if (length(sim$speciesLayers) > 0) {
       overlayStacks(highQualityStack = speciesLayersNew,
                     lowQualityStack = sim$speciesLayers,
@@ -211,16 +203,6 @@ biomassDataInit <- function(sim) {
     }
   }
 
-  # if (!suppliedElsewhere("sppNameVector", sim)) {
-  #   ## default to 6 species (see below)
-  #   sim$sppNameVector <- c("Abie_sp", "Pice_gla", "Pice_mar", "Pinu_ban", "Pinu_con", "Popu_tre")
-  # }
-
-  if (!suppliedElsewhere("sppMerge", sim)) {
-    ## two merged into one (Pinu_ban, Pinu_con to Pinu_sp)
-    sim$sppMerge <- list(Pinu_sp = c("Pinu_Ban", "Pinu_Con"))
-  }
-
   if (!suppliedElsewhere("sppEquiv", sim)) {
     data("sppEquivalencies_CA", package = "pemisc", envir = environment())
     sim$sppEquiv <- as.data.table(sppEquivalencies_CA)
@@ -241,11 +223,8 @@ biomassDataInit <- function(sim) {
 prepSpeciesLayers_CASFRI <- function(destinationPath, outputPath,
                                      url = "https://drive.google.com/file/d/1y0ofr2H0c_IEMIpx19xf3_VTBheY0C9h/view?usp=sharing",
                                      studyArea, rasterToMatch,
-                                     #sppNameVector,
                                      sppEquiv,
-                                     sppEquivCol#,
-                                     #sppMerge
-                                     ) {
+                                     sppEquivCol) {
   CASFRItiffFile <- asPath(file.path(destinationPath, "Landweb_CASFRI_GIDs.tif"))
   CASFRIattrFile <- asPath(file.path(destinationPath, "Landweb_CASFRI_GIDs_attributes3.csv"))
   CASFRIheaderFile <- asPath(file.path(destinationPath,"Landweb_CASFRI_GIDs_README.txt"))
@@ -280,10 +259,6 @@ prepSpeciesLayers_CASFRI <- function(destinationPath, outputPath,
                         #userTags = c("function:loadCASFRI", "BigDataTable",
                                      #"speciesLayers", "KNN")
   )
-
-  #uniqueKeepSp <- unique(loadedCASFRI$keepSpecies$spGroup) ## TODO: the names don't match at all (#6)
-  #if (!all(names(sim$speciesLayers) %in% uniqueKeepSp))
-  #  warning("some kNN species not in CASFRI layers.")
 
   message('Make stack from CASFRI data and headers')
   CASFRISpStack <- CASFRItoSpRasts(CASFRIRas = CASFRIRas,
@@ -335,14 +310,10 @@ prepSpeciesLayers_Pickell <- function(destinationPath, outputPath,
                          userTags = c("speciesLayers", "KNN", "Pickell", "stable"))
 
   makePickellStack(PickellRaster = speciesLayers,
-                   #sppNameVector = sppNameVector,
                    sppEquiv = sppEquiv,
                    sppEquivCol = sppEquivCol,
-                   #sppMerge = sppMerge,
                    destinationPath = destinationPath)
-
 }
-
 
 prepSpeciesLayers_ForestInventory <- function(destinationPath, outputPath,
                                               url = "https://drive.google.com/file/d/1JnKeXrw0U9LmrZpixCDooIm62qiv4_G1/view?usp=sharing",
