@@ -21,10 +21,10 @@ defineModule(sim, list(
                   "PredictiveEcology/pemisc@development"),
   parameters = rbind(
     #defineParameter("paramName", "paramClass", value, min, max, "parameter description"),
-    defineParameter("types", "character", "KNN", NA, NA,
-                    "The possible data sources. These must correspond to a function named paste0('prepSpeciesLayers_', type)"),
     defineParameter("sppEquivCol", "character", "LandR", NA, NA,
                     "The column in sim$specieEquivalency data.table to use as a naming convention"),
+    defineParameter("types", "character", "KNN", NA, NA,
+                    "The possible data sources. These must correspond to a function named paste0('prepSpeciesLayers_', type)"),
     defineParameter(".plotInitialTime", "numeric", NA, NA, NA,
                     "This describes the simulation time at which the first plot event should occur"),
     defineParameter(".plotInterval", "numeric", NA, NA, NA,
