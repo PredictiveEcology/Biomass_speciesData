@@ -88,11 +88,11 @@ doEvent.BiomassSpeciesData <- function(sim, eventTime, eventType) {
       sim <- biomassDataInit(sim)
     },
     initPlot = {
-      browser()
       plotVTM(speciesStack = stack(raster::mask(sim$speciesLayers, sim$rasterToMatch)),
               vegLeadingProportion = P(sim)$vegLeadingProportion,
               sppEquiv = sim$sppEquiv,
               sppEquivCol = P(sim)$sppEquivCol,
+              colors = sim$sppColors,
               title = "Initial Types")
     },
     warning(paste("Undefined event type: '", current(sim)[1, "eventType", with = FALSE],
