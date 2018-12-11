@@ -63,7 +63,7 @@ makePickellStack <- function(PickellRaster, sppEquiv, sppEquivCol, destinationPa
   sppNameVector <- unique(sppEquiv[[sppEquivCol]])
   names(sppNameVector) <- sppNameVector
 
-  PickellSpp <- c("Pice_mar", "Pice_gla", "Pinu_con", "Popu_tre") ## pick LandR an standard
+  PickellSpp <- c("Pice_mar", "Pice_gla", "Pinu_con", "Popu_tre") ## pick LandR as standard
   names(PickellSpp) <- PickellSpp
 
   # Pick the full LandR dataset, which should be broad. We will change to sppEquivCol below
@@ -73,12 +73,12 @@ makePickellStack <- function(PickellRaster, sppEquiv, sppEquivCol, destinationPa
   )
 
   # Check that each of the layers that Pickell did are actually desired in speciesEquivalency
-  needPickel <- sapply(sppInPickell, function(sp) {
+  needPickell <- sapply(sppInPickell, function(sp) {
     any(sp %in% sppOfInterest)
   })
 
   # These are the ones in Pickell data set that we want according to speciesEquivalency
-  PickellSpp <- equivalentName(PickellSpp[needPickel], sppEquiv, sppEquivCol)
+  PickellSpp <- equivalentName(PickellSpp[needPickell], sppEquiv, sppEquivCol)
 
   ## bring to memory and replace water, non veg by NAs
   PickellRaster[] <- PickellRaster[]
@@ -100,8 +100,8 @@ makePickellStack <- function(PickellRaster, sppEquiv, sppEquivCol, destinationPa
       spRasts[[sp]][PickellRaster[] %in% c(44)] <- 80
       spRasts[[sp]][PickellRaster[] %in% c(14, 34)] <- 40
       spRasts[[sp]] <- Cache(writeRaster,   spRasts[[sp]] ,
-                            filename = asPath(file.path(destinationPath, paste0("Pickell", sp, ".tif"))),
-                            overwrite = TRUE, datatype = "INT1U")
+                             filename = asPath(file.path(destinationPath, paste0("Pickell", sp, ".tif"))),
+                             overwrite = TRUE, datatype = "INT1U")
     }
     if (sp == equivalentName("Pice_mar", sppEquiv, sppEquivCol)) {
       spRasts[[sp]] <- spRas
@@ -109,8 +109,8 @@ makePickellStack <- function(PickellRaster, sppEquiv, sppEquivCol, destinationPa
       spRasts[[sp]][PickellRaster[] %in% c(22)] <- 80
       spRasts[[sp]][PickellRaster[] %in% c(32, 42)] <- 40
       spRasts[[sp]] <- Cache(writeRaster,   spRasts[[sp]],
-                            filename = asPath(file.path(destinationPath, paste0("Pickell", sp, ".tif"))),
-                            overwrite = TRUE, datatype = "INT1U")
+                             filename = asPath(file.path(destinationPath, paste0("Pickell", sp, ".tif"))),
+                             overwrite = TRUE, datatype = "INT1U")
     }
     if (sp == equivalentName("Pinu_sp", sppEquiv, sppEquivCol)) {
       spRasts[[sp]] <- spRas
@@ -118,8 +118,8 @@ makePickellStack <- function(PickellRaster, sppEquiv, sppEquivCol, destinationPa
       spRasts[[sp]][PickellRaster[] %in% c(33)] <- 80
       spRasts[[sp]][PickellRaster[] %in% c(23, 43)] <- 40
       spRasts[[sp]] <- Cache(writeRaster,   spRasts[[sp]],
-                            filename = asPath(file.path(destinationPath, paste0("Pickell", sp, ".tif"))),
-                            overwrite = TRUE, datatype = "INT1U")
+                             filename = asPath(file.path(destinationPath, paste0("Pickell", sp, ".tif"))),
+                             overwrite = TRUE, datatype = "INT1U")
     }
     if (sp == equivalentName("Popu_tre", sppEquiv, sppEquivCol)) {
       spRasts[[sp]] <- spRas
@@ -127,8 +127,8 @@ makePickellStack <- function(PickellRaster, sppEquiv, sppEquivCol, destinationPa
       spRasts[[sp]][PickellRaster[] %in% c(11)] <- 80
       spRasts[[sp]][PickellRaster[] %in% c(31, 41)] <- 40
       spRasts[[sp]] <- Cache(writeRaster,   spRasts[[sp]],
-                            filename = asPath(file.path(destinationPath, paste0("Pickell", sp, ".tif"))),
-                            overwrite = TRUE, datatype = "INT2U")
+                             filename = asPath(file.path(destinationPath, paste0("Pickell", sp, ".tif"))),
+                             overwrite = TRUE, datatype = "INT2U")
     }
   }
 

@@ -109,6 +109,7 @@ biomassDataInit <- function(sim) {
       stop(fnName, " does not exist. Please make it accessible in a package, as an object, ",
            " or in the .GlobalEnv")
     }
+
     fn <- get(fnName)
     speciesLayersNew <- Cache(fn,
                               destinationPath = dPath, # this is generic files (preProcess)
@@ -127,6 +128,9 @@ biomassDataInit <- function(sim) {
     }
     rm(speciesLayersNew)
   }
+
+  ## re-enforce study area mask (merged/summed layers are losing the mask)
+  sim$speciesLayers <- raster::mask(sim$speciesLayers, sim$studyArea) %>% stack()
 
   if (isTRUE(P(sim)$omitNonVegPixels)) {
     message("Setting all speciesLayers[nonVegPixels] to NA")
