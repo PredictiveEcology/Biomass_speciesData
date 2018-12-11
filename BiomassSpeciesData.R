@@ -21,12 +21,10 @@ defineModule(sim, list(
                   "PredictiveEcology/pemisc@development"),
   parameters = rbind(
     #defineParameter("paramName", "paramClass", value, min, max, "parameter description"),
-    defineParameter("sppColors", "character", NA, NA, NA,
-                    "A named vector of colors to use for plotting. The names must be in sim$speciesEquivalency[[sim$sppEquivCol]], and should also contain a color for 'Mixed'"),
-    defineParameter("sppEquivCol", "character", "LandR", NA, NA,
-                    "The column in sim$specieEquivalency data.table to use as a naming convention"),
     defineParameter("omitNonVegPixels", "logical", TRUE, NA, NA,
                     "If nonVegPixels object supplied, should these pixels be converted to NA in the speciesLayer stack"),
+    defineParameter("sppEquivCol", "character", "LandR", NA, NA,
+                    "The column in sim$specieEquivalency data.table to use as a naming convention"),
     defineParameter("types", "character", "KNN", NA, NA,
                     "The possible data sources. These must correspond to a function named paste0('prepSpeciesLayers_', type)"),
     defineParameter("vegLeadingProportion", "numeric", 0.8, 0, 1,
@@ -57,6 +55,11 @@ defineModule(sim, list(
     expectsInput("speciesLayers", "RasterStack",
                  desc = "biomass percentage raster layers by species in Canada species map",
                  sourceURL = "http://tree.pfc.forestry.ca/kNN-Species.tar"),
+    expectsInput("sppColors", "character",
+                 desc = paste("A named vector of colors to use for plotting.",
+                              "The names must be in sim$speciesEquivalency[[sim$sppEquivCol]],",
+                              "and should also contain a color for 'Mixed'"),
+                 sourceURL = NA),
     expectsInput("sppEquiv", "data.table",
                  desc = "table of species equivalencies. See pemisc::sppEquivalencies_CA.",
                  sourceURL = ""),
@@ -231,7 +234,6 @@ biomassDataInit <- function(sim) {
       stop("If you provide sppColors, you MUST also provide sppEquiv")
     sim$sppColors <- pemisc::sppColors(sim$sppEquiv, P(sim)$sppEquivCol,
                                        newVals = "Mixed", palette = "Accent")
-
   }
 
   return(invisible(sim))
