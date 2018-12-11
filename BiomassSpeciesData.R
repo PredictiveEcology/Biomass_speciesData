@@ -27,6 +27,8 @@ defineModule(sim, list(
                     "If nonVegPixels object supplied, should these pixels be converted to NA in the speciesLayer stack"),
     defineParameter("types", "character", "KNN", NA, NA,
                     "The possible data sources. These must correspond to a function named paste0('prepSpeciesLayers_', type)"),
+    defineParameter("vegLeadingProportion", "numeric", 0.8, 0, 1,
+                    "a number that define whether a species is leading for a given pixel"),
     defineParameter(".plotInitialTime", "numeric", NA, NA, NA,
                     "This describes the simulation time at which the first plot event should occur"),
     defineParameter(".plotInterval", "numeric", NA, NA, NA,
@@ -78,7 +80,17 @@ doEvent.BiomassSpeciesData <- function(sim, eventTime, eventType) {
   switch(
     eventType,
     init = {
+      sim <- scheduleEvent(sim, .plotInitialTime, "BiomassSpeciesData", "initPlot",
+                           eventPriority = 1)
+
       sim <- biomassDataInit(sim)
+    },
+    initPlot = {
+      plotVTM(speciesStack = stack(raster::mask(sim$speciesLayers, sim$rasterToMatch)),
+              vegLeadingProportion = P(sim)$vegLeadingProportion,
+              sppEquiv = sim$sppEquiv,
+              sppEquivCol = P(sim)$sppEquivCol,
+              title = "Initial Types")
     },
     warning(paste("Undefined event type: '", current(sim)[1, "eventType", with = FALSE],
                   "' in module '", current(sim)[1, "moduleName", with = FALSE], "'", sep = ""))
