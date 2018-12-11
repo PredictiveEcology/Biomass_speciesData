@@ -21,6 +21,8 @@ defineModule(sim, list(
                   "PredictiveEcology/pemisc@development"),
   parameters = rbind(
     #defineParameter("paramName", "paramClass", value, min, max, "parameter description"),
+    defineParameter("sppColors", "character", NA, NA, NA,
+                    "A named vector of colors to use for plotting. The names must be in sim$speciesEquivalency[[sim$sppEquivCol]], and should also contain a color for 'Mixed'"),
     defineParameter("sppEquivCol", "character", "LandR", NA, NA,
                     "The column in sim$specieEquivalency data.table to use as a naming convention"),
     defineParameter("omitNonVegPixels", "logical", TRUE, NA, NA,
@@ -86,6 +88,7 @@ doEvent.BiomassSpeciesData <- function(sim, eventTime, eventType) {
       sim <- biomassDataInit(sim)
     },
     initPlot = {
+      browser()
       plotVTM(speciesStack = stack(raster::mask(sim$speciesLayers, sim$rasterToMatch)),
               vegLeadingProportion = P(sim)$vegLeadingProportion,
               sppEquiv = sim$sppEquiv,
@@ -224,10 +227,11 @@ biomassDataInit <- function(sim) {
     sim$sppEquiv[KNN == "Abie_Las", LandR := "Abie_sp"]
 
     ## add default colors for species used in model
-    defaultCols <- RColorBrewer::brewer.pal(6, "Accent")
-    LandRNames <- c("Pice_mar", "Pice_gla", "Popu_tre", "Pinu_sp", "Abie_sp")
-    sim$sppEquiv[LandR %in% LandRNames, cols := defaultCols[-4]]
-    sim$sppEquiv[EN_generic_full == "Mixed", cols := defaultCols[4]]
+    if (!is.null(sim$sppColors))
+      stop("If you provide sppColors, you MUST also provide sppEquiv")
+    sim$sppColors <- pemisc::sppColors(sim$sppEquiv, P(sim)$sppEquivCol,
+                                       newVals = "Mixed", palette = "Accent")
+
   }
 
   return(invisible(sim))
