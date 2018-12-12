@@ -379,8 +379,9 @@ prepSpeciesLayers_ForestInventory <- function(destinationPath, outputPath,
   CCstack[CCstack[] < 0] <- 0
   CCstack[CCstack[] > 10] <- 10
   CCstack <- CCstack * 10 # convert back to percent
-  NA_ids <- which(is.na(ml$LandType[]) | ml$LandType[] == 5)
-  message("  Setting NA and 5 in LandType to NA in speciesLayers in ForestInventory data")
+  NA_ids <- which(is.na(ml$LandType[]) |  # outside of studyArea polygon
+                    ml$LandType[] == 1)   # 1 is cities -- NA it here -- will be filled in with another veg layer if available (e.g. Pickell)
+  message("  Setting NA, 1 in LandType to NA in speciesLayers in ForestInventory data")
   CCstack[NA_ids] <- NA
 
   names(CCstack) <- equivalentName(names(CCstack), sppEquiv, sppEquivCol)
