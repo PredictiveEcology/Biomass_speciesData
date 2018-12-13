@@ -52,6 +52,10 @@ defineModule(sim, list(
                  desc = "Raster layer of buffered study area used for cropping, masking and projecting.
                  Defaults to the kNN biomass map masked with `studyArea`",
                  sourceURL = "http://tree.pfc.forestry.ca/kNN-StructureBiomass.tar"),
+    expectsInput("rasterToMatchReporting", "RasterLayer",
+                 desc = "Raster layer of study area used for plotting and reporting only.
+                 Defaults to the kNN biomass map masked with `studyArea`",
+                 sourceURL = "http://tree.pfc.forestry.ca/kNN-StructureBiomass.tar"),
     expectsInput("speciesLayers", "RasterStack",
                  desc = "biomass percentage raster layers by species in Canada species map",
                  sourceURL = "http://tree.pfc.forestry.ca/kNN-Species.tar"),
@@ -64,17 +68,18 @@ defineModule(sim, list(
                  desc = "table of species equivalencies. See pemisc::sppEquivalencies_CA.",
                  sourceURL = ""),
     expectsInput("studyArea", "SpatialPolygonsDataFrame",
-                 desc =  paste("Multipolygon to use as the study area,",
-                               "Defaults to a square shapefile in Southwestern Alberta, Canada."),
+                 desc =  paste("Multipolygon to use as the study area.",
+                               "(studyArea is typically buffered to the actual study area of interest.)",
+                               "Defaults to an area in Southwestern Alberta, Canada."),
                  sourceURL = NA),
     expectsInput("studyAreaLarge", "SpatialPolygonsDataFrame",
                  desc = paste("multipolygon (larger area than studyArea) to use for parameter estimation.",
-                              "Defaults to a square shapefile in Southwestern Alberta, Canada."),
+                              "Defaults to an area in Southwestern Alberta, Canada."),
                  sourceURL = NA),
-    expectsInput("rasterToMatchReporting", "RasterLayer",
-                 desc = "Raster layer of study area used for plotting and reporting only.
-                 Defaults to the kNN biomass map masked with `studyArea`",
-                 sourceURL = "http://tree.pfc.forestry.ca/kNN-StructureBiomass.tar")
+    expectsInput("studyAreaReporting", "SpatialPolygonsDataFrame",
+                 desc = paste("multipolygon (typically smaller/unbuffered than studyArea) to use for plotting/reporting.",
+                              "Defaults to an area in Southwestern Alberta, Canada."),
+                 sourceURL = NA)
   ),
   outputObjects = bind_rows(
     createsOutput("speciesLayers", "RasterStack",
@@ -95,11 +100,7 @@ doEvent.BiomassSpeciesData <- function(sim, eventTime, eventType) {
       sim <- biomassDataInit(sim)
     },
     initPlot = {
-      browser()
-      #plotVTM(speciesStack = sim$speciesLayers,
-      #plotVTM(speciesStack = stack(raster::mask(sim$speciesLayers, sim$rasterToMatch)),
-      plotVTM(speciesStack = maskInputs(cropInputs(sim$speciesLayers, sim$rasterToMatchReporting),
-                                        rasterToMatch = sim$rasterToMatchReporting, maskWithRTM = TRUE),
+      plotVTM(speciesStack = raster::mask(sim$speciesLayers, sim$studyAreaReporting) %>% stack(),
               vegLeadingProportion = P(sim)$vegLeadingProportion,
               sppEquiv = sim$sppEquiv,
               sppEquivCol = P(sim)$sppEquivCol,
@@ -184,6 +185,11 @@ biomassDataInit <- function(sim) {
 
   if (!suppliedElsewhere("studyAreaLarge", sim)) {
     message("'studyAreaLarge' was not provided by user. Using the same as 'studyArea'.")
+    sim$studyAreaLarge <- sim$studyArea
+  }
+
+  if (!suppliedElsewhere("studyAreaReporting", sim)) {
+    message("'studyAreaReporting' was not provided by user. Using the same as 'studyArea'.")
     sim$studyAreaLarge <- sim$studyArea
   }
 
