@@ -49,7 +49,7 @@ defineModule(sim, list(
                               "which will be converted to NA, if P(sim)$omitNonVegPixels is TRUE"),
                  sourceURL = ""),
     expectsInput("rasterToMatch", "RasterLayer",
-                 desc = "Raster layer of study area used for cropping, masking and projecting.
+                 desc = "Raster layer of buffered study area used for cropping, masking and projecting.
                  Defaults to the kNN biomass map masked with `studyArea`",
                  sourceURL = "http://tree.pfc.forestry.ca/kNN-StructureBiomass.tar"),
     expectsInput("speciesLayers", "RasterStack",
@@ -70,7 +70,11 @@ defineModule(sim, list(
     expectsInput("studyAreaLarge", "SpatialPolygonsDataFrame",
                  desc = paste("multipolygon (larger area than studyArea) to use for parameter estimation.",
                               "Defaults to a square shapefile in Southwestern Alberta, Canada."),
-                 sourceURL = NA)
+                 sourceURL = NA),
+    expectsInput("rasterToMatchReporting", "RasterLayer",
+                 desc = "Raster layer of study area used for plotting and reporting only.
+                 Defaults to the kNN biomass map masked with `studyArea`",
+                 sourceURL = "http://tree.pfc.forestry.ca/kNN-StructureBiomass.tar")
   ),
   outputObjects = bind_rows(
     createsOutput("speciesLayers", "RasterStack",
@@ -91,7 +95,11 @@ doEvent.BiomassSpeciesData <- function(sim, eventTime, eventType) {
       sim <- biomassDataInit(sim)
     },
     initPlot = {
-      plotVTM(speciesStack = stack(raster::mask(sim$speciesLayers, sim$rasterToMatch)),
+      browser()
+      #plotVTM(speciesStack = sim$speciesLayers,
+      #plotVTM(speciesStack = stack(raster::mask(sim$speciesLayers, sim$rasterToMatch)),
+      plotVTM(speciesStack = maskInputs(crop(sim$speciesLayers, sim$rasterToMatchReporting),
+                                        rasterToMatch = sim$rasterToMatchReporting, maskWithRTM = TRUE),
               vegLeadingProportion = P(sim)$vegLeadingProportion,
               sppEquiv = sim$sppEquiv,
               sppEquivCol = P(sim)$sppEquivCol,
