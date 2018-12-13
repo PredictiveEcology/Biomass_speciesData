@@ -21,8 +21,8 @@ defineModule(sim, list(
                   "PredictiveEcology/pemisc@development"),
   parameters = rbind(
     #defineParameter("paramName", "paramClass", value, min, max, "parameter description"),
-    defineParameter("omitNonVegPixels", "logical", TRUE, NA, NA,
-                    "If nonVegPixels object supplied, should these pixels be converted to NA in the speciesLayer stack"),
+    defineParameter("omitNonTreePixels", "logical", TRUE, NA, NA,
+                    "If nonTreePixels object supplied, should these pixels be converted to NA in the speciesLayer stack"),
     defineParameter("sppEquivCol", "character", "LandR", NA, NA,
                     "The column in sim$specieEquivalency data.table to use as a naming convention"),
     defineParameter("types", "character", "KNN", NA, NA,
@@ -44,9 +44,9 @@ defineModule(sim, list(
                     "Used in reading csv file with fread. Will be passed to data.table::setDTthreads")
   ),
   inputObjects = bind_rows(
-    expectsInput("nonVegPixels", "integer",
+    expectsInput("nonTreePixels", "integer",
                  desc = paste("A vector of pixel ids indicating non vegetation pixels,",
-                              "which will be converted to NA, if P(sim)$omitNonVegPixels is TRUE"),
+                              "which will be converted to NA, if P(sim)$omitNonTreePixels is TRUE"),
                  sourceURL = ""),
     expectsInput("rasterToMatch", "RasterLayer",
                  desc = "Raster layer of buffered study area used for cropping, masking and projecting.
@@ -159,9 +159,9 @@ biomassDataInit <- function(sim) {
   ## re-enforce study area mask (merged/summed layers are losing the mask)
   sim$speciesLayers <- raster::mask(sim$speciesLayers, sim$studyArea) %>% stack()
 
-  if (isTRUE(P(sim)$omitNonVegPixels)) {
-    message("Setting all speciesLayers[nonVegPixels] to NA")
-    sim$speciesLayers[sim$nonVegPixels] <- NA
+  if (isTRUE(P(sim)$omitNonTreePixels)) {
+    message("Setting all speciesLayers[nonTreePixels] to NA")
+    sim$speciesLayers[sim$nonTreePixels] <- NA
   }
 
   sim$speciesLayers <- raster::stack(sim$speciesLayers)
