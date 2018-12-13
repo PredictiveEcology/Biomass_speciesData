@@ -163,6 +163,8 @@ biomassDataInit <- function(sim) {
     sim$speciesLayers[sim$nonVegPixels] <- NA
   }
 
+  sim$speciesLayers <- raster::stack(sim$speciesLayers)
+
   singular <- length(P(sim)$types) == 1
   message("sim$speciesLayers is from ", paste(P(sim)$types, collapse = ", "),
           " overlaid in that sequence, higher quality last"[!singular])
