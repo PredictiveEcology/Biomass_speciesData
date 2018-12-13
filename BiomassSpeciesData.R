@@ -95,7 +95,6 @@ doEvent.BiomassSpeciesData <- function(sim, eventTime, eventType) {
       sim <- biomassDataInit(sim)
     },
     initPlot = {
-      browser()
       #plotVTM(speciesStack = sim$speciesLayers,
       #plotVTM(speciesStack = stack(raster::mask(sim$speciesLayers, sim$rasterToMatch)),
       plotVTM(speciesStack = maskInputs(cropInputs(sim$speciesLayers, sim$rasterToMatchReporting),
