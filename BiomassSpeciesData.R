@@ -98,7 +98,7 @@ doEvent.BiomassSpeciesData <- function(sim, eventTime, eventType) {
       browser()
       #plotVTM(speciesStack = sim$speciesLayers,
       #plotVTM(speciesStack = stack(raster::mask(sim$speciesLayers, sim$rasterToMatch)),
-      plotVTM(speciesStack = maskInputs(crop(sim$speciesLayers, sim$rasterToMatchReporting),
+      plotVTM(speciesStack = maskInputs(cropInputs(sim$speciesLayers, sim$rasterToMatchReporting),
                                         rasterToMatch = sim$rasterToMatchReporting, maskWithRTM = TRUE),
               vegLeadingProportion = P(sim)$vegLeadingProportion,
               sppEquiv = sim$sppEquiv,
@@ -230,6 +230,10 @@ biomassDataInit <- function(sim) {
            " in the .inputObjects by passing it in as an object in simInit(objects = list(rasterToMatch = aRaster)",
            " or in a module that gets loaded prior to ", currentModule(sim))
     }
+  }
+
+  if (!suppliedElsewhere("rasterToMatchReporting")) {
+    sim$rasterToMatchReporting <- sim$rasterToMatch
   }
 
   if (!suppliedElsewhere("sppEquiv", sim)) {
