@@ -49,12 +49,12 @@ defineModule(sim, list(
                               "which will be converted to NA, if P(sim)$omitNonTreePixels is TRUE"),
                  sourceURL = ""),
     expectsInput("rasterToMatch", "RasterLayer",
-                 desc = "Raster layer of buffered study area used for cropping, masking and projecting.
-                 Defaults to the kNN biomass map masked with `studyArea`",
+                 desc = paste("Raster layer of buffered study area used for cropping, masking and projecting.",
+                              "Defaults to the kNN biomass map masked with `studyArea`"),
                  sourceURL = "http://tree.pfc.forestry.ca/kNN-StructureBiomass.tar"),
     expectsInput("rasterToMatchReporting", "RasterLayer",
-                 desc = "Raster layer of study area used for plotting and reporting only.
-                 Defaults to the kNN biomass map masked with `studyArea`",
+                 desc = paste("Raster layer of study area used for plotting and reporting only.",
+                              "Defaults to the kNN biomass map masked with `studyArea`"),
                  sourceURL = "http://tree.pfc.forestry.ca/kNN-StructureBiomass.tar"),
     expectsInput("speciesLayers", "RasterStack",
                  desc = "biomass percentage raster layers by species in Canada species map",
@@ -190,7 +190,7 @@ biomassDataInit <- function(sim) {
 
   if (!suppliedElsewhere("studyAreaReporting", sim)) {
     message("'studyAreaReporting' was not provided by user. Using the same as 'studyArea'.")
-    sim$studyAreaLarge <- sim$studyArea
+    sim$studyAreaReporting <- sim$studyArea
   }
 
   if (is.null(sim$rasterToMatch)) {
