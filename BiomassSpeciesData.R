@@ -116,7 +116,8 @@ doEvent.BiomassSpeciesData <- function(sim, eventTime, eventType) {
 ### template initialization
 biomassDataInit <- function(sim) {
   cacheTags <- c(currentModule(sim), "function:biomassDataInit")
-  dPath <- asPath(getOption("reproducible.destinationPath", dataPath(sim)))
+  dPath <- asPath(getOption("reproducible.destinationPath", dataPath(sim)), 1)
+  message(currentModule(sim), ": biomassInit() using dataPath '", dPath, "'.")
 
   if (!exists("speciesLayers", envir = envir(sim), inherits = FALSE))
     sim$speciesLayers <- list()
@@ -174,8 +175,9 @@ biomassDataInit <- function(sim) {
 }
 
 .inputObjects <- function(sim) {
-  dPath <- asPath(dataPath(sim), 1)
   cacheTags <- c(currentModule(sim), "function:.inputObjects")
+  dPath <- asPath(getOption("reproducible.destinationPath", dataPath(sim)), 1)
+  message(currentModule(sim), ": using dataPath '", dPath, "'.")
 
   if (!suppliedElsewhere("studyArea", sim)) {
     message("'studyArea' was not provided by user. Using a polygon in southwestern Alberta, Canada,")
