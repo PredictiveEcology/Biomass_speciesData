@@ -20,6 +20,7 @@ defineModule(sim, list(
   documentation = list("README.txt", "BiomassSpeciesData.Rmd"),
   reqdPkgs = list("data.table", "googledrive", "gdalUtils", "magrittr", "pryr", "raster", ## TODO: is gdalUtils actually used?
                   "reproducible", "SpaDES.core", "SpaDES.tools",
+                  #"PredictiveEcology/LandR@development",
                   "PredictiveEcology/pemisc@development"),
   parameters = rbind(
     #defineParameter("paramName", "paramClass", value, min, max, "parameter description"),
@@ -67,7 +68,7 @@ defineModule(sim, list(
                               "and should also contain a color for 'Mixed'"),
                  sourceURL = NA),
     expectsInput("sppEquiv", "data.table",
-                 desc = "table of species equivalencies. See pemisc::sppEquivalencies_CA.",
+                 desc = "table of species equivalencies. See pemisc::sppEquivalencies_CA.", ## TODO: use LandR
                  sourceURL = ""),
     expectsInput("studyArea", "SpatialPolygonsDataFrame",
                  desc =  paste("Multipolygon to use as the study area.",
@@ -247,7 +248,7 @@ biomassDataInit <- function(sim) {
   }
 
   if (!suppliedElsewhere("sppEquiv", sim)) {
-    data("sppEquivalencies_CA", package = "pemisc", envir = environment())
+    data("sppEquivalencies_CA", package = "pemisc", envir = environment()) ## TODO: use LandR
     sim$sppEquiv <- as.data.table(sppEquivalencies_CA)
 
     ## By default, Abies_las is renamed to Abies_sp
@@ -256,8 +257,8 @@ biomassDataInit <- function(sim) {
     ## add default colors for species used in model
     if (!is.null(sim$sppColors))
       stop("If you provide sppColors, you MUST also provide sppEquiv")
-    sim$sppColors <- pemisc::sppColors(sim$sppEquiv, P(sim)$sppEquivCol,
-                                       newVals = "Mixed", palette = "Accent")
+    sim$sppColors <- sppColors(sim$sppEquiv, P(sim)$sppEquivCol,
+                               newVals = "Mixed", palette = "Accent")
   }
 
   return(invisible(sim))
