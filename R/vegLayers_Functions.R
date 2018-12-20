@@ -1,5 +1,20 @@
+#' Load CASFRI data
+#'
+#' TODO: description needed
+#'
+#' @param CASFRIRas TODO: description needed
+#' @param attrFile TODO: description needed
+#' @param headerFile TODO: description needed
+#' @param sppEquiv TODO: description needed
+#' @param sppEquivCol TODO: description needed
+#'
+#' @return TODO: description needed
+#'
+#' @export
+#' @importFrom data.table data.table fread melt set setkey
+#' @importFrom pemisc equivalentName
+#' @importFrom reproducible asPath Cache
 loadCASFRI <- function(CASFRIRas, attrFile, headerFile, sppEquiv, sppEquivCol) {
-
   # The ones we want
   sppEquiv <- sppEquiv[!is.na(sppEquiv[[sppEquivCol]]),]
 
@@ -56,6 +71,22 @@ loadCASFRI <- function(CASFRIRas, attrFile, headerFile, sppEquiv, sppEquivCol) {
               CASFRIdt = CASFRIdt))
 }
 
+#' makePickellStack
+#'
+#' TODO: description and title needed
+#'
+#' @param PickellRaster TODO: description needed
+#' @param sppEquiv TODO: description needed
+#' @param sppEquivCol TODO: description needed
+#' @param destinationPath TODO: description needed
+#'
+#' @return TODO: description needed
+#'
+#' @export
+#' @importFrom magrittr %>%
+#' @importFrom pemisc equivalentName
+#' @importFrom reproducible asPath Cache
+#' @importFrom raster raster rasterOptions setValues stack
 makePickellStack <- function(PickellRaster, sppEquiv, sppEquivCol, destinationPath) {
   sppEquiv <- sppEquiv[!is.na(sppEquiv[[sppEquivCol]]),]
 
@@ -99,8 +130,9 @@ makePickellStack <- function(PickellRaster, sppEquiv, sppEquivCol, destinationPa
       spRasts[[sp]][PickellRaster[] %in% c(41, 42, 43)] <- 60
       spRasts[[sp]][PickellRaster[] %in% c(44)] <- 80
       spRasts[[sp]][PickellRaster[] %in% c(14, 34)] <- 40
-      spRasts[[sp]] <- Cache(writeRaster,   spRasts[[sp]] ,
-                             filename = asPath(file.path(destinationPath, paste0("Pickell", sp, ".tif"))),
+      spRasts[[sp]] <- Cache(writeRaster, spRasts[[sp]],
+                             filename = asPath(file.path(destinationPath,
+                                                         paste0("Pickell", sp, ".tif"))),
                              overwrite = TRUE, datatype = "INT1U")
     }
     if (sp == equivalentName("Pice_mar", sppEquiv, sppEquivCol)) {
@@ -108,8 +140,9 @@ makePickellStack <- function(PickellRaster, sppEquiv, sppEquivCol, destinationPa
       spRasts[[sp]][PickellRaster[] %in% c(23, 26)] <- 60
       spRasts[[sp]][PickellRaster[] %in% c(22)] <- 80
       spRasts[[sp]][PickellRaster[] %in% c(32, 42)] <- 40
-      spRasts[[sp]] <- Cache(writeRaster,   spRasts[[sp]],
-                             filename = asPath(file.path(destinationPath, paste0("Pickell", sp, ".tif"))),
+      spRasts[[sp]] <- Cache(writeRaster, spRasts[[sp]],
+                             filename = asPath(file.path(destinationPath,
+                                                         paste0("Pickell", sp, ".tif"))),
                              overwrite = TRUE, datatype = "INT1U")
     }
     if (sp == equivalentName("Pinu_sp", sppEquiv, sppEquivCol)) {
@@ -117,8 +150,9 @@ makePickellStack <- function(PickellRaster, sppEquiv, sppEquivCol, destinationPa
       spRasts[[sp]][PickellRaster[] %in% c(31, 32, 34)] <- 60
       spRasts[[sp]][PickellRaster[] %in% c(33)] <- 80
       spRasts[[sp]][PickellRaster[] %in% c(23, 43)] <- 40
-      spRasts[[sp]] <- Cache(writeRaster,   spRasts[[sp]],
-                             filename = asPath(file.path(destinationPath, paste0("Pickell", sp, ".tif"))),
+      spRasts[[sp]] <- Cache(writeRaster, spRasts[[sp]],
+                             filename = asPath(file.path(destinationPath,
+                                                         paste0("Pickell", sp, ".tif"))),
                              overwrite = TRUE, datatype = "INT1U")
     }
     if (sp == equivalentName("Popu_tre", sppEquiv, sppEquivCol)) {
@@ -126,18 +160,36 @@ makePickellStack <- function(PickellRaster, sppEquiv, sppEquivCol, destinationPa
       spRasts[[sp]][PickellRaster[] %in% c(14)] <- 60
       spRasts[[sp]][PickellRaster[] %in% c(11)] <- 80
       spRasts[[sp]][PickellRaster[] %in% c(31, 41)] <- 40
-      spRasts[[sp]] <- Cache(writeRaster,   spRasts[[sp]],
-                             filename = asPath(file.path(destinationPath, paste0("Pickell", sp, ".tif"))),
+      spRasts[[sp]] <- Cache(writeRaster, spRasts[[sp]],
+                             filename = asPath(file.path(destinationPath,
+                                                         paste0("Pickell", sp, ".tif"))),
                              overwrite = TRUE, datatype = "INT2U")
     }
   }
 
-  ## specie's in Pickell's data
+  ## species in Pickell's data
   raster::stack(spRasts)
 }
 
-## ---------------------------------------------------------------------------------
-
+#' CASFRItoSpRasts
+#'
+#' TODO: description and title needed
+#'
+#' @param CASFRIRas TODO: description needed
+#' @param CASFRIattrLong TODO: description needed
+#' @param CASFRIdt TODO: description needed
+#' @param sppEquiv TODO: description needed
+#' @param sppEquivCol TODO: description needed
+#' @param destinationPath TODO: description needed
+#'
+#' @return TODO: description needed
+#'
+#' @export
+#' @importFrom data.table setkey
+#' @importFrom magrittr %>%
+#' @importFrom pemisc equivalentName
+#' @importFrom reproducible asPath Cache
+#' @importFrom raster crs raster setValues stack writeRaster
 CASFRItoSpRasts <- function(CASFRIRas, CASFRIattrLong, CASFRIdt,
                             sppEquiv, sppEquivCol, destinationPath) {
   # The ones we want
@@ -170,7 +222,8 @@ CASFRItoSpRasts <- function(CASFRIRas, CASFRIattrLong, CASFRIdt,
     message("  running ", sp, ". Assigning NA, because absent from CASFRI")
     spRasts[[sp]] <- spRas
     spRasts[[sp]] <- Cache(writeRaster, spRasts[[sp]],
-                           filename = asPath(file.path(destinationPath, paste0("CASFRI", sp,".tif"))),
+                           filename = asPath(file.path(destinationPath,
+                                                       paste0("CASFRI", sp,".tif"))),
                            overwrite = TRUE, datatype = "INT2U")
   }
 
@@ -193,7 +246,8 @@ CASFRItoSpRasts <- function(CASFRIRas, CASFRIattrLong, CASFRIdt,
 
     startCRS <- crs(spRasts[[sp]])
     spRasts[[sp]] <- writeRaster(spRasts[[sp]],
-                                 filename = asPath(file.path(destinationPath, paste0("CASFRI", sp,".tif"))),
+                                 filename = asPath(file.path(destinationPath,
+                                                             paste0("CASFRI", sp,".tif"))),
                                  datatype = "INT1U", overwrite = TRUE)
 
     if (is(spRasts[[sp]], "Raster")) {
@@ -210,28 +264,3 @@ CASFRItoSpRasts <- function(CASFRIRas, CASFRIattrLong, CASFRIdt,
 
   raster::stack(spRasts)
 }
-
-## ---------------------------------------------------------------------------------
-
-gdalwarp2 <- function(rasterWithDiskBacked, dstfilename, ...) {
-  dstfilenameTmp <- .suffix(dstfilename, "_tmp")
-  gdalwarp(srcfile = basename(filename(rasterWithDiskBacked)),
-           dstfile = basename(dstfilenameTmp), ...)
-
-  rr <- raster(dstfilenameTmp)
-  rr[] <- rr[]
-  if (is.integer(rr[])) {
-    dt <- if (maxValue(rr) > 65534) {
-      "INT4U"
-    } else {
-      "INT2U"
-    }
-  }
-  rr[rr[] == 255] <- NA_integer_
-  rr <- writeRaster(rr, filename = dstfilename,
-                    datatype = dt,  overwrite = TRUE)
-  unlink(dstfilenameTmp)
-  rr
-}
-
-
