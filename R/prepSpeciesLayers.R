@@ -69,7 +69,7 @@ prepSpeciesLayers_CASFRI <- function(destinationPath, outputPath,
   return(CASFRISpStack)
 }
 #' @export
-#' @importFrom pemisc loadkNNSpeciesLayers
+#' @importFrom LandR loadkNNSpeciesLayers
 #' @rdname prepSpeciesLayers
 prepSpeciesLayers_KNN <- function(destinationPath, outputPath,
                                   url = NULL,
@@ -125,7 +125,7 @@ prepSpeciesLayers_Pickell <- function(destinationPath, outputPath,
 
 #' @export
 #' @importFrom map mapAdd maps
-#' @importFrom pemisc equivalentName
+#' @importFrom LandR equivalentName
 #' @importFrom raster stack
 #' @rdname prepSpeciesLayers
 prepSpeciesLayers_ForestInventory <- function(destinationPath, outputPath,

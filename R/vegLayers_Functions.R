@@ -12,7 +12,7 @@
 #'
 #' @export
 #' @importFrom data.table data.table fread melt set setkey
-#' @importFrom pemisc equivalentName
+#' @importFrom LandR equivalentName
 #' @importFrom reproducible asPath Cache
 loadCASFRI <- function(CASFRIRas, attrFile, headerFile, sppEquiv, sppEquivCol) {
   # The ones we want
@@ -84,7 +84,7 @@ loadCASFRI <- function(CASFRIRas, attrFile, headerFile, sppEquiv, sppEquivCol) {
 #'
 #' @export
 #' @importFrom magrittr %>%
-#' @importFrom pemisc equivalentName
+#' @importFrom LandR equivalentName
 #' @importFrom reproducible asPath Cache
 #' @importFrom raster raster rasterOptions setValues stack
 makePickellStack <- function(PickellRaster, sppEquiv, sppEquivCol, destinationPath) {
@@ -187,7 +187,7 @@ makePickellStack <- function(PickellRaster, sppEquiv, sppEquivCol, destinationPa
 #' @export
 #' @importFrom data.table setkey
 #' @importFrom magrittr %>%
-#' @importFrom pemisc equivalentName
+#' @importFrom LandR equivalentName
 #' @importFrom reproducible asPath Cache
 #' @importFrom raster crs raster setValues stack writeRaster
 CASFRItoSpRasts <- function(CASFRIRas, CASFRIattrLong, CASFRIdt,
