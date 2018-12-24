@@ -12,7 +12,7 @@ defineModule(sim, list(
     person("Ceres", "Barros", email = "cbarros@mail.ubc.ca", role = c("aut"))
   ),
   childModules = character(0),
-  version = list(SpaDES.core = "0.1.2", BiomassSpeciesData = "0.0.1"),
+  version = list(SpaDES.core = "0.2.3.9009", BiomassSpeciesData = "0.0.1"),
   spatialExtent = raster::extent(rep(NA_real_, 4)),
   timeframe = as.POSIXlt(c(NA, NA)),
   timeunit = "year",
