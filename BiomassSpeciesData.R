@@ -86,7 +86,12 @@ defineModule(sim, list(
   ),
   outputObjects = bind_rows(
     createsOutput("speciesLayers", "RasterStack",
-                  desc = "biomass percentage raster layers by species in Canada species map")
+                  desc = "biomass percentage raster layers by species in Canada species map"),
+    createsOutput("treed", "data.table",
+                  desc = "one logical column for each species, indicating whether there were non-zero values"),
+    createsOutput("numTreed", "numeric",
+                  desc = "a named vector with number of pixels with non-zero cover values")
+
   )
 ))
 
@@ -173,6 +178,19 @@ biomassDataInit <- function(sim) {
   singular <- length(P(sim)$types) == 1
   message("sim$speciesLayers is from ", paste(P(sim)$types, collapse = ", "),
           " overlaid in that sequence, higher quality last"[!singular])
+
+  message("------------------")
+  message("There are ", sum(!is.na(simOutSpeciesLayers$speciesLayers[[1]][])),
+          " pixels with trees in them")
+
+  # Calculate number of pixels with species cover
+  speciesLayersDT <- as.data.table(sim$speciesLayers[] > 0)
+  speciesLayersDT[, pixelId := seq(NROW(speciesLayersDT))]
+  sim$treed <- na.omit(speciesLayersDT)
+  colNames <- names(sim$treed)[!names(sim$treed) %in% "pixelId"]
+  sim$numTreed <- sim$treed[, append(
+    lapply(.SD, sum),
+    list(total = NROW(sim$treed))), .SDcols = colNames]
 
   return(invisible(sim))
 }
