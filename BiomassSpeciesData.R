@@ -90,7 +90,9 @@ defineModule(sim, list(
     createsOutput("treed", "data.table",
                   desc = "one logical column for each species, indicating whether there were non-zero values"),
     createsOutput("numTreed", "numeric",
-                  desc = "a named vector with number of pixels with non-zero cover values")
+                  desc = "a named vector with number of pixels with non-zero cover values"),
+    createsOutput("nonZeroCover", "numeric",
+                  desc = "A single value indicating how many pixels have non-zero cover")
 
   )
 ))
@@ -180,7 +182,7 @@ biomassDataInit <- function(sim) {
           " overlaid in that sequence, higher quality last"[!singular])
 
   message("------------------")
-  message("There are ", sum(!is.na(simOutSpeciesLayers$speciesLayers[[1]][])),
+  message("There are ", sum(!is.na(sim$speciesLayers[[1]][])),
           " pixels with trees in them")
 
   # Calculate number of pixels with species cover
@@ -191,6 +193,12 @@ biomassDataInit <- function(sim) {
   sim$numTreed <- sim$treed[, append(
     lapply(.SD, sum),
     list(total = NROW(sim$treed))), .SDcols = colNames]
+
+  # How many have zero cover
+  bb <- speciesLayersDT[, apply(.SD, 1, any), .SDcols = 1:5]
+  sim$nonZeroCover <- sum(na.omit(bb))
+  message("There are ", sim$nonZeroCover,
+          " pixels with non-zero tree cover in them")
 
   return(invisible(sim))
 }
