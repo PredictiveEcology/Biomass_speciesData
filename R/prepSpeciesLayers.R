@@ -45,7 +45,6 @@ prepSpeciesLayers_CASFRI <- function(destinationPath, outputPath,
                      userTags =  c("CASFRIRas", "stable"))
 
   message("Load CASFRI data and headers, and convert to long format, and define species groups")
-  #if (P(sim)$.useParallel > 1) data.table::setDTthreads(P(sim)$.useParallel)
 
   #Cache
   loadedCASFRI <- Cache(loadCASFRI,
@@ -53,7 +52,8 @@ prepSpeciesLayers_CASFRI <- function(destinationPath, outputPath,
                         attrFile = CASFRIattrFile,
                         headerFile = CASFRIheaderFile, ## TODO: this isn't used internally
                         sppEquiv = sppEquiv,
-                        sppEquivCol = sppEquivCol#,
+                        sppEquivCol = sppEquivCol,
+                        type = "cover"#,
                         #userTags = c("function:loadCASFRI", "BigDataTable",
                         #"speciesLayers", "KNN")
   )

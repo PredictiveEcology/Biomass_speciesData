@@ -7,6 +7,7 @@
 #' @param headerFile TODO: description needed
 #' @param sppEquiv TODO: description needed
 #' @param sppEquivCol TODO: description needed
+#' @param type Character string. EIther "cover" or "age"
 #'
 #' @return TODO: description needed
 #'
@@ -14,7 +15,8 @@
 #' @importFrom data.table data.table fread melt set setkey
 #' @importFrom LandR equivalentName
 #' @importFrom reproducible asPath Cache
-loadCASFRI <- function(CASFRIRas, attrFile, headerFile, sppEquiv, sppEquivCol) {
+loadCASFRI <- function(CASFRIRas, attrFile, headerFile, sppEquiv, sppEquivCol,
+                       type = c("cover", "age")) {
   # The ones we want
   sppEquiv <- sppEquiv[!is.na(sppEquiv[[sppEquivCol]]),]
 
@@ -37,35 +39,43 @@ loadCASFRI <- function(CASFRIRas, attrFile, headerFile, sppEquiv, sppEquivCol) {
   setkey(CASFRIattr, "GID")
 
   NAVals <- c("XXXX MISS", "UNDEF", "XXXX ERRC")
-  for (i in 1:5) {
-    set(CASFRIattr, which(CASFRIattr[[paste0("SPECIES_", i)]] %in% NAVals),
-        paste0("SPECIES_", i), NA_character_)
-    set(CASFRIattr, which(CASFRIattr[[paste0("SPECIES_PER_", i)]] %in% NAVals),
-        paste0("SPECIES_", i), NA_character_)
-  }
-  for (i in 1:1) {
-    CASFRIattr <- CASFRIattr[which(CASFRIattr[[paste0("SPECIES_PER_", i)]] > 15), ]
-  }
-  for (i in 2:5) {
-    set(CASFRIattr, which(CASFRIattr[[paste0("SPECIES_PER_", i)]] <= 15),
-        paste0("SPECIES_", i), NA_character_)
-  }
+  numSpeciesColumns <- length(grep("SPECIES_PER", names(CASFRIattr), value = TRUE))
+  if (type[1] == "cover") {
+    for (i in seq(numSpeciesColumns)) {
+      set(CASFRIattr, which(CASFRIattr[[paste0("SPECIES_", i)]] %in% NAVals),
+          paste0("SPECIES_", i), NA_character_)
+      set(CASFRIattr, which(CASFRIattr[[paste0("SPECIES_PER_", i)]] %in% NAVals),
+          paste0("SPECIES_", i), NA_character_)
+    }
+    for (i in 1:1) {
+      message("remove CASFRI entries with <15 cover as dominant species, i.e., these pixels are deemed untreed")
+      CASFRIattr <- CASFRIattr[which(CASFRIattr[[paste0("SPECIES_PER_", i)]] > 15), ]
+    }
+    for (i in 2:5) {
+      message("set CASFRI entries with <15 cover in 2nd-5th dominance class to NA")
+      set(CASFRIattr, which(CASFRIattr[[paste0("SPECIES_PER_", i)]] <= 15),
+          paste0("SPECIES_", i), NA_character_)
+    }
 
-  CASFRIattrLong <- melt(CASFRIattr, id.vars = c("GID"),
-                         measure.vars = paste0("SPECIES_", 1:5))
-  CA2 <- melt(CASFRIattr, id.vars = c("GID"),
-              measure.vars = c(paste0("SPECIES_PER_", 1:5)))
-  CASFRIattrLong[, pct := CA2$value]
-  rm(CA2)
-  CASFRIattrLong <- na.omit(CASFRIattrLong)
+    CASFRIattrLong <- melt(CASFRIattr, id.vars = c("GID"),
+                           measure.vars = paste0("SPECIES_", 1:5))
+    CA2 <- melt(CASFRIattr, id.vars = c("GID"),
+                measure.vars = c(paste0("SPECIES_PER_", 1:5)))
+    CASFRIattrLong[, pct := CA2$value]
+    rm(CA2)
+    CASFRIattrLong <- na.omit(CASFRIattrLong)
+    CASFRIattrLong <- CASFRIattrLong[value %in% sppNameVectorCASFRI]
+  } else {
+    CASFRIattrLong <- CASFRIattr[, .(GID, AGE)]
+    CASFRIattrLong <- CASFRIattrLong[!is.na(AGE) & AGE > -1]
+  }
 
   CASFRIdt <- data.table(GID = CASFRIRas[], rastInd = 1:ncell(CASFRIRas))
-  CASFRIdt <- CASFRIdt[, isNA := is.na(GID)]
-  CASFRIdt <- CASFRIdt[isNA == FALSE]
+  CASFRIdt <- CASFRIdt[!is.na(GID)]
+  #CASFRIdt <- CASFRIdt[isNA == FALSE]
   setkey(CASFRIdt, GID)
-  set(CASFRIdt, NULL, "isNA", NULL)
+  #set(CASFRIdt, NULL, "isNA", NULL)
 
-  CASFRIattrLong <- CASFRIattrLong[value %in% sppNameVectorCASFRI]
   return(list(#keepSpecies = keepSpecies,
               CASFRIattrLong = CASFRIattrLong,
               CASFRIdt = CASFRIdt))
