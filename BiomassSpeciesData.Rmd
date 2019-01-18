@@ -27,13 +27,14 @@ Intended for use with the Land-R-Biomass* suite of models - if LandWeb project p
 devtools::install_github("PredictiveEcology/reproducible@development", dependencies = FALSE)
 devtools::install_github("PredictiveEcology/SpaDES.core@development", dependencies = FALSE)
 devtools::install_github("PredictiveEcology/pemisc@development")
+devtools::install_github("PredictiveEcology/LandR@development")
 
 library(magrittr)
 library(raster)
 library(SpaDES)
 library(pemisc)
+library(LandR)
 
- 
 options(reproducible.inputPaths = "E:/Data/LandR_related/")
 setPaths(modulePath = "../", cachePath = "cache/")
 
