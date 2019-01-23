@@ -162,9 +162,10 @@ biomassDataInit <- function(sim) {
                               sppEquivCol = P(sim)$sppEquivCol,
                               userTags = cacheTags)
     sim$speciesLayers <- if (length(sim$speciesLayers) > 0) {
-      Cache(overlayStacks, highQualityStack = speciesLayersNew,
-                    lowQualityStack = sim$speciesLayers,
-                    destinationPath = dPath)
+      Cache(overlayStacks,
+            highQualityStack = speciesLayersNew,
+            lowQualityStack = sim$speciesLayers,
+            destinationPath = dPath)
     } else {
       speciesLayersNew
     }
