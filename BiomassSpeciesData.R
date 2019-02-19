@@ -233,7 +233,7 @@ biomassDataInit <- function(sim) {
       message("There is no 'rasterToMatch' supplied; will attempt to use the kNN biomass map")
 
       biomassMapFilename <- file.path(dPath, "NFI_MODIS250m_kNN_Structure_Biomass_TotalLiveAboveGround_v0.tif")
-
+browser()
       biomassMap <- Cache(prepInputs,
                           targetFile = asPath(basename(biomassMapFilename)),
                           archive = asPath(c("kNN-StructureBiomass.tar",
