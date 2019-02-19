@@ -171,6 +171,8 @@ biomassDataInit <- function(sim) {
     rm(speciesLayersNew)
   }
 
+  species <- names(sim$speciesLayers)
+
   ## re-enforce study area mask (merged/summed layers are losing the mask)
   sim$speciesLayers <- raster::mask(sim$speciesLayers, sim$studyArea) %>% stack()
 
@@ -179,7 +181,7 @@ biomassDataInit <- function(sim) {
     sim$speciesLayers[sim$nonTreePixels] <- NA
   }
 
-  sim$speciesLayers <- raster::stack(sim$speciesLayers)
+  sim$speciesLayers <- raster::stack(sim$speciesLayers) %>% setNames(species)
 
   singular <- length(P(sim)$types) == 1
   message("sim$speciesLayers is from ", paste(P(sim)$types, collapse = ", "),
@@ -233,7 +235,7 @@ biomassDataInit <- function(sim) {
       message("There is no 'rasterToMatch' supplied; will attempt to use the kNN biomass map")
 
       biomassMapFilename <- file.path(dPath, "NFI_MODIS250m_kNN_Structure_Biomass_TotalLiveAboveGround_v0.tif")
-browser()
+
       biomassMap <- Cache(prepInputs,
                           targetFile = asPath(basename(biomassMapFilename)),
                           archive = asPath(c("kNN-StructureBiomass.tar",
@@ -249,8 +251,10 @@ browser()
 
       sim$rasterToMatch <- biomassMap
       message("  Rasterizing the studyAreaLarge polygon map")
-      #TODO: check whether this LandWeb centric stuff is necessary. Does rasterToMatch need FRI? see Issue #10
-      # Layers provided by David Andison sometimes have LTHRC, sometimes LTHFC ... chose whichever
+      ## TODO: check whether this LandWeb centric stuff is necessary:
+      ##   - Does rasterToMatch need FRI? see Issue #10
+
+      ## layers provided by David Andison sometimes have LTHRC, sometimes LTHFC ... chose whichever
       LTHxC <- grep("(LTH.+C)", names(sim$studyAreaLarge), value = TRUE)
       fieldName <- if (length(LTHxC)) {
         LTHxC
