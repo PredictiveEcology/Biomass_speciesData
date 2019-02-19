@@ -249,7 +249,7 @@ biomassDataInit <- function(sim) {
 
       sim$rasterToMatch <- biomassMap
       message("  Rasterizing the studyAreaLarge polygon map")
-      #TODO: check whether this LandWeb centric stuf is necessary. Does rasterToMatch need FRI? see Issue #10
+      #TODO: check whether this LandWeb centric stuff is necessary. Does rasterToMatch need FRI? see Issue #10
       # Layers provided by David Andison sometimes have LTHRC, sometimes LTHFC ... chose whichever
       LTHxC <- grep("(LTH.+C)", names(sim$studyAreaLarge), value = TRUE)
       fieldName <- if (length(LTHxC)) {
