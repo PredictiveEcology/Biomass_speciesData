@@ -26,7 +26,7 @@ defineModule(sim, list(
     #defineParameter("paramName", "paramClass", value, min, max, "parameter description"),
     defineParameter("omitNonTreePixels", "logical", TRUE, NA, NA,
                     "If nonTreePixels object supplied, should these pixels be converted to NA in the speciesLayer stack"),
-    defineParameter("sppEquivCol", "character", "LandR", NA, NA,
+    defineParameter("sppEquivCol", "character", "Boreal", NA, NA,
                     "The column in sim$specieEquivalency data.table to use as a naming convention"),
     defineParameter("types", "character", "KNN", NA, NA,
                     "The possible data sources. These must correspond to a function named paste0('prepSpeciesLayers_', type)"),
