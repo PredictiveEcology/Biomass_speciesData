@@ -59,7 +59,7 @@ defineModule(sim, list(
                  desc = paste("Raster layer of study area used for plotting and reporting only.",
                               "Defaults to the kNN biomass map masked with `studyArea`"),
                  sourceURL = "http://tree.pfc.forestry.ca/kNN-StructureBiomass.tar"),
-    expectsInput("sppColors", "character",
+    expectsInput("sppColorVect", "character",
                  desc = paste("A named vector of colors to use for plotting.",
                               "The names must be in sim$speciesEquivalency[[sim$sppEquivCol]],",
                               "and should also contain a color for 'Mixed'"),
@@ -113,7 +113,7 @@ doEvent.BiomassSpeciesData <- function(sim, eventTime, eventType) {
               vegLeadingProportion = P(sim)$vegLeadingProportion,
               sppEquiv = sim$sppEquiv,
               sppEquivCol = P(sim)$sppEquivCol,
-              colors = sim$sppColors,
+              colors = sim$sppColorVect,
               title = "Initial Types")
       quickPlot::dev(devCur)
     },
@@ -279,6 +279,9 @@ biomassDataInit <- function(sim) {
   }
 
   if (!suppliedElsewhere("sppEquiv", sim)) {
+    if (!is.null(sim$sppColorVect))
+      stop("If you provide sppColorVect, you MUST also provide sppEquiv")
+
     data("sppEquivalencies_CA", package = "LandR", envir = environment())
     sim$sppEquiv <- as.data.table(sppEquivalencies_CA)
 
@@ -286,10 +289,11 @@ biomassDataInit <- function(sim) {
     sim$sppEquiv[KNN == "Abie_Las", LandR := "Abie_sp"]
 
     ## add default colors for species used in model
-    if (!is.null(sim$sppColors))
-      stop("If you provide sppColors, you MUST also provide sppEquiv")
-    sim$sppColors <- sppColors(sim$sppEquiv, P(sim)$sppEquivCol,
+    sim$sppColorVect <- sppColors(sim$sppEquiv, P(sim)$sppEquivCol,
                                newVals = "Mixed", palette = "Accent")
+  } else {
+    if (is.null(sim$sppColorVect))
+      stop("If you provide please provide sppColorVect")
   }
 
   return(invisible(sim))
