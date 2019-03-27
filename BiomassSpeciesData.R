@@ -170,6 +170,8 @@ biomassDataInit <- function(sim) {
   sim$speciesLayers <- raster::mask(sim$speciesLayers, sim$studyArea) %>% stack()
 
   if (isTRUE(P(sim)$omitNonTreePixels)) {
+    if (!suppliedElsewhere("nonTreePixels", sim))
+      stop("'omitNonTreePixels' is TRUE, but no nonTreePixels were provided!")
     message("Setting all speciesLayers[nonTreePixels] to NA")
     sim$speciesLayers[sim$nonTreePixels] <- NA
   }
