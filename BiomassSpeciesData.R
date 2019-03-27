@@ -209,7 +209,6 @@ biomassDataInit <- function(sim) {
 
   if (!suppliedElsewhere("studyArea", sim)) {
     message("'studyArea' was not provided by user. Using a polygon in southwestern Alberta, Canada,")
-
     sim$studyArea <- randomStudyArea(seed = 1234)
   }
 
@@ -275,7 +274,6 @@ biomassDataInit <- function(sim) {
 
     data("sppEquivalencies_CA", package = "LandR", envir = environment())
     sim$sppEquiv <- as.data.table(sppEquivalencies_CA)
-
     ## By default, Abies_las is renamed to Abies_sp
     sim$sppEquiv[KNN == "Abie_Las", LandR := "Abie_sp"]
 
@@ -287,5 +285,5 @@ biomassDataInit <- function(sim) {
       stop("If you provide please provide sppColorVect")
   }
 
-  return(invisible(sim))
+    return(invisible(sim))
 }
