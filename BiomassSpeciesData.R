@@ -72,10 +72,6 @@ defineModule(sim, list(
                                "(studyArea is typically buffered to the actual study area of interest.)",
                                "Defaults to an area in Southwestern Alberta, Canada."),
                  sourceURL = NA),
-    expectsInput("studyAreaLarge", "SpatialPolygonsDataFrame",
-                 desc = paste("multipolygon (larger area than studyArea) to use for parameter estimation.",
-                              "Defaults to an area in Southwestern Alberta, Canada."),
-                 sourceURL = NA),
     expectsInput("studyAreaReporting", "SpatialPolygonsDataFrame",
                  desc = paste("multipolygon (typically smaller/unbuffered than studyArea) to use for plotting/reporting.",
                               "Defaults to an area in Southwestern Alberta, Canada."),
@@ -215,11 +211,6 @@ biomassDataInit <- function(sim) {
     message("'studyArea' was not provided by user. Using a polygon in southwestern Alberta, Canada,")
 
     sim$studyArea <- randomStudyArea(seed = 1234)
-  }
-
-  if (!suppliedElsewhere("studyAreaLarge", sim)) {
-    message("'studyAreaLarge' was not provided by user. Using the same as 'studyArea'.")
-    sim$studyAreaLarge <- sim$studyArea
   }
 
   if (!suppliedElsewhere("studyAreaReporting", sim)) {
