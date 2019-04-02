@@ -214,8 +214,8 @@ biomassDataInit <- function(sim) {
   biomassMapURL <- "http://tree.pfc.forestry.ca/kNN-StructureBiomass.tar"
 
   if (!suppliedElsewhere("studyArea", sim)) {
-    message("'studyArea' was not provided by user. Using a polygon in southwestern Alberta, Canada,")
-    sim$studyArea <- randomStudyArea(seed = 1234)
+    message("'studyArea' was not provided by user. Using a polygon (6250000 m^2) in southwestern Alberta, Canada")
+    sim$studyArea <- randomStudyArea(seed = 1234, size = (250^2)*100)
   }
 
   if (!suppliedElsewhere("studyAreaReporting", sim)) {
@@ -246,8 +246,8 @@ biomassDataInit <- function(sim) {
                           destinationPath = dPath,
                           studyArea = sim$studyArea,
                           rasterToMatch = NULL,
-                          maskWithRTM = TRUE,
-                          useSAcrs = if (!needRTM) TRUE else FALSE,
+                          maskWithRTM = FALSE,
+                          useSAcrs = TRUE,
                           method = "bilinear",
                           datatype = "INT2U",
                           filename2 = TRUE, overwrite = TRUE,
