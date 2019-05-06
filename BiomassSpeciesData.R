@@ -24,8 +24,6 @@ defineModule(sim, list(
                   "PredictiveEcology/pemisc@development"),
   parameters = rbind(
     #defineParameter("paramName", "paramClass", value, min, max, "parameter description"),
-    defineParameter("omitNonTreePixels", "logical", TRUE, NA, NA,
-                    "If nonTreePixels object supplied, should these pixels be converted to NA in the speciesLayer stack"),
     defineParameter("sppEquivCol", "character", "Boreal", NA, NA,
                     "The column in sim$specieEquivalency data.table to use as a naming convention"),
     defineParameter("types", "character", "KNN", NA, NA,
@@ -47,10 +45,6 @@ defineModule(sim, list(
                     "Used in reading csv file with fread. Will be passed to data.table::setDTthreads")
   ),
   inputObjects = bind_rows(
-    expectsInput("nonTreePixels", "integer",
-                 desc = paste("A vector of pixel ids indicating non vegetation pixels,",
-                              "which will be converted to NA, if P(sim)$omitNonTreePixels is TRUE"),
-                 sourceURL = ""),
     expectsInput("rasterToMatch", "RasterLayer",
                  desc = paste("Raster layer of buffered study area used for cropping, masking and projecting.",
                               "Defaults to the kNN biomass map masked with `studyArea`"),
@@ -168,17 +162,6 @@ biomassDataInit <- function(sim) {
 
   ## re-enforce study area mask (merged/summed layers are losing the mask)
   sim$speciesLayers <- raster::mask(sim$speciesLayers, sim$studyArea) %>% stack()
-
-  if (isTRUE(P(sim)$omitNonTreePixels)) {
-    if (suppliedElsewhere("nonTreePixels", sim)) {
-      message("Setting all speciesLayers[nonTreePixels] to NA")
-      sim$speciesLayers[sim$nonTreePixels] <- NA
-    } else {
-      message("P(sim)$omitNonTreePixels is TRUE, but there is no nonTreePixels object supplied; ",
-              "No non-treed pixels being omitted.")
-    }
-  }
-
   sim$speciesLayers <- raster::stack(sim$speciesLayers) %>% setNames(species)
 
   singular <- length(P(sim)$types) == 1
