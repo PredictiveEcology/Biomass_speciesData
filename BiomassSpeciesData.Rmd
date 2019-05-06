@@ -22,39 +22,48 @@ Defaults to extracting 5 species/genera Abies sp., Picea glauca, Picea mariana, 
 
 Intended for use with the Land-R-Biomass* suite of models - if LandWeb project permissions are valid, then the full datasets used for the LandWeb can be used here.
 
-```{r}
+```{r Install-Missing-Or-Old-Packages, eval=FALSE}
 ## as of Nov 25th 2019
 devtools::install_github("PredictiveEcology/reproducible@development", dependencies = FALSE)
 devtools::install_github("PredictiveEcology/SpaDES.core@development", dependencies = FALSE)
 devtools::install_github("PredictiveEcology/pemisc@development")
 devtools::install_github("PredictiveEcology/LandR@development")
 
-library(magrittr)
+# User may want to set some options -- see ?reproducibleOptions 
+#    -- often will be set outside of project by user --
+# options(reproducible.inputPaths = "E:/Data/LandR_related/") # to re-use datasets across projects
+
+```
+
+```{r runSpaDES, eval=TRUE}
 library(raster)
 library(SpaDES)
-library(pemisc)
-library(LandR)
 
-options(reproducible.inputPaths = "E:/Data/LandR_related/")
 setPaths(modulePath = "../", cachePath = "cache/")
 
 ## do you want to hand-draw a map or use defaults?
 # - note that large areas will take longer to compute
-handDrawMap <- FALSE
+handDrawMap <- TRUE
 
 if(handDrawMap) {
   dev()
   clearPlot()
   canadaMap <- Cache(getData, 'GADM', country = 'CAN', level = 1, path = "data/",
                      cacheRepo = getPaths()$cachePath, quick = FALSE)
-  LIM_SA <- shapefile("../LandscapesInMotion/data/maps/Foothills_study_area.shp")
+  possibleStudyArea <- "../LandscapesInMotion/data/maps/Foothills_study_area.shp"
   Plot(canadaMap, speedup = 5, visualSqueeze = 0.9) # 5 seemed optimal
-  Plot(LIM_SA, addTo = "canadaMap", col = "green")
+  if (file.exists(possibleStudyArea)) {
+    LIM_SA <- shapefile(possibleStudyArea)
+    Plot(LIM_SA, addTo = "canadaMap", col = "green")
+  }
   
   ## hand-drawn study area
   if(!exists("studyAreaLarge")) {
     message("Since there is no object called 'studyAreaLarge', please draw a study area with 10 points")
-    severalrandompoints <- clickCoordinates(10)
+    
+    # use Cache here, so that if you restart, can use same random polygon, allowing Cache to be effective during
+    #   the simInit and spades calls below
+    severalrandompoints <- Cache(clickCoordinates, 10) 
     if(startsWith(attr(severalrandompoints, "tags"), "cache")) message("Taking studyAreaLarge from Cache")
     studyAreaLarge <- SpatialPolygons(list(Polygons(list(Polygon(severalrandompoints$coords)), ID = "handDrawnPoly")),
                                           proj4string = crs(canadaMap))
@@ -67,7 +76,7 @@ objects <- if(handDrawMap) {
        "studyArea" = studyAreaLarge)  
 } else list()
 
-opts <- options(reproducible.useCache = FALSE)
+opts <- options(reproducible.useCache = TRUE)
 mySim <- simInit(modules = modules, objects = objects)
 
 mySimOut <- spades(mySim)
