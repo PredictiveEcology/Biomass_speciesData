@@ -161,8 +161,9 @@ biomassDataInit <- function(sim) {
   species <- names(sim$speciesLayers)
 
   ## re-enforce study area mask (merged/summed layers are losing the mask)
-  sim$speciesLayers <- raster::mask(sim$speciesLayers, sim$studyArea) %>% stack()
-  sim$speciesLayers <- raster::stack(sim$speciesLayers) %>% setNames(species)
+  sim$speciesLayers <- raster::mask(sim$speciesLayers, sim$studyArea) %>%
+    raster::stack() %>%
+    setNames(species)
 
   singular <- length(P(sim)$types) == 1
   message("sim$speciesLayers is from ", paste(P(sim)$types, collapse = ", "),
