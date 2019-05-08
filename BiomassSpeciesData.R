@@ -185,8 +185,7 @@ biomassDataInit <- function(sim) {
   # How many have zero cover
   bb <- speciesLayersDT[, apply(.SD, 1, any), .SDcols = 1:nlayers(sim$speciesLayers)]
   sim$nonZeroCover <- sum(na.omit(bb))
-  message("There are ", sim$nonZeroCover,
-          " pixels with non-zero tree cover in them")
+  message("There are ", sim$nonZeroCover, " pixels with non-zero tree cover in them.")
 
   return(invisible(sim))
 }
