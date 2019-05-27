@@ -42,7 +42,7 @@ defineModule(sim, list(
                     paste("Should this entire module be run with caching activated?",
                           "This is generally intended for data-type modules, where stochasticity and time are not relevant")),
     defineParameter(".useParallel", "numeric", parallel::detectCores(), NA, NA,
-                    "Used in reading csv file with fread. Will be passed to data.table::setDTthreads")
+                    "Used in reading csv file with fread. Will be passed to data.table::setDTthreads.")
   ),
   inputObjects = bind_rows(
     expectsInput("rasterToMatch", "RasterLayer",
