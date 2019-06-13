@@ -42,7 +42,7 @@ defineModule(sim, list(
                     paste("Should this entire module be run with caching activated?",
                           "This is generally intended for data-type modules, where stochasticity and time are not relevant")),
     defineParameter(".useParallel", "numeric", parallel::detectCores(), NA, NA,
-                    "Used in reading csv file with fread. Will be passed to data.table::setDTthreads")
+                    "Used in reading csv file with fread. Will be passed to data.table::setDTthreads.")
   ),
   inputObjects = bind_rows(
     expectsInput("rasterToMatch", "RasterLayer",
@@ -161,8 +161,9 @@ biomassDataInit <- function(sim) {
   species <- names(sim$speciesLayers)
 
   ## re-enforce study area mask (merged/summed layers are losing the mask)
-  sim$speciesLayers <- raster::mask(sim$speciesLayers, sim$studyArea) %>% stack()
-  sim$speciesLayers <- raster::stack(sim$speciesLayers) %>% setNames(species)
+  sim$speciesLayers <- raster::mask(sim$speciesLayers, sim$studyArea) %>%
+    raster::stack() %>%
+    setNames(species)
 
   singular <- length(P(sim)$types) == 1
   message("sim$speciesLayers is from ", paste(P(sim)$types, collapse = ", "),
@@ -184,8 +185,7 @@ biomassDataInit <- function(sim) {
   # How many have zero cover
   bb <- speciesLayersDT[, apply(.SD, 1, any), .SDcols = 1:nlayers(sim$speciesLayers)]
   sim$nonZeroCover <- sum(na.omit(bb))
-  message("There are ", sim$nonZeroCover,
-          " pixels with non-zero tree cover in them")
+  message("There are ", sim$nonZeroCover, " pixels with non-zero tree cover in them.")
 
   return(invisible(sim))
 }
