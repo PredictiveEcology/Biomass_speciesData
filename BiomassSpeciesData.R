@@ -160,15 +160,20 @@ biomassDataInit <- function(sim) {
 
   species <- names(sim$speciesLayers)
 
-  ## re-enforce study area mask (merged/summed layers are losing the mask)
+  origFilenames <- vapply(layerNames(sim$speciesLayers), function(r) filename(sim$speciesLayers[[r]]),
+                          character(1))
 
-  origFilenames <- sapply(layerNames(sim$speciesLayers), function(r) filename(sim$speciesLayers[[r]]))
+  ## re-enforce study area mask (merged/summed layers are losing the mask)
   sim$speciesLayers <- raster::mask(sim$speciesLayers, sim$studyArea)
 
-  sim$speciesLayers <- lapply(seq_along(layerNames(sim$speciesLayers)), function(r) {
-    writeRaster(sim$speciesLayers[[r]], filename = origFilenames[r], overwrite = TRUE)}) %>%
-    raster::stack() %>%
-    setNames(species)
+  sim$speciesLayers <- if (inMemory(sim$speciesLayers)) {
+    sim$speciesLayers
+  } else {
+    lapply(seq_along(layerNames(sim$speciesLayers)), function(r) {
+      writeRaster(sim$speciesLayers[[r]], filename = origFilenames[r], overwrite = TRUE)
+    })
+  }
+  sim$speciesLayers <- raster::stack(sim$speciesLayers) %>% setNames(species)
 
   singular <- length(P(sim)$types) == 1
   message("sim$speciesLayers is from ", paste(P(sim)$types, collapse = ", "),
