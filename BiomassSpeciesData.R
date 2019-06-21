@@ -162,7 +162,7 @@ biomassDataInit <- function(sim) {
 
   origFilenames <- vapply(layerNames(sim$speciesLayers), function(r) filename(sim$speciesLayers[[r]]),
                           character(1))
-browser()
+
   ## re-enforce study area mask (merged/summed layers are losing the mask)
   sim$speciesLayers <- raster::mask(sim$speciesLayers, sim$studyArea)
 
