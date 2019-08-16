@@ -202,8 +202,8 @@ biomassDataInit <- function(sim) {
   message(currentModule(sim), ": using dataPath '", dPath, "'.")
 
   # Filenames
-  biomassMapFilename <- file.path(dPath, "NFI_MODIS250m_kNN_Structure_Biomass_TotalLiveAboveGround_v0.tif")
-  biomassMapURL <- "http://tree.pfc.forestry.ca/kNN-StructureBiomass.tar"
+  rawBiomassMapFilename <- file.path(dPath, "NFI_MODIS250m_kNN_Structure_Biomass_TotalLiveAboveGround_v0.tif")
+  rawBiomassMapURL <- "http://tree.pfc.forestry.ca/kNN-StructureBiomass.tar"
 
   if (!suppliedElsewhere("studyArea", sim)) {
     message("'studyArea' was not provided by user. Using a polygon (6250000 m^2) in southwestern Alberta, Canada")
@@ -219,7 +219,7 @@ biomassDataInit <- function(sim) {
   if (is.null(sim$rasterToMatch)) {
     if (!suppliedElsewhere("rasterToMatch", sim)) {
       needRTM <- TRUE
-      message("There is no rasterToMatch supplied; will attempt to use biomassMap")
+      message("There is no rasterToMatch supplied; will attempt to use rawBiomassMap")
     } else {
       stop("rasterToMatch is going to be supplied, but ", currentModule(sim), " requires it ",
            "as part of its .inputObjects. Please make it accessible to ", currentModule(sim),
@@ -229,12 +229,12 @@ biomassDataInit <- function(sim) {
   }
 
   if (needRTM) {
-    if (!suppliedElsewhere("biomassMap", sim)) {
-      biomassMap <- Cache(prepInputs,
-                          targetFile = asPath(basename(biomassMapFilename)),
+    if (!suppliedElsewhere("rawBiomassMap", sim)) {
+      rawBiomassMap <- Cache(prepInputs,
+                          targetFile = asPath(basename(rawBiomassMapFilename)),
                           archive = asPath(c("kNN-StructureBiomass.tar",
                                              "NFI_MODIS250m_kNN_Structure_Biomass_TotalLiveAboveGround_v0.zip")),
-                          url = biomassMapURL,
+                          url = rawBiomassMapURL,
                           destinationPath = dPath,
                           studyArea = sim$studyArea,
                           rasterToMatch = NULL,
@@ -245,11 +245,11 @@ biomassDataInit <- function(sim) {
                           filename2 = TRUE, overwrite = TRUE,
                           omitArgs = c("destinationPath", "targetFile", cacheTags, "stable"))
     } else {
-      biomassMap <- sim$biomassMap
+      rawBiomassMap <- sim$rawBiomassMap
     }
 
-    # if we need rasterToMatch, that means a) we don't have it, but b) we will have biomassMap
-    sim$rasterToMatch <- biomassMap
+    # if we need rasterToMatch, that means a) we don't have it, but b) we will have rawBiomassMap
+    sim$rasterToMatch <- rawBiomassMap
     studyArea <- sim$studyArea # temporary copy because it will be overwritten if it is suppliedElsewhere
     message("  Rasterizing the studyArea polygon map")
     if (!is(studyArea, "SpatialPolygonsDataFrame")) {
