@@ -38,9 +38,8 @@ defineModule(sim, list(
                     "This describes the simulation time at which the first save event should occur"),
     defineParameter(".saveInterval", "numeric", NA, NA, NA,
                     "This describes the simulation time interval between save events"),
-    defineParameter(".useCache", "logical", FALSE, NA, NA,
-                    paste("Should this entire module be run with caching activated?",
-                          "This is generally intended for data-type modules, where stochasticity and time are not relevant")),
+    defineParameter(".useCache", "logical", "init", NA, NA,
+                    desc = "Controls cache; caches the init event by default"),
     defineParameter(".useParallel", "numeric", parallel::detectCores(), NA, NA,
                     "Used in reading csv file with fread. Will be passed to data.table::setDTthreads.")
   ),
