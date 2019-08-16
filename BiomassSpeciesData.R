@@ -230,19 +230,20 @@ biomassDataInit <- function(sim) {
   if (needRTM) {
     if (!suppliedElsewhere("rawBiomassMap", sim)) {
       rawBiomassMap <- Cache(prepInputs,
-                          targetFile = asPath(basename(rawBiomassMapFilename)),
-                          archive = asPath(c("kNN-StructureBiomass.tar",
-                                             "NFI_MODIS250m_kNN_Structure_Biomass_TotalLiveAboveGround_v0.zip")),
-                          url = rawBiomassMapURL,
-                          destinationPath = dPath,
-                          studyArea = sim$studyArea,
-                          rasterToMatch = NULL,
-                          maskWithRTM = FALSE,
-                          useSAcrs = TRUE,
-                          method = "bilinear",
-                          datatype = "INT2U",
-                          filename2 = TRUE, overwrite = TRUE,
-                          omitArgs = c("destinationPath", "targetFile", cacheTags, "stable"))
+                             targetFile = asPath(basename(rawBiomassMapFilename)),
+                             archive = asPath(c("kNN-StructureBiomass.tar",
+                                                "NFI_MODIS250m_kNN_Structure_Biomass_TotalLiveAboveGround_v0.zip")),
+                             url = rawBiomassMapURL,
+                             destinationPath = dPath,
+                             studyArea = sim$studyArea,
+                             rasterToMatch = NULL,
+                             maskWithRTM = FALSE,
+                             useSAcrs = TRUE,
+                             method = "bilinear",
+                             datatype = "INT2U",
+                             filename2 = TRUE, overwrite = TRUE,
+                             userTags = cacheTags,
+                             omitArgs = c("destinationPath", "targetFile", cacheTags, "stable"))
     } else {
       rawBiomassMap <- sim$rawBiomassMap
     }
@@ -281,7 +282,8 @@ biomassDataInit <- function(sim) {
                               studyArea)
     sim$rasterToMatch <- Cache(writeRaster, sim$rasterToMatch,
                                filename = file.path(dataPath(sim), "rasterToMatch.tif"),
-                               datatype = "INT2U", overwrite = TRUE)
+                               datatype = "INT2U", overwrite = TRUE,
+                               userTags = cacheTags)
   }
 
   if (!suppliedElsewhere("sppEquiv", sim)) {
@@ -322,5 +324,5 @@ biomassDataInit <- function(sim) {
       stop("If you provide 'sppEquiv' you MUST also provide 'sppColorVect'")
   }
 
-    return(invisible(sim))
+  return(invisible(sim))
 }
