@@ -38,9 +38,8 @@ defineModule(sim, list(
                     "This describes the simulation time at which the first save event should occur"),
     defineParameter(".saveInterval", "numeric", NA, NA, NA,
                     "This describes the simulation time interval between save events"),
-    defineParameter(".useCache", "logical", FALSE, NA, NA,
-                    paste("Should this entire module be run with caching activated?",
-                          "This is generally intended for data-type modules, where stochasticity and time are not relevant")),
+    defineParameter(".useCache", "logical", "init", NA, NA,
+                    desc = "Controls cache; caches the init event by default"),
     defineParameter(".useParallel", "numeric", parallel::detectCores(), NA, NA,
                     "Used in reading csv file with fread. Will be passed to data.table::setDTthreads.")
   ),
@@ -202,8 +201,8 @@ biomassDataInit <- function(sim) {
   message(currentModule(sim), ": using dataPath '", dPath, "'.")
 
   # Filenames
-  biomassMapFilename <- file.path(dPath, "NFI_MODIS250m_kNN_Structure_Biomass_TotalLiveAboveGround_v0.tif")
-  biomassMapURL <- "http://tree.pfc.forestry.ca/kNN-StructureBiomass.tar"
+  rawBiomassMapFilename <- file.path(dPath, "NFI_MODIS250m_kNN_Structure_Biomass_TotalLiveAboveGround_v0.tif")
+  rawBiomassMapURL <- "http://tree.pfc.forestry.ca/kNN-StructureBiomass.tar"
 
   if (!suppliedElsewhere("studyArea", sim)) {
     message("'studyArea' was not provided by user. Using a polygon (6250000 m^2) in southwestern Alberta, Canada")
@@ -219,7 +218,7 @@ biomassDataInit <- function(sim) {
   if (is.null(sim$rasterToMatch)) {
     if (!suppliedElsewhere("rasterToMatch", sim)) {
       needRTM <- TRUE
-      message("There is no rasterToMatch supplied; will attempt to use biomassMap")
+      message("There is no rasterToMatch supplied; will attempt to use rawBiomassMap")
     } else {
       stop("rasterToMatch is going to be supplied, but ", currentModule(sim), " requires it ",
            "as part of its .inputObjects. Please make it accessible to ", currentModule(sim),
@@ -229,27 +228,28 @@ biomassDataInit <- function(sim) {
   }
 
   if (needRTM) {
-    if (!suppliedElsewhere("biomassMap", sim)) {
-      biomassMap <- Cache(prepInputs,
-                          targetFile = asPath(basename(biomassMapFilename)),
-                          archive = asPath(c("kNN-StructureBiomass.tar",
-                                             "NFI_MODIS250m_kNN_Structure_Biomass_TotalLiveAboveGround_v0.zip")),
-                          url = biomassMapURL,
-                          destinationPath = dPath,
-                          studyArea = sim$studyArea,
-                          rasterToMatch = NULL,
-                          maskWithRTM = FALSE,
-                          useSAcrs = TRUE,
-                          method = "bilinear",
-                          datatype = "INT2U",
-                          filename2 = TRUE, overwrite = TRUE,
-                          omitArgs = c("destinationPath", "targetFile", cacheTags, "stable"))
+    if (!suppliedElsewhere("rawBiomassMap", sim)) {
+      rawBiomassMap <- Cache(prepInputs,
+                             targetFile = asPath(basename(rawBiomassMapFilename)),
+                             archive = asPath(c("kNN-StructureBiomass.tar",
+                                                "NFI_MODIS250m_kNN_Structure_Biomass_TotalLiveAboveGround_v0.zip")),
+                             url = rawBiomassMapURL,
+                             destinationPath = dPath,
+                             studyArea = sim$studyArea,
+                             rasterToMatch = NULL,
+                             maskWithRTM = FALSE,
+                             useSAcrs = TRUE,
+                             method = "bilinear",
+                             datatype = "INT2U",
+                             filename2 = TRUE, overwrite = TRUE,
+                             userTags = cacheTags,
+                             omitArgs = c("destinationPath", "targetFile", cacheTags, "stable"))
     } else {
-      biomassMap <- sim$biomassMap
+      rawBiomassMap <- sim$rawBiomassMap
     }
 
-    # if we need rasterToMatch, that means a) we don't have it, but b) we will have biomassMap
-    sim$rasterToMatch <- biomassMap
+    # if we need rasterToMatch, that means a) we don't have it, but b) we will have rawBiomassMap
+    sim$rasterToMatch <- rawBiomassMap
     studyArea <- sim$studyArea # temporary copy because it will be overwritten if it is suppliedElsewhere
     message("  Rasterizing the studyArea polygon map")
     if (!is(studyArea, "SpatialPolygonsDataFrame")) {
@@ -282,7 +282,8 @@ biomassDataInit <- function(sim) {
                               studyArea)
     sim$rasterToMatch <- Cache(writeRaster, sim$rasterToMatch,
                                filename = file.path(dataPath(sim), "rasterToMatch.tif"),
-                               datatype = "INT2U", overwrite = TRUE)
+                               datatype = "INT2U", overwrite = TRUE,
+                               userTags = cacheTags)
   }
 
   if (!suppliedElsewhere("sppEquiv", sim)) {
@@ -323,5 +324,5 @@ biomassDataInit <- function(sim) {
       stop("If you provide 'sppEquiv' you MUST also provide 'sppColorVect'")
   }
 
-    return(invisible(sim))
+  return(invisible(sim))
 }
