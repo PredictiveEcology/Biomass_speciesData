@@ -18,7 +18,7 @@ defineModule(sim, list(
   timeunit = "year",
   citation = list("citation.bib"),
   documentation = list("README.txt", "BiomassSpeciesData.Rmd"),
-  reqdPkgs = list("data.table", "googledrive", "gdalUtils", "magrittr", "pryr", "raster", ## TODO: is gdalUtils actually used?
+  reqdPkgs = list("data.table", "googledrive", "gdalUtils", "magrittr", "parallel", "pryr", "raster", ## TODO: is gdalUtils actually used?
                   "reproducible", "SpaDES.core", "SpaDES.tools",
                   "PredictiveEcology/LandR@development",
                   "PredictiveEcology/pemisc@development"),
