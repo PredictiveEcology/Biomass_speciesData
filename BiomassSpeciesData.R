@@ -209,7 +209,7 @@ biomassDataInit <- function(sim) {
     if (suppliedElsewhere("studyArea", sim) && !is.null(sim$studyArea)) {
       message("'studyAreaLarge' was not provided by user. Using the same as 'studyArea'")
       sim$studyAreaLarge <- sim$studyArea
-      } else {
+    } else {
       message("'studyArea' was not provided by user. Using a polygon (6250000 m^2) in southwestern Alberta, Canada")
       sim$studyAreaLarge <- randomStudyArea(seed = 1234, size = (250^2)*100)
     }
@@ -217,32 +217,32 @@ biomassDataInit <- function(sim) {
 
   if (!suppliedElsewhere("studyAreaReporting", sim)) {
     if (suppliedElsewhere("studyArea", sim) && !is.null(sim$studyArea)) {
-    message("'studyAreaReporting' was not provided by user. Using the same as 'studyArea'.")
-    sim$studyAreaReporting <- sim$studyArea
+      message("'studyAreaReporting' was not provided by user. Using the same as 'studyArea'.")
+      sim$studyAreaReporting <- sim$studyArea
     } else {
       message("'studyAreaReporting' was not provided by user. Using the same as 'studyAreaLarge'.")
       sim$studyAreaReporting <- sim$studyAreaLarge
     }
   }
 
-    needRTM <- FALSE
-    if (is.null(sim$rasterToMatch) || is.null(sim$rasterToMatchLarge)) {
-      if (!suppliedElsewhere("rasterToMatch", sim) ||
-          !suppliedElsewhere("rasterToMatchLarge", sim)) {      ## if one is not provided, re do both (safer?)
-        needRTM <- TRUE
-        message("There is no rasterToMatch/rasterToMatchLarge supplied; will attempt to use rawBiomassMap")
-      } else {
-        stop("rasterToMatch/rasterToMatchLarge is going to be supplied, but ", currentModule(sim), " requires it ",
-             "as part of its .inputObjects. Please make it accessible to ", currentModule(sim),
-             " in the .inputObjects by passing it in as an object in simInit(objects = list(rasterToMatch = aRaster)",
-             " or in a module that gets loaded prior to ", currentModule(sim))
-      }
+  needRTM <- FALSE
+  if (is.null(sim$rasterToMatch) || is.null(sim$rasterToMatchLarge)) {
+    if (!suppliedElsewhere("rasterToMatch", sim) ||
+        !suppliedElsewhere("rasterToMatchLarge", sim)) {      ## if one is not provided, re do both (safer?)
+      needRTM <- TRUE
+      message("There is no rasterToMatch/rasterToMatchLarge supplied; will attempt to use rawBiomassMap")
+    } else {
+      stop("rasterToMatch/rasterToMatchLarge is going to be supplied, but ", currentModule(sim), " requires it ",
+           "as part of its .inputObjects. Please make it accessible to ", currentModule(sim),
+           " in the .inputObjects by passing it in as an object in simInit(objects = list(rasterToMatch = aRaster)",
+           " or in a module that gets loaded prior to ", currentModule(sim))
     }
+  }
 
-    if (!suppliedElsewhere("rawBiomassMap", sim) || needRTM) {
-      sim$rawBiomassMap <- Cache(prepInputs,
-                                 targetFile = asPath(basename(rawBiomassMapFilename)),
-                                 archive = asPath(c("kNN-StructureBiomass.tar",
+  if (!suppliedElsewhere("rawBiomassMap", sim) || needRTM) {
+    sim$rawBiomassMap <- Cache(prepInputs,
+                               targetFile = asPath(basename(rawBiomassMapFilename)),
+                               archive = asPath(c("kNN-StructureBiomass.tar",
                                                     "NFI_MODIS250m_kNN_Structure_Biomass_TotalLiveAboveGround_v0.zip")),
                                  url = extractURL("rawBiomassMap"),
                                  destinationPath = dPath,
