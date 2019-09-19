@@ -59,7 +59,7 @@ defineModule(sim, list(
     expectsInput("studyAreaLarge", "SpatialPolygonsDataFrame",
                  desc =  paste("Multipolygon to use as the study area.",
                                "(studyAreaLarge is larger than the actual study area of interest,",
-                               "but used for parameter estimation)."
+                               "but used for parameter estimation).",
                                "Defaults to an area in Southwestern Alberta, Canada."),
                  sourceURL = NA),
     expectsInput("studyAreaReporting", "SpatialPolygonsDataFrame",
