@@ -243,94 +243,94 @@ biomassDataInit <- function(sim) {
     sim$rawBiomassMap <- Cache(prepInputs,
                                targetFile = asPath(basename(rawBiomassMapFilename)),
                                archive = asPath(c("kNN-StructureBiomass.tar",
-                                                    "NFI_MODIS250m_kNN_Structure_Biomass_TotalLiveAboveGround_v0.zip")),
-                                 url = extractURL("rawBiomassMap"),
-                                 destinationPath = dPath,
-                                 studyArea = sim$studyAreaLarge,   ## Ceres: makePixel table needs same no. pixels for this, RTM rawBiomassMap, LCC.. etc
-                                 # studyArea = sim$studyArea,
-                                 rasterToMatch = if (!needRTM) sim$rasterToMatchLarge else NULL,
-                                 # maskWithRTM = TRUE,    ## if RTM not supplied no masking happens (is this intended?)
-                                 maskWithRTM = if (!needRTM) TRUE else FALSE,
-                                 ## TODO: if RTM is not needed use SA CRS? -> this is not correct
-                                 # useSAcrs = if (!needRTM) TRUE else FALSE,
-                                 useSAcrs = FALSE,     ## never use SA CRS
-                                 method = "bilinear",
-                                 datatype = "INT2U",
-                                 filename2 = TRUE, overwrite = TRUE,
-                                 omitArgs = c("destinationPath", "targetFile", cacheTags, "stable"))
-    }
-    if (needRTM) {
-      ## if we need rasterToMatch/rasterToMatchLarge, that means a) we don't have it, but b) we will have rawBiomassMap
-      ## even if one of the rasterToMatch is present re-do both.
+                                                  "NFI_MODIS250m_kNN_Structure_Biomass_TotalLiveAboveGround_v0.zip")),
+                               url = extractURL("rawBiomassMap"),
+                               destinationPath = dPath,
+                               studyArea = sim$studyAreaLarge,   ## Ceres: makePixel table needs same no. pixels for this, RTM rawBiomassMap, LCC.. etc
+                               # studyArea = sim$studyArea,
+                               rasterToMatch = if (!needRTM) sim$rasterToMatchLarge else NULL,
+                               # maskWithRTM = TRUE,    ## if RTM not supplied no masking happens (is this intended?)
+                               maskWithRTM = if (!needRTM) TRUE else FALSE,
+                               ## TODO: if RTM is not needed use SA CRS? -> this is not correct
+                               # useSAcrs = if (!needRTM) TRUE else FALSE,
+                               useSAcrs = FALSE,     ## never use SA CRS
+                               method = "bilinear",
+                               datatype = "INT2U",
+                               filename2 = TRUE, overwrite = TRUE,
+                               omitArgs = c("destinationPath", "targetFile", cacheTags, "stable"))
+  }
+  if (needRTM) {
+    ## if we need rasterToMatch/rasterToMatchLarge, that means a) we don't have it, but b) we will have rawBiomassMap
+    ## even if one of the rasterToMatch is present re-do both.
 
-      if (is.null(sim$rasterToMatch) != is.null(sim$rasterToMatchLarge))
-        warning(paste0("One of rasterToMatch/rasterToMatchLarge is missing. Both will be created \n",
-                       "from rawBiomassMap and studyArea/studyAreaLarge.\n
+    if (is.null(sim$rasterToMatch) != is.null(sim$rasterToMatchLarge))
+      warning(paste0("One of rasterToMatch/rasterToMatchLarge is missing. Both will be created \n",
+                     "from rawBiomassMap and studyArea/studyAreaLarge.\n
               If this is wrong, provide both rasters"))
 
-      sim$rasterToMatchLarge <- sim$rawBiomassMap
-      RTMvals <- getValues(sim$rasterToMatchLarge)
-      sim$rasterToMatchLarge[!is.na(RTMvals)] <- 1
+    sim$rasterToMatchLarge <- sim$rawBiomassMap
+    RTMvals <- getValues(sim$rasterToMatchLarge)
+    sim$rasterToMatchLarge[!is.na(RTMvals)] <- 1
 
-      sim$rasterToMatchLarge <- Cache(writeRaster, sim$rasterToMatchLarge,
-                                      filename = file.path(dataPath(sim), "rasterToMatchLarge.tif"),
-                                      datatype = "INT2U", overwrite = TRUE)
+    sim$rasterToMatchLarge <- Cache(writeRaster, sim$rasterToMatchLarge,
+                                    filename = file.path(dataPath(sim), "rasterToMatchLarge.tif"),
+                                    datatype = "INT2U", overwrite = TRUE)
 
-      ## TODO: test with different SA/SALarge
-      sim$rasterToMatch <- Cache(postProcess,
-                                 x = sim$rasterToMatchLarge,
-                                 destinationPath = dPath,
-                                 studyArea = sim$studyArea,   ## Ceres: makePixel table needs same no. pixels for this, RTM rawBiomassMap, LCC.. etc
-                                 # studyArea = sim$studyArea,
-                                 rasterToMatch = sim$rawBiomassMap,
-                                 useSAcrs = FALSE,
-                                 maskWithRTM = FALSE,   ## mask to SA
-                                 method = "bilinear",
-                                 datatype = "INT2U",
-                                 filename2 = TRUE, overwrite = TRUE,
-                                 omitArgs = c("destinationPath", "targetFile", cacheTags, "stable"))
+    ## TODO: test with different SA/SALarge
+    sim$rasterToMatch <- Cache(postProcess,
+                               x = sim$rasterToMatchLarge,
+                               destinationPath = dPath,
+                               studyArea = sim$studyArea,   ## Ceres: makePixel table needs same no. pixels for this, RTM rawBiomassMap, LCC.. etc
+                               # studyArea = sim$studyArea,
+                               rasterToMatch = sim$rawBiomassMap,
+                               useSAcrs = FALSE,
+                               maskWithRTM = FALSE,   ## mask to SA
+                               method = "bilinear",
+                               datatype = "INT2U",
+                               filename2 = TRUE, overwrite = TRUE,
+                               omitArgs = c("destinationPath", "targetFile", cacheTags, "stable"))
 
-      ## this is old, and potentially not needed anymore
-      if (FALSE) {
-        studyArea <- sim$studyArea # temporary copy because it will be overwritten if it is suppliedElsewhere
-        message("  Rasterizing the studyArea polygon map")
-        if (!is(studyArea, "SpatialPolygonsDataFrame")) {
-          dfData <- if (is.null(rownames(studyArea))) {
-            polyID <- sapply(slot(studyArea, "polygons"), function(x) slot(x, "ID"))
-            data.frame("field" = as.character(seq_along(length(studyArea))), row.names = polyID)
-          } else {
-            polyID <- sapply(slot(studyArea, "polygons"), function(x) slot(x, "ID"))
-            data.frame("field" = rownames(studyArea), row.names = polyID)
-          }
-          studyArea <- SpatialPolygonsDataFrame(studyArea, data = dfData)
-        }
-        if (!identical(crs(studyArea), crs(sim$rasterToMatch))) {
-          studyArea <- spTransform(studyArea, crs(sim$rasterToMatch))
-          studyArea <- fixErrors(studyArea)
-
-          ## TODO: OVERWRITE sim$studyArea here? what about SAlarge?
-        }
-
-
-        #TODO: review whether this is necessary (or will break LandWeb if removed) see Git Issue #22
-        # layers provided by David Andison sometimes have LTHRC, sometimes LTHFC ... chose whichever
-        LTHxC <- grep("(LTH.+C)", names(studyArea), value = TRUE)
-        fieldName <- if (length(LTHxC)) {
-          LTHxC
+    ## this is old, and potentially not needed anymore
+    if (FALSE) {
+      studyArea <- sim$studyArea # temporary copy because it will be overwritten if it is suppliedElsewhere
+      message("  Rasterizing the studyArea polygon map")
+      if (!is(studyArea, "SpatialPolygonsDataFrame")) {
+        dfData <- if (is.null(rownames(studyArea))) {
+          polyID <- sapply(slot(studyArea, "polygons"), function(x) slot(x, "ID"))
+          data.frame("field" = as.character(seq_along(length(studyArea))), row.names = polyID)
         } else {
-          if (length(names(studyArea)) > 1) {
-            ## study region may be a simple polygon
-            names(studyArea)[1]
-          } else NULL
+          polyID <- sapply(slot(studyArea, "polygons"), function(x) slot(x, "ID"))
+          data.frame("field" = rownames(studyArea), row.names = polyID)
         }
-
-        sim$rasterToMatch <- crop(fasterizeFromSp(studyArea, sim$rasterToMatch, fieldName),
-                                  studyArea)
-        sim$rasterToMatch <- Cache(writeRaster, sim$rasterToMatch,
-                                   filename = file.path(dataPath(sim), "rasterToMatch.tif"),
-                                   datatype = "INT2U", overwrite = TRUE)
+        studyArea <- SpatialPolygonsDataFrame(studyArea, data = dfData)
       }
+      if (!identical(crs(studyArea), crs(sim$rasterToMatch))) {
+        studyArea <- spTransform(studyArea, crs(sim$rasterToMatch))
+        studyArea <- fixErrors(studyArea)
+
+        ## TODO: OVERWRITE sim$studyArea here? what about SAlarge?
+      }
+
+
+      #TODO: review whether this is necessary (or will break LandWeb if removed) see Git Issue #22
+      # layers provided by David Andison sometimes have LTHRC, sometimes LTHFC ... chose whichever
+      LTHxC <- grep("(LTH.+C)", names(studyArea), value = TRUE)
+      fieldName <- if (length(LTHxC)) {
+        LTHxC
+      } else {
+        if (length(names(studyArea)) > 1) {
+          ## study region may be a simple polygon
+          names(studyArea)[1]
+        } else NULL
+      }
+
+      sim$rasterToMatch <- crop(fasterizeFromSp(studyArea, sim$rasterToMatch, fieldName),
+                                studyArea)
+      sim$rasterToMatch <- Cache(writeRaster, sim$rasterToMatch,
+                                 filename = file.path(dataPath(sim), "rasterToMatch.tif"),
+                                 datatype = "INT2U", overwrite = TRUE)
     }
+  }
 
   if (!suppliedElsewhere("sppEquiv", sim)) {
     if (!is.null(sim$sppColorVect))
