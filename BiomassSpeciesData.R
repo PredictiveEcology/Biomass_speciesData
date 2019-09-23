@@ -244,7 +244,7 @@ biomassDataInit <- function(sim) {
                                targetFile = asPath(basename(rawBiomassMapFilename)),
                                archive = asPath(c("kNN-StructureBiomass.tar",
                                                   "NFI_MODIS250m_kNN_Structure_Biomass_TotalLiveAboveGround_v0.zip")),
-                               url = extractURL("rawBiomassMap"),
+                               url = rawBiomassMapURL,
                                destinationPath = dPath,
                                studyArea = sim$studyAreaLarge,   ## Ceres: makePixel table needs same no. pixels for this, RTM rawBiomassMap, LCC.. etc
                                # studyArea = sim$studyArea,
