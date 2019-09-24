@@ -279,15 +279,13 @@ biomassDataInit <- function(sim) {
     ## TODO: test with different SA/SALarge
     sim$rasterToMatch <- Cache(postProcess,
                                x = sim$rasterToMatchLarge,
-                               destinationPath = dPath,
                                studyArea = sim$studyArea,   ## Ceres: makePixel table needs same no. pixels for this, RTM rawBiomassMap, LCC.. etc
-                               # studyArea = sim$studyArea,
                                rasterToMatch = sim$rawBiomassMap,
                                useSAcrs = FALSE,
                                maskWithRTM = FALSE,   ## mask to SA
                                method = "bilinear",
                                datatype = "INT2U",
-                               filename2 = TRUE, overwrite = TRUE,
+                               filename2 = NULL,
                                omitArgs = c("destinationPath", "targetFile", cacheTags, "stable"))
 
     ## this is old, and potentially not needed anymore
