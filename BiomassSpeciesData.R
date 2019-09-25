@@ -57,9 +57,9 @@ defineModule(sim, list(
                  desc = "table of species equivalencies. See LandR::sppEquivalencies_CA.",
                  sourceURL = ""),
     expectsInput("studyAreaLarge", "SpatialPolygonsDataFrame",
-                 desc =  paste("Multipolygon to use as the study area.",
-                               "(studyAreaLarge is larger than the actual study area of interest,",
-                               "but used for parameter estimation).",
+                 desc =  paste("Polygon to use as the parametrisation study area.",
+                               "(studyAreaLarge is only used for parameter estimation, and",
+                               "can be larger than the actual study area of interest).",
                                "Defaults to an area in Southwestern Alberta, Canada."),
                  sourceURL = NA),
     expectsInput("studyAreaReporting", "SpatialPolygonsDataFrame",
@@ -210,7 +210,7 @@ biomassDataInit <- function(sim) {
       message("'studyAreaLarge' was not provided by user. Using the same as 'studyArea'")
       sim$studyAreaLarge <- sim$studyArea
     } else {
-      message("'studyArea' was not provided by user. Using a polygon (6250000 m^2) in southwestern Alberta, Canada")
+      message("'studyAreaLarge' was not provided by user. Using a polygon (6250000 m^2) in southwestern Alberta, Canada")
       sim$studyAreaLarge <- randomStudyArea(seed = 1234, size = (250^2)*100)
     }
   }
