@@ -44,10 +44,9 @@ defineModule(sim, list(
                     "Used in reading csv file with fread. Will be passed to data.table::setDTthreads.")
   ),
   inputObjects = bind_rows(
-    expectsInput("rasterToMatch", "RasterLayer",
-                 desc = paste("Raster layer of buffered study area used for cropping, masking and projecting.",
-                              "Defaults to the kNN biomass map masked with `studyArea`"),
-                 sourceURL = "http://tree.pfc.forestry.ca/kNN-StructureBiomass.tar"),
+    expectsInput("rasterToMatchLarge", "RasterLayer",
+                 desc = paste("a raster of the studyAreaLarge in the same resolution and projection as biomassMap"),
+                 sourceURL = ""),
     expectsInput("sppColorVect", "character",
                  desc = paste("A named vector of colors to use for plotting.",
                               "The names must be in sim$speciesEquivalency[[sim$sppEquivCol]],",
@@ -60,7 +59,9 @@ defineModule(sim, list(
                  desc =  paste("Polygon to use as the parametrisation study area.",
                                "(studyAreaLarge is only used for parameter estimation, and",
                                "can be larger than the actual study area of interest).",
-                               "Defaults to an area in Southwestern Alberta, Canada."),
+                               "If not provided by the user, it will first default to 'studyArea',",
+                               "if this object exists. If not, it will default to an area in",
+                               "Southwestern Alberta, Canada (the same as the default used for 'studyArea')."),
                  sourceURL = NA),
     expectsInput("studyAreaReporting", "SpatialPolygonsDataFrame",
                  desc = paste("multipolygon (typically smaller/unbuffered than studyArea) to use for plotting/reporting.",
@@ -139,7 +140,7 @@ biomassDataInit <- function(sim) {
                               destinationPath = dPath, # this is generic files (preProcess)
                               outputPath = outputPath(sim), # this will be the studyArea-specific files (postProcess)
                               studyArea = sim$studyAreaLarge,
-                              rasterToMatch = sim$rasterToMatch,
+                              rasterToMatch = sim$rasterToMatchLarge,
                               sppEquiv = sim$sppEquiv,
                               sppEquivCol = P(sim)$sppEquivCol,
                               userTags = cacheTags)
@@ -226,13 +227,12 @@ biomassDataInit <- function(sim) {
   }
 
   needRTM <- FALSE
-  if (is.null(sim$rasterToMatch) || is.null(sim$rasterToMatchLarge)) {
-    if (!suppliedElsewhere("rasterToMatch", sim) ||
-        !suppliedElsewhere("rasterToMatchLarge", sim)) {      ## if one is not provided, re do both (safer?)
+  if (is.null(sim$rasterToMatchLarge)) {
+    if (!suppliedElsewhere("rasterToMatchLarge", sim)) {      ## if one is not provided, re do both (safer?)
       needRTM <- TRUE
-      message("There is no rasterToMatch/rasterToMatchLarge supplied; will attempt to use rawBiomassMap")
+      message("There is no rasterToMatchLarge supplied; will attempt to use rawBiomassMap")
     } else {
-      stop("rasterToMatch/rasterToMatchLarge is going to be supplied, but ", currentModule(sim), " requires it ",
+      stop("rasterToMatch is going to be supplied, but ", currentModule(sim), " requires it ",
            "as part of its .inputObjects. Please make it accessible to ", currentModule(sim),
            " in the .inputObjects by passing it in as an object in simInit(objects = list(rasterToMatch = aRaster)",
            " or in a module that gets loaded prior to ", currentModule(sim))
@@ -263,10 +263,10 @@ biomassDataInit <- function(sim) {
     ## if we need rasterToMatch/rasterToMatchLarge, that means a) we don't have it, but b) we will have rawBiomassMap
     ## even if one of the rasterToMatch is present re-do both.
 
-    if (is.null(sim$rasterToMatch) != is.null(sim$rasterToMatchLarge))
-      warning(paste0("One of rasterToMatch/rasterToMatchLarge is missing. Both will be created \n",
-                     "from rawBiomassMap and studyArea/studyAreaLarge.\n
-              If this is wrong, provide both rasters"))
+    if (is.null(sim$rasterToMatchLarge))
+      warning(paste0("One of rasterToMatchLarge is missing. Both will be created \n",
+                     "from rawBiomassMap and studyAreaLarge.\n
+              If this is wrong, provide raster"))
 
     sim$rasterToMatchLarge <- sim$rawBiomassMap
     RTMvals <- getValues(sim$rasterToMatchLarge)
@@ -275,18 +275,6 @@ biomassDataInit <- function(sim) {
     sim$rasterToMatchLarge <- Cache(writeRaster, sim$rasterToMatchLarge,
                                     filename = file.path(dataPath(sim), "rasterToMatchLarge.tif"),
                                     datatype = "INT2U", overwrite = TRUE)
-
-    ## TODO: test with different SA/SALarge
-    sim$rasterToMatch <- Cache(postProcess,
-                               x = sim$rasterToMatchLarge,
-                               studyArea = sim$studyArea,   ## Ceres: makePixel table needs same no. pixels for this, RTM rawBiomassMap, LCC.. etc
-                               rasterToMatch = sim$rawBiomassMap,
-                               useSAcrs = FALSE,
-                               maskWithRTM = FALSE,   ## mask to SA
-                               method = "bilinear",
-                               datatype = "INT2U",
-                               filename2 = NULL,
-                               omitArgs = c("destinationPath", "targetFile", cacheTags, "stable"))
 
     ## this is old, and potentially not needed anymore
     if (FALSE) {
