@@ -239,27 +239,27 @@ biomassDataInit <- function(sim) {
     }
   }
 
-  if (!suppliedElsewhere("rawBiomassMap", sim) || needRTM) {
-    sim$rawBiomassMap <- Cache(prepInputs,
-                               targetFile = asPath(basename(rawBiomassMapFilename)),
-                               archive = asPath(c("kNN-StructureBiomass.tar",
-                                                  "NFI_MODIS250m_kNN_Structure_Biomass_TotalLiveAboveGround_v0.zip")),
-                               url = rawBiomassMapURL,
-                               destinationPath = dPath,
-                               studyArea = sim$studyAreaLarge,   ## Ceres: makePixel table needs same no. pixels for this, RTM rawBiomassMap, LCC.. etc
-                               # studyArea = sim$studyArea,
-                               rasterToMatch = if (!needRTM) sim$rasterToMatchLarge else NULL,
-                               # maskWithRTM = TRUE,    ## if RTM not supplied no masking happens (is this intended?)
-                               maskWithRTM = if (!needRTM) TRUE else FALSE,
-                               ## TODO: if RTM is not needed use SA CRS? -> this is not correct
-                               # useSAcrs = if (!needRTM) TRUE else FALSE,
-                               useSAcrs = FALSE,     ## never use SA CRS
-                               method = "bilinear",
-                               datatype = "INT2U",
-                               filename2 = TRUE, overwrite = TRUE,
-                               omitArgs = c("destinationPath", "targetFile", cacheTags, "stable"))
-  }
   if (needRTM) {
+    if (!suppliedElsewhere("rawBiomassMap", sim)) {
+      sim$rawBiomassMap <- Cache(prepInputs,
+                                 targetFile = asPath(basename(rawBiomassMapFilename)),
+                                 archive = asPath(c("kNN-StructureBiomass.tar",
+                                                    "NFI_MODIS250m_kNN_Structure_Biomass_TotalLiveAboveGround_v0.zip")),
+                                 url = rawBiomassMapURL,
+                                 destinationPath = dPath,
+                                 studyArea = sim$studyAreaLarge,   ## Ceres: makePixel table needs same no. pixels for this, RTM rawBiomassMap, LCC.. etc
+                                 # studyArea = sim$studyArea,
+                                 rasterToMatch = if (!needRTM) sim$rasterToMatchLarge else NULL,
+                                 # maskWithRTM = TRUE,    ## if RTM not supplied no masking happens (is this intended?)
+                                 maskWithRTM = if (!needRTM) TRUE else FALSE,
+                                 ## TODO: if RTM is not needed use SA CRS? -> this is not correct
+                                 # useSAcrs = if (!needRTM) TRUE else FALSE,
+                                 useSAcrs = FALSE,     ## never use SA CRS
+                                 method = "bilinear",
+                                 datatype = "INT2U",
+                                 filename2 = NULL,
+                                 omitArgs = c("destinationPath", "targetFile", cacheTags, "stable"))
+    }
     ## if we need rasterToMatch/rasterToMatchLarge, that means a) we don't have it, but b) we will have rawBiomassMap
     ## even if one of the rasterToMatch is present re-do both.
 
