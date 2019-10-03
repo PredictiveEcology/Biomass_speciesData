@@ -260,11 +260,10 @@ biomassDataInit <- function(sim) {
                                  filename2 = NULL,
                                  omitArgs = c("destinationPath", "targetFile", cacheTags, "stable"))
     }
-    ## if we need rasterToMatch/rasterToMatchLarge, that means a) we don't have it, but b) we will have rawBiomassMap
-    ## even if one of the rasterToMatch is present re-do both.
 
+    ## if we need rasterToMatchLarge, that means a) we don't have it, but b) we will have rawBiomassMap
     if (is.null(sim$rasterToMatchLarge))
-      warning(paste0("One of rasterToMatchLarge is missing. Both will be created \n",
+      warning(paste0("rasterToMatchLarge is missing and will be created \n",
                      "from rawBiomassMap and studyAreaLarge.\n
               If this is wrong, provide raster"))
 
