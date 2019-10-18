@@ -24,6 +24,9 @@ defineModule(sim, list(
                   "PredictiveEcology/pemisc@development"),
   parameters = rbind(
     #defineParameter("paramName", "paramClass", value, min, max, "parameter description"),
+    defineParameter("coverThresh", "integer", "10", NA, NA,
+                    paste("The minimum % cover a species needs to have (per pixel) in the study",
+                          "area to be considered present")),
     defineParameter("sppEquivCol", "character", "Boreal", NA, NA,
                     "The column in sim$specieEquivalency data.table to use as a naming convention"),
     defineParameter("types", "character", "KNN", NA, NA,
@@ -143,7 +146,7 @@ biomassDataInit <- function(sim) {
                               rasterToMatch = sim$rasterToMatchLarge,
                               sppEquiv = sim$sppEquiv,
                               sppEquivCol = P(sim)$sppEquivCol,
-                              userTags = cacheTags)
+                              thresh = P(sim)$coverThresh,
     sim$speciesLayers <- if (length(sim$speciesLayers) > 0) {
       Cache(overlayStacks,
             highQualityStack = speciesLayersNew,
