@@ -147,11 +147,15 @@ biomassDataInit <- function(sim) {
                               sppEquiv = sim$sppEquiv,
                               sppEquivCol = P(sim)$sppEquivCol,
                               thresh = P(sim)$coverThresh,
+                              userTags = cacheTags,
+                              omitArgs = c("userTags"))
     sim$speciesLayers <- if (length(sim$speciesLayers) > 0) {
       Cache(overlayStacks,
             highQualityStack = speciesLayersNew,
             lowQualityStack = sim$speciesLayers,
-            destinationPath = dPath)
+            destinationPath = dPath,
+            userTags = cacheTags,
+            omitArgs = c("userTags"))
     } else {
       speciesLayersNew
     }
@@ -263,7 +267,8 @@ biomassDataInit <- function(sim) {
                                  method = "bilinear",
                                  datatype = "INT2U",
                                  filename2 = NULL,
-                                 omitArgs = c("destinationPath", "targetFile", cacheTags, "stable"))
+                                 userTags = cacheTags,
+                                 omitArgs = c("destinationPath", "targetFile", "userTags", "stable"))
     }
 
     ## if we need rasterToMatchLarge, that means a) we don't have it, but b) we will have rawBiomassMap
@@ -277,7 +282,8 @@ biomassDataInit <- function(sim) {
     sim$rasterToMatchLarge[!is.na(RTMvals)] <- 1
     sim$rasterToMatchLarge <- Cache(writeOutputs, sim$rasterToMatchLarge,
                                     filename2 = file.path(cachePath(sim), "rasters", "rasterToMatchLarge.tif"),
-                                    datatype = "INT2U", overwrite = TRUE)
+                                    datatype = "INT2U", overwrite = TRUE,
+                                    userTags = cacheTags, omitArgs = c("userTags"))
 
     ## this is old, and potentially not needed anymore
     if (FALSE) {
@@ -317,7 +323,8 @@ biomassDataInit <- function(sim) {
                                 studyArea)
       sim$rasterToMatch <- Cache(writeRaster, sim$rasterToMatch,
                                  filename = file.path(dataPath(sim), "rasterToMatch.tif"),
-                                 datatype = "INT2U", overwrite = TRUE)
+                                 datatype = "INT2U", overwrite = TRUE,
+                                 userTags = cacheTags, omitArgs = c("userTags"))
     }
   }
 
