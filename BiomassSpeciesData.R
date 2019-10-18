@@ -158,6 +158,8 @@ biomassDataInit <- function(sim) {
     rm(speciesLayersNew)
   }
 
+  assertSpeciesLayers(sim$speciesLayers, P(sim)$coverThresh)
+
   species <- names(sim$speciesLayers)
 
   origFilenames <- vapply(layerNames(sim$speciesLayers), function(r) filename(sim$speciesLayers[[r]]),
