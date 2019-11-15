@@ -3,7 +3,7 @@
 # to all modules. Functions can be used without sim$ as they are namespaced, like functions
 # in R packages. If exact location is required, functions will be: sim$<moduleName>$FunctionName
 defineModule(sim, list(
-  name = "BiomassSpeciesData",
+  name = "Biomass_speciesData",
   description = "Download and pre-process proprietary LandWeb data.",
   keywords = c("LandWeb", "LandR"),
   authors = c(
@@ -12,12 +12,12 @@ defineModule(sim, list(
     person("Ceres", "Barros", email = "cbarros@mail.ubc.ca", role = c("aut"))
   ),
   childModules = character(0),
-  version = list(SpaDES.core = "0.2.3.9009", BiomassSpeciesData = "0.0.1"),
+  version = list(SpaDES.core = "0.2.3.9009", Biomass_speciesData = "0.0.1"),
   spatialExtent = raster::extent(rep(NA_real_, 4)),
   timeframe = as.POSIXlt(c(NA, NA)),
   timeunit = "year",
   citation = list("citation.bib"),
-  documentation = list("README.txt", "BiomassSpeciesData.Rmd"),
+  documentation = list("README.txt", "Biomass_speciesData.Rmd"),
   reqdPkgs = list("data.table", "googledrive", "gdalUtils", "magrittr", "parallel", "pryr", "raster", ## TODO: is gdalUtils actually used?
                   "reproducible", "SpaDES.core", "SpaDES.tools",
                   "PredictiveEcology/LandR@development",
@@ -83,11 +83,11 @@ defineModule(sim, list(
 ## event types
 #   - type `init` is required for initialiazation
 
-doEvent.BiomassSpeciesData <- function(sim, eventTime, eventType) {
+doEvent.Biomass_speciesData <- function(sim, eventTime, eventType) {
   switch(
     eventType,
     init = {
-      sim <- scheduleEvent(sim, P(sim)$.plotInitialTime, "BiomassSpeciesData", "initPlot",
+      sim <- scheduleEvent(sim, P(sim)$.plotInitialTime, "Biomass_speciesData", "initPlot",
                            eventPriority = 1)
 
       sim <- biomassDataInit(sim)

@@ -1,7 +1,7 @@
 ---
-title: "BiomassSpeciesData"
-author: "Eliot McIntire, Alex M Chubaty, Cerer Barros"
-date: "16 July 2018"
+title: "Biomass_speciesData"
+author: "Eliot McIntire, Alex M Chubaty, Ceres Barros"
+date: "46 Nov 2019"
 output:
   pdf_document: default
 editor_options: 
@@ -70,7 +70,7 @@ if(handDrawMap) {
   }
 }
 
-modules <-  list("BiomassSpeciesData")
+modules <-  list("Biomass_speciesData")
 objects <- if(handDrawMap) {
   list("studyAreaLarge" = studyAreaLarge,
        "studyArea" = studyAreaLarge)  
