@@ -3,7 +3,7 @@
 # please specify the package you need to run the sim function in the test files.
 
 # to test all the test files in the tests folder:
-test_dir("~/GitHub/LandWeb/m/BiomassSpeciesData/tests/testthat")
+test_dir("~/GitHub/LandWeb/m/Biomass_speciesData/tests/testthat")
 
 # Alternative, you can use test_file to test individual test file, e.g.:
-test_file("~/GitHub/LandWeb/m/BiomassSpeciesData/tests/testthat/test-template.R")
+test_file("~/GitHub/LandWeb/m/Biomass_speciesData/tests/testthat/test-template.R")
