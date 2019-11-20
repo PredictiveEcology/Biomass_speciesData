@@ -1,5 +1,5 @@
 ---
-title: "BiomassSpeciesData"
+title: "Biomass_speciesData"
 author: "Eliot McIntire, Alex M Chubaty, Cerer Barros"
 date: "16 July 2018"
 output:
@@ -76,7 +76,7 @@ if(handDrawMap) {
   }
 }
 
-modules <-  list("BiomassSpeciesData")
+modules <-  list("Biomass_speciesData")
 objects <- if(handDrawMap) {
   list("studyAreaLarge" = studyAreaLarge,
        "studyArea" = studyAreaLarge)  
