@@ -18,7 +18,7 @@ defineModule(sim, list(
   timeunit = "year",
   citation = list("citation.bib"),
   documentation = list("README.txt", "Biomass_speciesData.Rmd"),
-  reqdPkgs = list("data.table", "magrittr", "raster",
+  reqdPkgs = list("RCurl", "XML", "data.table", "magrittr", "raster",
                   "reproducible", "SpaDES.core", "SpaDES.tools",
                   "PredictiveEcology/LandR@development",
                   "PredictiveEcology/pemisc@development"),
@@ -33,7 +33,7 @@ defineModule(sim, list(
                     paste("The possible data sources. These must correspond to a function named",
                           "paste0('prepSpeciesLayers_', types). Defaults to 'KNN', to get the",
                           "Canadian Forestry Service, National Forest Inventory, kNN-derived species",
-                          "cover maps from 2001 - see http://tree.pfc.forestry.ca/NFI_MAP_V0_metadata.xls",
+                          "cover maps from 2001 - see https://open.canada.ca/data/en/dataset/ec9e2659-1c29-4ddb-87a2-6aced147a990",
                           "for metadata")),
     defineParameter("vegLeadingProportion", "numeric", 0.8, 0, 1,
                     "a number that define whether a species is leading for a given pixel"),
@@ -215,10 +215,6 @@ biomassDataInit <- function(sim) {
   dPath <- asPath(getOption("reproducible.destinationPath", dataPath(sim)), 1)
   message(currentModule(sim), ": using dataPath '", dPath, "'.")
 
-  # Filenames
-  rawBiomassMapFilename <- file.path(dPath, "NFI_MODIS250m_kNN_Structure_Biomass_TotalLiveAboveGround_v0.tif")
-  rawBiomassMapURL <- "http://tree.pfc.forestry.ca/kNN-StructureBiomass.tar"
-
   if (!suppliedElsewhere("studyAreaLarge", sim)) {
     if (suppliedElsewhere("studyArea", sim) && !is.null(sim$studyArea)) {
       message("'studyAreaLarge' was not provided by user. Using the same as 'studyArea'")
@@ -254,10 +250,15 @@ biomassDataInit <- function(sim) {
 
   if (needRTM) {
     if (!suppliedElsewhere("rawBiomassMap", sim)) {
+      url <- paste0("http://ftp.maps.canada.ca/pub/nrcan_rncan/Forests_Foret/",
+                    "canada-forests-attributes_attributs-forests-canada/2001-attributes_attributs-2001/")
+      fileURLs <- getURL(url, dirlistonly = TRUE)
+      fileNames <- getHTMLLinks(fileURLs)
+      rawBiomassMapFileName <- grep("Biomass_TotalLiveAboveGround.*.tif$", fileNames, value = TRUE)
+      rawBiomassMapURL <- paste0(url, rawBiomassMapFileName)
+
       sim$rawBiomassMap <- Cache(prepInputs,
-                                 targetFile = asPath(basename(rawBiomassMapFilename)),
-                                 archive = asPath(c("kNN-StructureBiomass.tar",
-                                                    "NFI_MODIS250m_kNN_Structure_Biomass_TotalLiveAboveGround_v0.zip")),
+                                 targetFile = asPath(rawBiomassMapFileName),
                                  url = rawBiomassMapURL,
                                  destinationPath = dPath,
                                  studyArea = sim$studyAreaLarge,   ## Ceres: makePixel table needs same no. pixels for this, RTM rawBiomassMap, LCC.. etc
