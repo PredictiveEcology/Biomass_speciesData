@@ -24,7 +24,7 @@ defineModule(sim, list(
                   "PredictiveEcology/pemisc@development"),
   parameters = rbind(
     #defineParameter("paramName", "paramClass", value, min, max, "parameter description"),
-    defineParameter("coverThresh", "integer", "10", NA, NA,
+    defineParameter("coverThresh", "integer", 10, NA, NA,
                     paste("The minimum % cover a species needs to have (per pixel) in the study",
                           "area to be considered present")),
     defineParameter("sppEquivCol", "character", "Boreal", NA, NA,
