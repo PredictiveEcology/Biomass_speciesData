@@ -272,7 +272,7 @@ biomassDataInit <- function(sim) {
                                  method = "bilinear",
                                  datatype = "INT2U",
                                  filename2 = NULL,
-                                 userTags = cacheTags,
+                                 userTags = c(cacheTags, "rawBiomassMap"),
                                  omitArgs = c("destinationPath", "targetFile", "userTags", "stable"))
     }
 
@@ -288,7 +288,8 @@ biomassDataInit <- function(sim) {
     sim$rasterToMatchLarge <- Cache(writeOutputs, sim$rasterToMatchLarge,
                                     filename2 = file.path(cachePath(sim), "rasters", "rasterToMatchLarge.tif"),
                                     datatype = "INT2U", overwrite = TRUE,
-                                    userTags = cacheTags, omitArgs = c("userTags"))
+                                    userTags = c(cacheTags, "rasterToMatchLarge"),
+                                    omitArgs = c("userTags"))
 
     ## this is old, and potentially not needed anymore
     if (FALSE) {
@@ -329,7 +330,8 @@ biomassDataInit <- function(sim) {
       sim$rasterToMatch <- Cache(writeRaster, sim$rasterToMatch,
                                  filename = file.path(dataPath(sim), "rasterToMatch.tif"),
                                  datatype = "INT2U", overwrite = TRUE,
-                                 userTags = cacheTags, omitArgs = c("userTags"))
+                                 userTags = c(cacheTags, "rasterToMatch"),
+                                 omitArgs = c("userTags"))
     }
   }
 
