@@ -254,11 +254,11 @@ biomassDataInit <- function(sim) {
                     "canada-forests-attributes_attributs-forests-canada/2001-attributes_attributs-2001/")
       fileURLs <- getURL(url, dirlistonly = TRUE)
       fileNames <- getHTMLLinks(fileURLs)
-      rawBiomassMapFileName <- grep("Biomass_TotalLiveAboveGround.*.tif$", fileNames, value = TRUE)
-      rawBiomassMapURL <- paste0(url, rawBiomassMapFileName)
+      rawBiomassMapFilename <- grep("Biomass_TotalLiveAboveGround.*.tif$", fileNames, value = TRUE)
+      rawBiomassMapURL <- paste0(url, rawBiomassMapFilename)
 
       sim$rawBiomassMap <- Cache(prepInputs,
-                                 targetFile = asPath(rawBiomassMapFileName),
+                                 targetFile = rawBiomassMapFilename,
                                  url = rawBiomassMapURL,
                                  destinationPath = dPath,
                                  studyArea = sim$studyAreaLarge,   ## Ceres: makePixel table needs same no. pixels for this, RTM rawBiomassMap, LCC.. etc
