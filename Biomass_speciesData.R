@@ -241,9 +241,9 @@ biomassDataInit <- function(sim) {
       needRTM <- TRUE
       message("There is no rasterToMatchLarge supplied; will attempt to use rawBiomassMap")
     } else {
-      stop("rasterToMatch is going to be supplied, but ", currentModule(sim), " requires it ",
+      stop("rasterToMatchLarge is going to be supplied, but ", currentModule(sim), " requires it ",
            "as part of its .inputObjects. Please make it accessible to ", currentModule(sim),
-           " in the .inputObjects by passing it in as an object in simInit(objects = list(rasterToMatch = aRaster)",
+           " in the .inputObjects by passing it in as an object in simInit(objects = list(rasterToMatchLarge = aRaster)",
            " or in a module that gets loaded prior to ", currentModule(sim))
     }
   }
@@ -257,7 +257,7 @@ biomassDataInit <- function(sim) {
       rawBiomassMapFilename <- grep("Biomass_TotalLiveAboveGround.*.tif$", fileNames, value = TRUE)
       rawBiomassMapURL <- paste0(url, rawBiomassMapFilename)
 
-      sim$rawBiomassMap <- Cache(prepInputs,
+      rawBiomassMap <- Cache(prepInputs,
                                  targetFile = rawBiomassMapFilename,
                                  url = rawBiomassMapURL,
                                  destinationPath = dPath,
@@ -282,7 +282,7 @@ biomassDataInit <- function(sim) {
                      "from rawBiomassMap and studyAreaLarge.\n
               If this is wrong, provide raster"))
 
-    sim$rasterToMatchLarge <- sim$rawBiomassMap
+    sim$rasterToMatchLarge <- rawBiomassMap
     RTMvals <- getValues(sim$rasterToMatchLarge)
     sim$rasterToMatchLarge[!is.na(RTMvals)] <- 1
     sim$rasterToMatchLarge <- Cache(writeOutputs, sim$rasterToMatchLarge,
