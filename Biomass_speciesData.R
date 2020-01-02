@@ -18,13 +18,13 @@ defineModule(sim, list(
   timeunit = "year",
   citation = list("citation.bib"),
   documentation = list("README.txt", "Biomass_speciesData.Rmd"),
-  reqdPkgs = list("data.table", "magrittr", "raster",
+  reqdPkgs = list("RCurl", "XML", "data.table", "magrittr", "raster",
                   "reproducible", "SpaDES.core", "SpaDES.tools",
                   "PredictiveEcology/LandR@development",
                   "PredictiveEcology/pemisc@development"),
   parameters = rbind(
     #defineParameter("paramName", "paramClass", value, min, max, "parameter description"),
-    defineParameter("coverThresh", "integer", "10", NA, NA,
+    defineParameter("coverThresh", "integer", 10, NA, NA,
                     paste("The minimum % cover a species needs to have (per pixel) in the study",
                           "area to be considered present")),
     defineParameter("sppEquivCol", "character", "Boreal", NA, NA,
@@ -33,7 +33,7 @@ defineModule(sim, list(
                     paste("The possible data sources. These must correspond to a function named",
                           "paste0('prepSpeciesLayers_', types). Defaults to 'KNN', to get the",
                           "Canadian Forestry Service, National Forest Inventory, kNN-derived species",
-                          "cover maps from 2001 - see http://tree.pfc.forestry.ca/NFI_MAP_V0_metadata.xls",
+                          "cover maps from 2001 - see https://open.canada.ca/data/en/dataset/ec9e2659-1c29-4ddb-87a2-6aced147a990",
                           "for metadata")),
     defineParameter("vegLeadingProportion", "numeric", 0.8, 0, 1,
                     "a number that define whether a species is leading for a given pixel"),
@@ -215,10 +215,6 @@ biomassDataInit <- function(sim) {
   dPath <- asPath(getOption("reproducible.destinationPath", dataPath(sim)), 1)
   message(currentModule(sim), ": using dataPath '", dPath, "'.")
 
-  # Filenames
-  rawBiomassMapFilename <- file.path(dPath, "NFI_MODIS250m_kNN_Structure_Biomass_TotalLiveAboveGround_v0.tif")
-  rawBiomassMapURL <- "http://tree.pfc.forestry.ca/kNN-StructureBiomass.tar"
-
   if (!suppliedElsewhere("studyAreaLarge", sim)) {
     if (suppliedElsewhere("studyArea", sim) && !is.null(sim$studyArea)) {
       message("'studyAreaLarge' was not provided by user. Using the same as 'studyArea'")
@@ -245,19 +241,24 @@ biomassDataInit <- function(sim) {
       needRTM <- TRUE
       message("There is no rasterToMatchLarge supplied; will attempt to use rawBiomassMap")
     } else {
-      stop("rasterToMatch is going to be supplied, but ", currentModule(sim), " requires it ",
+      stop("rasterToMatchLarge is going to be supplied, but ", currentModule(sim), " requires it ",
            "as part of its .inputObjects. Please make it accessible to ", currentModule(sim),
-           " in the .inputObjects by passing it in as an object in simInit(objects = list(rasterToMatch = aRaster)",
+           " in the .inputObjects by passing it in as an object in simInit(objects = list(rasterToMatchLarge = aRaster)",
            " or in a module that gets loaded prior to ", currentModule(sim))
     }
   }
 
   if (needRTM) {
     if (!suppliedElsewhere("rawBiomassMap", sim)) {
-      sim$rawBiomassMap <- Cache(prepInputs,
-                                 targetFile = asPath(basename(rawBiomassMapFilename)),
-                                 archive = asPath(c("kNN-StructureBiomass.tar",
-                                                    "NFI_MODIS250m_kNN_Structure_Biomass_TotalLiveAboveGround_v0.zip")),
+      url <- paste0("http://ftp.maps.canada.ca/pub/nrcan_rncan/Forests_Foret/",
+                    "canada-forests-attributes_attributs-forests-canada/2001-attributes_attributs-2001/")
+      fileURLs <- getURL(url, dirlistonly = TRUE)
+      fileNames <- getHTMLLinks(fileURLs)
+      rawBiomassMapFilename <- grep("Biomass_TotalLiveAboveGround.*.tif$", fileNames, value = TRUE)
+      rawBiomassMapURL <- paste0(url, rawBiomassMapFilename)
+
+      rawBiomassMap <- Cache(prepInputs,
+                                 targetFile = rawBiomassMapFilename,
                                  url = rawBiomassMapURL,
                                  destinationPath = dPath,
                                  studyArea = sim$studyAreaLarge,   ## Ceres: makePixel table needs same no. pixels for this, RTM rawBiomassMap, LCC.. etc
@@ -271,7 +272,7 @@ biomassDataInit <- function(sim) {
                                  method = "bilinear",
                                  datatype = "INT2U",
                                  filename2 = NULL,
-                                 userTags = cacheTags,
+                                 userTags = c(cacheTags, "rawBiomassMap"),
                                  omitArgs = c("destinationPath", "targetFile", "userTags", "stable"))
     }
 
@@ -281,13 +282,14 @@ biomassDataInit <- function(sim) {
                      "from rawBiomassMap and studyAreaLarge.\n
               If this is wrong, provide raster"))
 
-    sim$rasterToMatchLarge <- sim$rawBiomassMap
+    sim$rasterToMatchLarge <- rawBiomassMap
     RTMvals <- getValues(sim$rasterToMatchLarge)
     sim$rasterToMatchLarge[!is.na(RTMvals)] <- 1
     sim$rasterToMatchLarge <- Cache(writeOutputs, sim$rasterToMatchLarge,
                                     filename2 = file.path(cachePath(sim), "rasters", "rasterToMatchLarge.tif"),
                                     datatype = "INT2U", overwrite = TRUE,
-                                    userTags = cacheTags, omitArgs = c("userTags"))
+                                    userTags = c(cacheTags, "rasterToMatchLarge"),
+                                    omitArgs = c("userTags"))
 
     ## this is old, and potentially not needed anymore
     if (FALSE) {
@@ -328,7 +330,8 @@ biomassDataInit <- function(sim) {
       sim$rasterToMatch <- Cache(writeRaster, sim$rasterToMatch,
                                  filename = file.path(dataPath(sim), "rasterToMatch.tif"),
                                  datatype = "INT2U", overwrite = TRUE,
-                                 userTags = cacheTags, omitArgs = c("userTags"))
+                                 userTags = c(cacheTags, "rasterToMatch"),
+                                 omitArgs = c("userTags"))
     }
   }
 
