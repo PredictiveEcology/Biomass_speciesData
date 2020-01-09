@@ -1,7 +1,7 @@
 ---
 title: "Biomass_speciesData"
 author: "Eliot McIntire, Alex M Chubaty, Ceres Barros"
-date: "46 Nov 2019"
+date: "16 July 2018"
 output:
   pdf_document: default
 editor_options: 
@@ -14,13 +14,19 @@ knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 
 # Overview
 
-Download and pre-process proprietary LandWeb data (CASFRI + Paul Pickell's dataset) and kNN species biomass data
-Full data only available to authorized Google users.
-Defaults to extracting 5 species/genera Abies sp., Picea glauca, Picea mariana, Pinus sp. and  Populus tremuloides.
+Download and pre-process species biomass data to prepare species cover rasters.
+This module can currently access different data sources (kNN, CASFRI, Paul Pickell's dataset and data from forest inventories in Alberta), however only kNN datasets are freely available. Remaining datasets can only be accessed by authorized Google users.
+
+The module defaults to processing cover data for 5 species/genera *Abies sp.*, *Picea glauca*, *Picea mariana*, *Pinus sp.* and  *Populus tremuloides* in a random polygon in Alberta.
+
+# Functioning
+
+After downloading the data that can be accessed for the species chosen, the module merges the datasets (if several are used) by filling in the gaps of higher quality data with lower quality data. The parameter `types` lists the data sources to be used and its order determines the hierarchy of data filling from the lowest quality to highest quality. So, e.g., if using `types = c("KNN", "CASFRI")`, CASFRI is considered the highest quality source, and filled in with information from KNN.
+If the user wishes to use another data source, they will need to proving an accompanying function prefixed `prepSpeciesLayers_*`, where * corresponds to theis new data source's character string in `types`. The user should follow the `LandR::prepSpeciesLayers_KNN` and `LandR::prepSpeciesLayers_CASFRI` functions as templates to build theirs.
 
 # Links to other modules
 
-Intended for use with the Land-R-Biomass* suite of models - if LandWeb project permissions are valid, then the full datasets used for the LandWeb can be used here.
+Intended for use with the Land-R-Biomass suite of models - if LandWeb project permissions are valid, then the full datasets used for the LandWeb can be used here.
 
 ```{r Install-Missing-Or-Old-Packages, eval=FALSE}
 ## as of Nov 25th 2019
@@ -82,4 +88,3 @@ mySim <- simInit(modules = modules, objects = objects)
 mySimOut <- spades(mySim)
 options(opts)
 ```
-
