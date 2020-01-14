@@ -151,7 +151,7 @@ biomassDataInit <- function(sim) {
                               sppEquiv = sim$sppEquiv,
                               sppEquivCol = P(sim)$sppEquivCol,
                               thresh = P(sim)$coverThresh,
-                              userTags = c(cacheTags, "prepSpeciesLayers"),
+                              userTags = c(cacheTags, fnName, "prepSpeciesLayers"),
                               omitArgs = c("userTags"))
     sim$speciesLayers <- if (length(sim$speciesLayers) > 0) {
       Cache(overlayStacks,
