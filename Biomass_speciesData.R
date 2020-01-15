@@ -62,10 +62,14 @@ defineModule(sim, list(
     expectsInput("sppEquiv", "data.table",
                  desc = "table of species equivalencies. See LandR::sppEquivalencies_CA.",
                  sourceURL = ""),
+    expectsInput("studyArea", "SpatialPolygonsDataFrame",
+                 desc = paste("Polygon to use as the study area. Only used if studyAreaLarge is not supplied",
+                              "(see studyAreaLarge). Defaults to  an area in Southwestern Alberta, Canada."),
+                 sourceURL = ""),
     expectsInput("studyAreaLarge", "SpatialPolygonsDataFrame",
                  desc =  paste("Polygon to use as the parametrisation study area.",
                                "(studyAreaLarge is only used for parameter estimation, and",
-                               "can be larger than the actual study area of interest).",
+                               "can be larger than the actual study area of interest - studyArea).",
                                "If not provided by the user, it will first default to 'studyArea',",
                                "if this object exists. If not, it will default to an area in",
                                "Southwestern Alberta, Canada (the same as the default used for 'studyArea')."),
@@ -262,12 +266,8 @@ biomassDataInit <- function(sim) {
                                  url = rawBiomassMapURL,
                                  destinationPath = dPath,
                                  studyArea = sim$studyAreaLarge,   ## Ceres: makePixel table needs same no. pixels for this, RTM rawBiomassMap, LCC.. etc
-                                 # studyArea = sim$studyArea,
                                  rasterToMatch = if (!needRTM) sim$rasterToMatchLarge else NULL,
-                                 # maskWithRTM = TRUE,    ## if RTM not supplied no masking happens (is this intended?)
                                  maskWithRTM = if (!needRTM) TRUE else FALSE,
-                                 ## TODO: if RTM is not needed use SA CRS? -> this is not correct
-                                 # useSAcrs = if (!needRTM) TRUE else FALSE,
                                  useSAcrs = FALSE,     ## never use SA CRS
                                  method = "bilinear",
                                  datatype = "INT2U",
