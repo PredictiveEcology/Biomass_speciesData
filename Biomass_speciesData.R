@@ -290,49 +290,6 @@ biomassDataInit <- function(sim) {
                                     datatype = "INT2U", overwrite = TRUE,
                                     userTags = c(cacheTags, "rasterToMatchLarge"),
                                     omitArgs = c("userTags"))
-
-    ## this is old, and potentially not needed anymore
-    if (FALSE) {
-      studyArea <- sim$studyArea # temporary copy because it will be overwritten if it is suppliedElsewhere
-      message("  Rasterizing the studyArea polygon map")
-      if (!is(studyArea, "SpatialPolygonsDataFrame")) {
-        dfData <- if (is.null(rownames(studyArea))) {
-          polyID <- sapply(slot(studyArea, "polygons"), function(x) slot(x, "ID"))
-          data.frame("field" = as.character(seq_along(length(studyArea))), row.names = polyID)
-        } else {
-          polyID <- sapply(slot(studyArea, "polygons"), function(x) slot(x, "ID"))
-          data.frame("field" = rownames(studyArea), row.names = polyID)
-        }
-        studyArea <- SpatialPolygonsDataFrame(studyArea, data = dfData)
-      }
-      if (!identical(crs(studyArea), crs(sim$rasterToMatch))) {
-        studyArea <- spTransform(studyArea, crs(sim$rasterToMatch))
-        studyArea <- fixErrors(studyArea)
-
-        ## TODO: OVERWRITE sim$studyArea here? what about SAlarge?
-      }
-
-
-      #TODO: review whether this is necessary (or will break LandWeb if removed) see Git Issue #22
-      # layers provided by David Andison sometimes have LTHRC, sometimes LTHFC ... chose whichever
-      LTHxC <- grep("(LTH.+C)", names(studyArea), value = TRUE)
-      fieldName <- if (length(LTHxC)) {
-        LTHxC
-      } else {
-        if (length(names(studyArea)) > 1) {
-          ## study region may be a simple polygon
-          names(studyArea)[1]
-        } else NULL
-      }
-
-      sim$rasterToMatch <- crop(fasterizeFromSp(studyArea, sim$rasterToMatch, fieldName),
-                                studyArea)
-      sim$rasterToMatch <- Cache(writeRaster, sim$rasterToMatch,
-                                 filename = file.path(dataPath(sim), "rasterToMatch.tif"),
-                                 datatype = "INT2U", overwrite = TRUE,
-                                 userTags = c(cacheTags, "rasterToMatch"),
-                                 omitArgs = c("userTags"))
-    }
   }
 
   if (!suppliedElsewhere("sppEquiv", sim)) {
