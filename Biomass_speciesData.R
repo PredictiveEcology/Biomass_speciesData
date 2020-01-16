@@ -18,7 +18,7 @@ defineModule(sim, list(
   timeunit = "year",
   citation = list("citation.bib"),
   documentation = list("README.txt", "Biomass_speciesData.Rmd"),
-  reqdPkgs = list("data.table", "magrittr", "pryr"
+  reqdPkgs = list("data.table", "magrittr", "pryr",
                   "raster", "RCurl", "reproducible", "SpaDES.core", "SpaDES.tools", "XML",
                   "PredictiveEcology/LandR@development",
                   "PredictiveEcology/pemisc@development"),
