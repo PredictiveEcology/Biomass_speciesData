@@ -262,18 +262,18 @@ biomassDataInit <- function(sim) {
       rawBiomassMapURL <- paste0(url, rawBiomassMapFilename)
 
       rawBiomassMap <- Cache(prepInputs,
-                                 targetFile = rawBiomassMapFilename,
-                                 url = rawBiomassMapURL,
-                                 destinationPath = dPath,
-                                 studyArea = sim$studyAreaLarge,   ## Ceres: makePixel table needs same no. pixels for this, RTM rawBiomassMap, LCC.. etc
-                                 rasterToMatch = if (!needRTM) sim$rasterToMatchLarge else NULL,
-                                 maskWithRTM = if (!needRTM) TRUE else FALSE,
-                                 useSAcrs = FALSE,     ## never use SA CRS
-                                 method = "bilinear",
-                                 datatype = "INT2U",
-                                 filename2 = NULL,
-                                 userTags = c(cacheTags, "rawBiomassMap"),
-                                 omitArgs = c("destinationPath", "targetFile", "userTags", "stable"))
+                             targetFile = rawBiomassMapFilename,
+                             url = rawBiomassMapURL,
+                             destinationPath = dPath,
+                             studyArea = sim$studyAreaLarge,   ## Ceres: makePixel table needs same no. pixels for this, RTM rawBiomassMap, LCC.. etc
+                             rasterToMatch = if (!needRTM) sim$rasterToMatchLarge else NULL,
+                             maskWithRTM = if (!needRTM) TRUE else FALSE,
+                             useSAcrs = FALSE,     ## never use SA CRS
+                             method = "bilinear",
+                             datatype = "INT2U",
+                             filename2 = NULL,
+                             userTags = c(cacheTags, "rawBiomassMap"),
+                             omitArgs = c("destinationPath", "targetFile", "userTags", "stable"))
     }
 
     ## if we need rasterToMatchLarge, that means a) we don't have it, but b) we will have rawBiomassMap
