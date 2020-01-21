@@ -62,17 +62,12 @@ defineModule(sim, list(
     expectsInput("sppEquiv", "data.table",
                  desc = "table of species equivalencies. See LandR::sppEquivalencies_CA.",
                  sourceURL = ""),
-    # expectsInput("studyArea", "SpatialPolygonsDataFrame",
-    #              desc = paste("Polygon to use as the study area. Only used if studyAreaLarge is not supplied",
-    #                           "(see studyAreaLarge). Defaults to  an area in Southwestern Alberta, Canada."),
-    #              sourceURL = ""),
     expectsInput("studyAreaLarge", "SpatialPolygonsDataFrame",
                  desc =  paste("Polygon to use as the parametrisation study area.",
                                "(studyAreaLarge is only used for parameter estimation, and",
-                               "can be larger than the actual study area of interest - studyArea).",
-                               "If not provided by the user, it will first default to 'studyArea',",
-                               "if this object exists. If not, it will default to an area in",
-                               "Southwestern Alberta, Canada (the same as the default used for 'studyArea')."),
+                               "can be larger than the actual study area used for LandR Biomass simulations).",
+                               "If not provided by the user, it will default to an area in Southwestern Alberta,",
+                               "Canada (which is the same as the default study area used for LandR Biomass simulations)."),
                  sourceURL = NA),
     expectsInput("studyAreaReporting", "SpatialPolygonsDataFrame",
                  desc = paste("multipolygon (typically smaller/unbuffered than studyArea) to use for plotting/reporting.",
@@ -220,23 +215,13 @@ biomassDataInit <- function(sim) {
   message(currentModule(sim), ": using dataPath '", dPath, "'.")
 
   if (!suppliedElsewhere("studyAreaLarge", sim)) {
-    if (suppliedElsewhere("studyArea", sim) && !is.null(sim$studyArea)) {
-      message("'studyAreaLarge' was not provided by user. Using the same as 'studyArea'")
-      sim$studyAreaLarge <- sim$studyArea
-    } else {
-      message("'studyAreaLarge' was not provided by user. Using a polygon (6250000 m^2) in southwestern Alberta, Canada")
-      sim$studyAreaLarge <- randomStudyArea(seed = 1234, size = (250^2)*100)
-    }
+    message("'studyAreaLarge' was not provided by user. Using a polygon (6250000 m^2) in southwestern Alberta, Canada")
+    sim$studyAreaLarge <- randomStudyArea(seed = 1234, size = (250^2)*100)
   }
 
   if (!suppliedElsewhere("studyAreaReporting", sim)) {
-    if (suppliedElsewhere("studyArea", sim) && !is.null(sim$studyArea)) {
-      message("'studyAreaReporting' was not provided by user. Using the same as 'studyArea'.")
-      sim$studyAreaReporting <- sim$studyArea
-    } else {
-      message("'studyAreaReporting' was not provided by user. Using the same as 'studyAreaLarge'.")
-      sim$studyAreaReporting <- sim$studyAreaLarge
-    }
+    message("'studyAreaReporting' was not provided by user. Using the same as 'studyAreaLarge'.")
+    sim$studyAreaReporting <- sim$studyAreaLarge
   }
 
   needRTM <- FALSE
