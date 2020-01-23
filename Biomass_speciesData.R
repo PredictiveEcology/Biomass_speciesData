@@ -239,12 +239,10 @@ biomassDataInit <- function(sim) {
 
   if (needRTM) {
     if (!suppliedElsewhere("rawBiomassMap", sim)) {
-      url <- paste0("http://ftp.maps.canada.ca/pub/nrcan_rncan/Forests_Foret/",
-                    "canada-forests-attributes_attributs-forests-canada/2001-attributes_attributs-2001/")
-      fileURLs <- getURL(url, dirlistonly = TRUE)
-      fileNames <- getHTMLLinks(fileURLs)
-      rawBiomassMapFilename <- grep("Biomass_TotalLiveAboveGround.*.tif$", fileNames, value = TRUE)
-      rawBiomassMapURL <- paste0(url, rawBiomassMapFilename)
+      rawBiomassMapURL <- paste0("http://ftp.maps.canada.ca/pub/nrcan_rncan/Forests_Foret/",
+                                 "canada-forests-attributes_attributs-forests-canada/",
+                                 "2001-attributes_attributs-2001/",
+                                 "NFI_MODIS250m_2001_kNN_Structure_Biomass_TotalLiveAboveGround_v1.tif")
 
       rawBiomassMap <- Cache(prepInputs,
                              targetFile = rawBiomassMapFilename,
