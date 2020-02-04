@@ -62,17 +62,12 @@ defineModule(sim, list(
     expectsInput("sppEquiv", "data.table",
                  desc = "table of species equivalencies. See LandR::sppEquivalencies_CA.",
                  sourceURL = ""),
-    # expectsInput("studyArea", "SpatialPolygonsDataFrame",
-    #              desc = paste("Polygon to use as the study area. Only used if studyAreaLarge is not supplied",
-    #                           "(see studyAreaLarge). Defaults to  an area in Southwestern Alberta, Canada."),
-    #              sourceURL = ""),
     expectsInput("studyAreaLarge", "SpatialPolygonsDataFrame",
                  desc =  paste("Polygon to use as the parametrisation study area.",
                                "(studyAreaLarge is only used for parameter estimation, and",
-                               "can be larger than the actual study area of interest - studyArea).",
-                               "If not provided by the user, it will first default to 'studyArea',",
-                               "if this object exists. If not, it will default to an area in",
-                               "Southwestern Alberta, Canada (the same as the default used for 'studyArea')."),
+                               "can be larger than the actual study area used for LandR Biomass simulations).",
+                               "If not provided by the user, it will default to an area in Southwestern Alberta,",
+                               "Canada (which is the same as the default study area used for LandR Biomass simulations)."),
                  sourceURL = NA),
     expectsInput("studyAreaReporting", "SpatialPolygonsDataFrame",
                  desc = paste("multipolygon (typically smaller/unbuffered than studyArea) to use for plotting/reporting.",
@@ -220,23 +215,13 @@ biomassDataInit <- function(sim) {
   message(currentModule(sim), ": using dataPath '", dPath, "'.")
 
   if (!suppliedElsewhere("studyAreaLarge", sim)) {
-    if (suppliedElsewhere("studyArea", sim) && !is.null(sim$studyArea)) {
-      message("'studyAreaLarge' was not provided by user. Using the same as 'studyArea'")
-      sim$studyAreaLarge <- sim$studyArea
-    } else {
-      message("'studyAreaLarge' was not provided by user. Using a polygon (6250000 m^2) in southwestern Alberta, Canada")
-      sim$studyAreaLarge <- randomStudyArea(seed = 1234, size = (250^2)*100)
-    }
+    message("'studyAreaLarge' was not provided by user. Using a polygon (6250000 m^2) in southwestern Alberta, Canada")
+    sim$studyAreaLarge <- randomStudyArea(seed = 1234, size = (250^2)*100)
   }
 
   if (!suppliedElsewhere("studyAreaReporting", sim)) {
-    if (suppliedElsewhere("studyArea", sim) && !is.null(sim$studyArea)) {
-      message("'studyAreaReporting' was not provided by user. Using the same as 'studyArea'.")
-      sim$studyAreaReporting <- sim$studyArea
-    } else {
-      message("'studyAreaReporting' was not provided by user. Using the same as 'studyAreaLarge'.")
-      sim$studyAreaReporting <- sim$studyAreaLarge
-    }
+    message("'studyAreaReporting' was not provided by user. Using the same as 'studyAreaLarge'.")
+    sim$studyAreaReporting <- sim$studyAreaLarge
   }
 
   needRTM <- FALSE
@@ -254,26 +239,25 @@ biomassDataInit <- function(sim) {
 
   if (needRTM) {
     if (!suppliedElsewhere("rawBiomassMap", sim)) {
-      url <- paste0("http://ftp.maps.canada.ca/pub/nrcan_rncan/Forests_Foret/",
-                    "canada-forests-attributes_attributs-forests-canada/2001-attributes_attributs-2001/")
-      fileURLs <- getURL(url, dirlistonly = TRUE)
-      fileNames <- getHTMLLinks(fileURLs)
-      rawBiomassMapFilename <- grep("Biomass_TotalLiveAboveGround.*.tif$", fileNames, value = TRUE)
-      rawBiomassMapURL <- paste0(url, rawBiomassMapFilename)
+      rawBiomassMapURL <- paste0("http://ftp.maps.canada.ca/pub/nrcan_rncan/Forests_Foret/",
+                                 "canada-forests-attributes_attributs-forests-canada/",
+                                 "2001-attributes_attributs-2001/",
+                                 "NFI_MODIS250m_2001_kNN_Structure_Biomass_TotalLiveAboveGround_v1.tif")
+      rawBiomassMapFilename <- "NFI_MODIS250m_2001_kNN_Structure_Biomass_TotalLiveAboveGround_v1.tif"
 
       rawBiomassMap <- Cache(prepInputs,
-                                 targetFile = rawBiomassMapFilename,
-                                 url = rawBiomassMapURL,
-                                 destinationPath = dPath,
-                                 studyArea = sim$studyAreaLarge,   ## Ceres: makePixel table needs same no. pixels for this, RTM rawBiomassMap, LCC.. etc
-                                 rasterToMatch = if (!needRTM) sim$rasterToMatchLarge else NULL,
-                                 maskWithRTM = if (!needRTM) TRUE else FALSE,
-                                 useSAcrs = FALSE,     ## never use SA CRS
-                                 method = "bilinear",
-                                 datatype = "INT2U",
-                                 filename2 = NULL,
-                                 userTags = c(cacheTags, "rawBiomassMap"),
-                                 omitArgs = c("destinationPath", "targetFile", "userTags", "stable"))
+                             targetFile = rawBiomassMapFilename,
+                             url = rawBiomassMapURL,
+                             destinationPath = dPath,
+                             studyArea = sim$studyAreaLarge,   ## Ceres: makePixel table needs same no. pixels for this, RTM rawBiomassMap, LCC.. etc
+                             rasterToMatch = if (!needRTM) sim$rasterToMatchLarge else NULL,
+                             maskWithRTM = if (!needRTM) TRUE else FALSE,
+                             useSAcrs = FALSE,     ## never use SA CRS
+                             method = "bilinear",
+                             datatype = "INT2U",
+                             filename2 = NULL,
+                             userTags = c(cacheTags, "rawBiomassMap"),
+                             omitArgs = c("destinationPath", "targetFile", "userTags", "stable"))
     }
 
     ## if we need rasterToMatchLarge, that means a) we don't have it, but b) we will have rawBiomassMap
