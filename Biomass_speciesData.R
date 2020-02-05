@@ -173,7 +173,7 @@ biomassDataInit <- function(sim) {
                           character(1))
 
   ## re-enforce study area mask (merged/summed layers are losing the mask)
-  sim$speciesLayers <- raster::mask(sim$speciesLayers, sim$studyAreaLarge)
+  sim$speciesLayers <- raster::mask(sim$speciesLayers, sim$rasterToMatchLarge)
 
   sim$speciesLayers <- if (inMemory(sim$speciesLayers)) {
     sim$speciesLayers
