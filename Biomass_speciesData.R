@@ -175,6 +175,13 @@ biomassDataInit <- function(sim) {
   ## re-enforce study area mask (merged/summed layers are losing the mask)
   sim$speciesLayers <- raster::mask(sim$speciesLayers, sim$studyAreaLarge)
 
+  ## make sure empty pixels inside study area have 0 cover, instead of NAs.
+  ## this can happen when data has NAs instead of 0s and is not merged/overlayed (e.g. CASFRI)
+  tempRas <- sim$rasterToMatchLarge
+  tempRas[!is.na(tempRas[])] <- 0
+  sim$speciesLayers <- cover(sim$speciesLayers, tempRas)
+  rm(tempRas)
+
   sim$speciesLayers <- if (inMemory(sim$speciesLayers)) {
     sim$speciesLayers
   } else {
