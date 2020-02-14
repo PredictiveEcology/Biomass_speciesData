@@ -83,7 +83,6 @@ defineModule(sim, list(
                   desc = "a named vector with number of pixels with non-zero cover values"),
     createsOutput("nonZeroCover", "numeric",
                   desc = "A single value indicating how many pixels have non-zero cover")
-
   )
 ))
 
