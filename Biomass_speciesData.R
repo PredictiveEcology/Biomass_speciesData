@@ -171,10 +171,6 @@ biomassDataInit <- function(sim) {
   origFilenames <- vapply(layerNames(sim$speciesLayers), function(r) filename(sim$speciesLayers[[r]]),
                           character(1))
 
-  ## TODO: remove workaround for extent mismatches
-  if (extent(sim$speciesLayers) < extent(sim$rasterToMatchLarge))
-    sim$speciesLayers <- raster::extend(sim$speciesLayers, sim$rasterToMatchLarge)
-
   ## re-enforce study area mask (merged/summed layers are losing the mask)
   sim$speciesLayers <- raster::mask(sim$speciesLayers, sim$rasterToMatchLarge)
 
