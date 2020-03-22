@@ -101,7 +101,8 @@ doEvent.Biomass_speciesData <- function(sim, eventTime, eventType) {
     initPlot = {
       devCur <- dev.cur()
       quickPlot::dev(2)
-      plotVTM(speciesStack = raster::mask(sim$speciesLayers, sim$studyAreaReporting) %>% stack(),
+      plotVTM(speciesStack = raster::mask(sim$speciesLayers, sim$studyAreaReporting) %>%
+                raster::stack(),
               vegLeadingProportion = P(sim)$vegLeadingProportion,
               sppEquiv = sim$sppEquiv,
               sppEquivCol = P(sim)$sppEquivCol,
