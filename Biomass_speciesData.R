@@ -159,7 +159,7 @@ biomassDataInit <- function(sim) {
     if (isTRUE(all(res))) {
       file.remove(file.path(dPath, fnames))
     } else {
-      warning("Some files not copied: ", paste(fnames[!res], sep = ","))
+      warning("Some files not copied: ", paste(fnames[!res], collapse = ", "), ".")
     }
 
     sim$speciesLayers <- if (length(sim$speciesLayers) > 0) {
