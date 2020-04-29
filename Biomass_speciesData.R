@@ -156,7 +156,7 @@ biomassDataInit <- function(sim) {
       Cache(overlayStacks,
             highQualityStack = speciesLayersNew,
             lowQualityStack = sim$speciesLayers,
-            destinationPath = dPath,
+            destinationPath = outputPath(sim),
             userTags = c(cacheTags, "overlayStacks"),
             omitArgs = c("userTags"))
     } else {
