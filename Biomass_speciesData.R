@@ -296,7 +296,7 @@ biomassDataInit <- function(sim) {
                                     omitArgs = c("userTags"))
   }
 
-  if (!identical(crs(sim$studyAreaLarge), crs(sim$rasterToMatchLarge))) { ## TODO: use compareRaster
+  if (!identical(crs(sim$studyAreaLarge), crs(sim$rasterToMatchLarge))) {
     warning(paste0("studyAreaLarge and rasterToMatchLarge projections differ.\n",
                    "studyAreaLarge will be projected to match rasterToMatchLarge"))
     sim$studyAreaLarge <- spTransform(sim$studyAreaLarge, crs(sim$rasterToMatchLarge))
