@@ -1,6 +1,6 @@
 ---
 title: "Biomass_speciesData"
-author: "Eliot McIntire, Alex M Chubaty, Cerer Barros"
+author: "Eliot McIntire, Alex M Chubaty, Ceres Barros"
 date: "16 July 2018"
 output:
   pdf_document: default
@@ -88,4 +88,3 @@ mySim <- simInit(modules = modules, objects = objects)
 mySimOut <- spades(mySim)
 options(opts)
 ```
-
