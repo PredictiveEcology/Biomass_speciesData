@@ -196,8 +196,7 @@ biomassDataInit <- function(sim) {
           " overlaid in that sequence, higher quality last"[!singular])
 
   message("------------------")
-  message("There are ", sum(!is.na(sim$speciesLayers[[1]][])),
-          " pixels with trees in them")
+  message("There are ", sum(!is.na(sim$speciesLayers[[1]][])), " pixels with trees in them")
 
   # Calculate number of pixels with species cover
   speciesLayersDT <- as.data.table(sim$speciesLayers[] > 0)
@@ -252,7 +251,7 @@ biomassDataInit <- function(sim) {
                                  "canada-forests-attributes_attributs-forests-canada/",
                                  "2001-attributes_attributs-2001/",
                                  "NFI_MODIS250m_2001_kNN_Structure_Biomass_TotalLiveAboveGround_v1.tif")
-      rawBiomassMapFilename <- "NFI_MODIS250m_2001_kNN_Structure_Biomass_TotalLiveAboveGround_v1.tif"
+      rawBiomassMapFilename <- basename(rawBiomassMapURL)
       rawBiomassMap <- Cache(prepInputs,
                              targetFile = rawBiomassMapFilename,
                              url = rawBiomassMapURL,
