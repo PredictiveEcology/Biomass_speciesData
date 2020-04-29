@@ -152,6 +152,16 @@ biomassDataInit <- function(sim) {
                               thresh = P(sim)$coverThresh,
                               userTags = c(cacheTags, fnName, "prepSpeciesLayers"),
                               omitArgs = c("userTags"))
+
+    ## workaround to ensure intermediate outputs get put in outputPath
+    fnames <- list.files(dPath, "_speciesLayers")
+    res <- file.copy(file.path(dPath, fnames), file.path(outputPath(sim), fnames), overwrite = TRUE)
+    if (isTRUE(all(res))) {
+      file.remove(file.path(dPath, fnames))
+    } else {
+      warning("Some files not copied: ", paste(fnames[!res], sep = ","))
+    }
+
     sim$speciesLayers <- if (length(sim$speciesLayers) > 0) {
       Cache(overlayStacks,
             highQualityStack = speciesLayersNew,
@@ -169,7 +179,8 @@ biomassDataInit <- function(sim) {
 
   species <- names(sim$speciesLayers)
 
-  origFilenames <- vapply(layerNames(sim$speciesLayers), function(r) filename(sim$speciesLayers[[r]]),
+  origFilenames <- vapply(layerNames(sim$speciesLayers),
+                          function(r) filename(sim$speciesLayers[[r]]),
                           character(1))
 
   ## re-enforce study area mask (merged/summed layers are losing the mask)
