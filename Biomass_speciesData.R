@@ -153,15 +153,6 @@ biomassDataInit <- function(sim) {
                               userTags = c(cacheTags, fnName, "prepSpeciesLayers"),
                               omitArgs = c("userTags"))
 
-    ## workaround to ensure intermediate outputs get put in outputPath
-    fnames <- list.files(dPath, "_speciesLayers")
-    res <- file.copy(file.path(dPath, fnames), file.path(outputPath(sim), fnames), overwrite = TRUE)
-    if (isTRUE(all(res))) {
-      file.remove(file.path(dPath, fnames))
-    } else {
-      warning("Some files not copied: ", paste(fnames[!res], collapse = ", "), ".")
-    }
-
     sim$speciesLayers <- if (length(sim$speciesLayers) > 0) {
       Cache(overlayStacks,
             highQualityStack = speciesLayersNew,
