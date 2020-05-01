@@ -45,6 +45,8 @@ defineModule(sim, list(
                     "This describes the simulation time at which the first save event should occur"),
     defineParameter(".saveInterval", "numeric", NA, NA, NA,
                     "This describes the simulation time interval between save events"),
+    defineParameter(".studyAreaName", "character", NA, NA, NA,
+                    "Human-readable name for the study area used. If NA, a hash of studyArea will be used."),
     defineParameter(".useCache", "logical", "init", NA, NA,
                     desc = "Controls cache; caches the init event by default"),
     defineParameter(".useParallel", "numeric", parallel::detectCores(), NA, NA,
@@ -146,6 +148,7 @@ biomassDataInit <- function(sim) {
                               destinationPath = dPath, # this is generic files (preProcess)
                               outputPath = outputPath(sim), # this will be the studyArea-specific files (postProcess)
                               studyArea = sim$studyAreaLarge,
+                              studyAreaName = P(sim)$.studyAreaName,
                               rasterToMatch = sim$rasterToMatchLarge,
                               sppEquiv = sim$sppEquiv,
                               sppEquivCol = P(sim)$sppEquivCol,
@@ -227,6 +230,10 @@ biomassDataInit <- function(sim) {
     sim$studyAreaLarge <- randomStudyArea(seed = 1234, size = (250^2)*100)
   }
 
+  if (is.na(P(sim)$.studyAreaName)) {
+    params(sim)[[currentModule(sim)]][[".studyAreaName"]] <- studyAreaName(sim$studyAreaLarge)
+  }
+
   if (!suppliedElsewhere("studyAreaReporting", sim)) {
     message("'studyAreaReporting' was not provided by user. Using the same as 'studyAreaLarge'.")
     sim$studyAreaReporting <- sim$studyAreaLarge
@@ -264,7 +271,7 @@ biomassDataInit <- function(sim) {
                              useSAcrs = FALSE,     ## never use SA CRS
                              method = "bilinear",
                              datatype = "INT2U",
-                             filename2 = NULL,
+                             filename2 = NULL, # .suffix("rawBiomassMap.tif", paste0("_", P(sim)$.studyAreaName)),
                              userTags = c(cacheTags, "rawBiomassMap"),
                              omitArgs = c("destinationPath", "targetFile", "userTags", "stable"))
     } else {
@@ -275,7 +282,7 @@ biomassDataInit <- function(sim) {
                              maskWithRTM = FALSE,   ## mask with SA
                              method = "bilinear",
                              datatype = "INT2U",
-                             filename2 = NULL,
+                             filename2 = NULL, # .suffix("rawBiomassMap.tif", paste0("_", P(sim)$.studyAreaName)),
                              overwrite = TRUE,
                              userTags = cacheTags,
                              omitArgs = c("destinationPath", "targetFile", "userTags", "stable"))
