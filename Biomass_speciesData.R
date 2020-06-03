@@ -292,8 +292,8 @@ biomassDataInit <- function(sim) {
     ## if we need rasterToMatchLarge, that means a) we don't have it, but b) we will have rawBiomassMap
     if (is.null(sim$rasterToMatchLarge))
       warning(paste0("rasterToMatchLarge is missing and will be created \n",
-                     "from rawBiomassMap and studyAreaLarge.\n
-              If this is wrong, provide raster"))
+                     "from rawBiomassMap and studyAreaLarge.\n",
+                     "If this is wrong, provide raster"))
 
     sim$rasterToMatchLarge <- rawBiomassMap
     RTMvals <- getValues(sim$rasterToMatchLarge)
