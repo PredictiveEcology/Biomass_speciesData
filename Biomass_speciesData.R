@@ -272,7 +272,7 @@ biomassDataInit <- function(sim) {
                              useSAcrs = FALSE,     ## never use SA CRS
                              method = "bilinear",
                              datatype = "INT2U",
-                             filename2 = NULL, # .suffix("rawBiomassMap.tif", paste0("_", P(sim)$.studyAreaName)),
+                             filename2 = NULL,
                              userTags = c(cacheTags, "rawBiomassMap"),
                              omitArgs = c("destinationPath", "targetFile", "userTags", "stable"))
     } else {
@@ -283,7 +283,7 @@ biomassDataInit <- function(sim) {
                              maskWithRTM = FALSE,   ## mask with SA
                              method = "bilinear",
                              datatype = "INT2U",
-                             filename2 = NULL, # .suffix("rawBiomassMap.tif", paste0("_", P(sim)$.studyAreaName)),
+                             filename2 = NULL,
                              overwrite = TRUE,
                              userTags = cacheTags,
                              omitArgs = c("destinationPath", "targetFile", "userTags", "stable"))
@@ -292,8 +292,8 @@ biomassDataInit <- function(sim) {
     ## if we need rasterToMatchLarge, that means a) we don't have it, but b) we will have rawBiomassMap
     if (is.null(sim$rasterToMatchLarge))
       warning(paste0("rasterToMatchLarge is missing and will be created \n",
-                     "from rawBiomassMap and studyAreaLarge.\n
-              If this is wrong, provide raster"))
+                     "from rawBiomassMap and studyAreaLarge.\n",
+                     "If this is wrong, provide raster"))
 
     sim$rasterToMatchLarge <- rawBiomassMap
     RTMvals <- getValues(sim$rasterToMatchLarge)
