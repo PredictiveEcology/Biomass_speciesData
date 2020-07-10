@@ -3,18 +3,18 @@
 # 1. Rename this file based on the content you are testing using
 #    `test-functionName.R` format so that your can directly call `moduleCoverage`
 #    to calculate module coverage information.
-#    `functionName` is a function's name in your module (e.g., `BiomassSpeciesDataEvent1`).
-# 2. Copy this file to the tests folder (i.e., `~/GitHub/LandWeb/m/BiomassSpeciesData/tests/testthat`).
+#    `functionName` is a function's name in your module (e.g., `Biomass_speciesDataEvent1`).
+# 2. Copy this file to the tests folder (i.e., `~/GitHub/LandWeb/m/Biomass_speciesData/tests/testthat`).
 
 # 3. Modify the test description based on the content you are testing:
 test_that("test Event1 and Event2.", {
-  module <- list("BiomassSpeciesData")
+  module <- list("Biomass_speciesData")
   path <- list(modulePath = "~/GitHub/LandWeb/m",
                outputPath = file.path(tempdir(), "outputs"))
   parameters <- list(
     #.progress = list(type = "graphical", interval = 1),
     .globals = list(verbose = FALSE),
-    BiomassSpeciesData = list(.saveInitialTime = NA)
+    Biomass_speciesData = list(.saveInitialTime = NA)
   )
   times <- list(start = 0, end = 1)
 
@@ -55,8 +55,8 @@ test_that("test Event1 and Event2.", {
   #    Use this approach when using any function within the simList object
   #    (i.e., one version as a direct call, and one with `simList` object prepended).
 
-  if (exists("BiomassSpeciesDataEvent1", envir = .GlobalEnv)) {
-    simOutput <- BiomassSpeciesDataEvent1(mySim)
+  if (exists("Biomass_speciesDataEvent1", envir = .GlobalEnv)) {
+    simOutput <- Biomass_speciesDataEvent1(mySim)
   } else {
     simOutput <- myEvent1(mySim)
   }
@@ -66,8 +66,8 @@ test_that("test Event1 and Event2.", {
   expect_equal(simOutput$event1Test1, expectedOutputEvent1Test1) # or other expect function in testthat package.
   expect_equal(simOutput$event1Test2, as.numeric(999)) # or other expect function in testthat package.
 
-  if (exists("BiomassSpeciesDataEvent2", envir = .GlobalEnv)) {
-    simOutput <- BiomassSpeciesDataEvent2(mySim)
+  if (exists("Biomass_speciesDataEvent2", envir = .GlobalEnv)) {
+    simOutput <- Biomass_speciesDataEvent2(mySim)
   } else {
     simOutput <- myEvent2(mySim)
   }
