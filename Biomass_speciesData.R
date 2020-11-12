@@ -53,7 +53,7 @@ defineModule(sim, list(
     defineParameter(".useParallel", "numeric", parallel::detectCores(), NA, NA,
                     "Used in reading csv file with fread. Will be passed to data.table::setDTthreads.")
   ),
-  inputObjects = bind_rows(
+  inputObjects = bindrows(
     expectsInput("rasterToMatchLarge", "RasterLayer",
                  desc = paste("a raster of the studyAreaLarge in the same resolution and projection as biomassMap"),
                  sourceURL = ""),
@@ -77,7 +77,7 @@ defineModule(sim, list(
                               "Defaults to an area in Southwestern Alberta, Canada."),
                  sourceURL = NA)
   ),
-  outputObjects = bind_rows(
+  outputObjects = bindrows(
     createsOutput("speciesLayers", "RasterStack",
                   desc = "biomass percentage raster layers by species in Canada species map"),
     createsOutput("treed", "data.table",
