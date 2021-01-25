@@ -12,16 +12,15 @@ defineModule(sim, list(
     person("Ceres", "Barros", email = "cbarros@mail.ubc.ca", role = c("aut"))
   ),
   childModules = character(0),
-  version = list(SpaDES.core = "0.2.3.9009", Biomass_speciesData = "1.0.0", LandR = "0.0.4.9002",
-                 reproducible = "1.0.0.9011"),
+  version = list(Biomass_speciesData = "1.0.0"),
   spatialExtent = raster::extent(rep(NA_real_, 4)),
   timeframe = as.POSIXlt(c(NA, NA)),
   timeunit = "year",
   citation = list("citation.bib"),
   documentation = list("README.txt", "Biomass_speciesData.Rmd"),
   reqdPkgs = list("data.table", "magrittr", "pryr",
-                  "raster", "reproducible", "SpaDES.core", "SpaDES.tools",
-                  "PredictiveEcology/LandR@development",
+                  "raster", "reproducible (>=1.0.0.9011)", "SpaDES.core", "SpaDES.tools",
+                  "PredictiveEcology/LandR@development (>=0.0.11.9006)",
                   "PredictiveEcology/pemisc@development"),
   parameters = rbind(
     #defineParameter("paramName", "paramClass", value, min, max, "parameter description"),
@@ -261,6 +260,8 @@ biomassDataInit <- function(sim) {
                                  "canada-forests-attributes_attributs-forests-canada/",
                                  "2001-attributes_attributs-2001/",
                                  "NFI_MODIS250m_2001_kNN_Structure_Biomass_TotalLiveAboveGround_v1.tif")
+      httr::with_config(config = httr::config(ssl_verifypeer = 0L), { ## TODO: re-enable verify
+        #necessary for KNN
       rawBiomassMapFilename <- basename(rawBiomassMapURL)
       rawBiomassMap <- Cache(prepInputs,
                              targetFile = rawBiomassMapFilename,
@@ -275,6 +276,7 @@ biomassDataInit <- function(sim) {
                              filename2 = NULL,
                              userTags = c(cacheTags, "rawBiomassMap"),
                              omitArgs = c("destinationPath", "targetFile", "userTags", "stable"))
+      })
     } else {
       rawBiomassMap <- Cache(postProcess,
                              x = sim$rawBiomassMap,
