@@ -12,16 +12,15 @@ defineModule(sim, list(
     person("Ceres", "Barros", email = "cbarros@mail.ubc.ca", role = c("aut"))
   ),
   childModules = character(0),
-  version = list(SpaDES.core = "0.2.3.9009", Biomass_speciesData = "1.0.0", LandR = "0.0.4.9002",
-                 reproducible = "1.0.0.9011"),
+  version = list(Biomass_speciesData = "1.0.0"),
   spatialExtent = raster::extent(rep(NA_real_, 4)),
   timeframe = as.POSIXlt(c(NA, NA)),
   timeunit = "year",
   citation = list("citation.bib"),
   documentation = list("README.txt", "Biomass_speciesData.Rmd"),
   reqdPkgs = list("data.table", "magrittr", "pryr",
-                  "raster", "reproducible", "SpaDES.core", "SpaDES.tools",
-                  "PredictiveEcology/LandR@development",
+                  "raster", "reproducible (>=1.0.0.9011)", "SpaDES.core", "SpaDES.tools",
+                  "PredictiveEcology/LandR@development (>=0.0.11.9008)",
                   "PredictiveEcology/pemisc@development"),
   parameters = rbind(
     #defineParameter("paramName", "paramClass", value, min, max, "parameter description"),
@@ -53,7 +52,7 @@ defineModule(sim, list(
     defineParameter(".useParallel", "numeric", parallel::detectCores(), NA, NA,
                     "Used in reading csv file with fread. Will be passed to data.table::setDTthreads.")
   ),
-  inputObjects = bind_rows(
+  inputObjects = bindrows(
     expectsInput("rasterToMatchLarge", "RasterLayer",
                  desc = paste("a raster of the studyAreaLarge in the same resolution and projection as biomassMap"),
                  sourceURL = ""),
@@ -77,7 +76,7 @@ defineModule(sim, list(
                               "Defaults to an area in Southwestern Alberta, Canada."),
                  sourceURL = NA)
   ),
-  outputObjects = bind_rows(
+  outputObjects = bindrows(
     createsOutput("speciesLayers", "RasterStack",
                   desc = "biomass percentage raster layers by species in Canada species map"),
     createsOutput("treed", "data.table",
@@ -103,7 +102,8 @@ doEvent.Biomass_speciesData <- function(sim, eventTime, eventType) {
     },
     initPlot = {
       devCur <- dev.cur()
-      quickPlot::dev(2)
+      newDev <- if (!is.null(dev.list())) max(dev.list()) + 1 else 1
+      quickPlot::dev(newDev)
       plotVTM(speciesStack = raster::mask(sim$speciesLayers, sim$studyAreaReporting) %>%
                 raster::stack(),
               vegLeadingProportion = P(sim)$vegLeadingProportion,
@@ -261,6 +261,8 @@ biomassDataInit <- function(sim) {
                                  "canada-forests-attributes_attributs-forests-canada/",
                                  "2001-attributes_attributs-2001/",
                                  "NFI_MODIS250m_2001_kNN_Structure_Biomass_TotalLiveAboveGround_v1.tif")
+      httr::with_config(config = httr::config(ssl_verifypeer = 0L), { ## TODO: re-enable verify
+        #necessary for KNN
       rawBiomassMapFilename <- basename(rawBiomassMapURL)
       rawBiomassMap <- Cache(prepInputs,
                              targetFile = rawBiomassMapFilename,
@@ -275,6 +277,7 @@ biomassDataInit <- function(sim) {
                              filename2 = NULL,
                              userTags = c(cacheTags, "rawBiomassMap"),
                              omitArgs = c("destinationPath", "targetFile", "userTags", "stable"))
+      })
     } else {
       rawBiomassMap <- Cache(postProcess,
                              x = sim$rawBiomassMap,
