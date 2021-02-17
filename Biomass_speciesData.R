@@ -27,6 +27,9 @@ defineModule(sim, list(
     defineParameter("coverThresh", "integer", 10, NA, NA,
                     paste("The minimum % cover a species needs to have (per pixel) in the study",
                           "area to be considered present")),
+    defineParameter("demoMode", "logical", FALSE, NA, NA,
+                    desc = paste("if TRUE, the module can be run with no input objects.",
+                                 "Else, at a minimum, studyAreaLarge must be provided")),
     defineParameter("sppEquivCol", "character", "Boreal", NA, NA,
                     "The column in sim$specieEquivalency data.table to use as a naming convention"),
     defineParameter("types", "character", "KNN", NA, NA,
@@ -227,8 +230,12 @@ biomassDataInit <- function(sim) {
   message(currentModule(sim), ": using dataPath '", dPath, "'.")
 
   if (!suppliedElsewhere("studyAreaLarge", sim)) {
+    if (P(sim)$demoMode) {
     message("'studyAreaLarge' was not provided by user. Using a polygon (6250000 m^2) in southwestern Alberta, Canada")
     sim$studyAreaLarge <- randomStudyArea(seed = 1234, size = (250^2)*100)
+    } else {
+      stop("this module requires studyAreaLarge")
+    }
   }
 
   if (is.na(P(sim)$.studyAreaName)) {
@@ -321,8 +328,7 @@ biomassDataInit <- function(sim) {
 
     data("sppEquivalencies_CA", package = "LandR", envir = environment())
     sim$sppEquiv <- as.data.table(sppEquivalencies_CA)
-    ## By default, Abies_las is renamed to Abies_sp
-    sim$sppEquiv[KNN == "Abie_Las", LandR := "Abie_sp"]
+
 
     ## check spp column to use
     if (P(sim)$sppEquivCol == "Boreal") {
