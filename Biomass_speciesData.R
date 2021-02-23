@@ -230,12 +230,11 @@ biomassDataInit <- function(sim) {
   message(currentModule(sim), ": using dataPath '", dPath, "'.")
 
   if (!suppliedElsewhere("studyAreaLarge", sim)) {
-    if (P(sim)$demoMode) {
-    message("'studyAreaLarge' was not provided by user. Using a polygon (6250000 m^2) in southwestern Alberta, Canada")
-    sim$studyAreaLarge <- randomStudyArea(seed = 1234, size = (250^2)*100)
-    } else {
-      stop("this module requires studyAreaLarge")
-    }
+    stop("Please provide a 'studyAreaLarge' polygon.
+         If parameterisation is to be done on the same area as 'studyArea'
+         provide the same polygon to 'studyAreaLarge'")
+    # message("'studyAreaLarge' was not provided by user. Using the same as 'studyArea'")
+    # sim <- objectSynonyms(sim, list(c("studyAreaLarge", "studyArea"))) # Jan 2021 we agreed to force user to provide a SA/SAL
   }
 
   if (is.na(P(sim)$.studyAreaName)) {
