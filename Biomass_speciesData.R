@@ -238,7 +238,9 @@ biomassDataInit <- function(sim) {
   }
 
   if (is.na(P(sim)$.studyAreaName)) {
-    params(sim)[[currentModule(sim)]][[".studyAreaName"]] <- studyAreaName(sim$studyAreaLarge)
+    params(sim)[[currentModule(sim)]][[".studyAreaName"]] <- reproducible::studyAreaName(sim$studyAreaLarge)
+    message("The .studyAreaName is not supplied; derived name from sim$studyAreaLarge: ",
+            params(sim)[[currentModule(sim)]][[".studyAreaName"]])
   }
 
   if (!suppliedElsewhere("studyAreaReporting", sim)) {
