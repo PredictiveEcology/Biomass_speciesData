@@ -137,7 +137,7 @@ biomassDataInit <- function(sim) {
 
     envirName <- attr(whereIsFnName, "name")
     if (is.null(envirName))
-      envirName <- whereIsFnName
+      envirName <- environmentName(whereIsFnName)
 
     message("#############################################")
     message(type, " -- Loading using ", fnName, " located in ", envirName)
