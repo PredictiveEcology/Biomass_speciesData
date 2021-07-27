@@ -1,57 +1,61 @@
 ---
 title: "Biomass_speciesData"
 author: "Eliot McIntire, Alex M Chubaty, Ceres Barros"
-date: "16 July 2018"
+date: "11 May 2021, updated 26 Jul 2021"
 output:
-  pdf_document: default
-editor_options: 
+  html_document:
+    keep_md: yes
+editor_options:
   chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE, results = "hold")
 ```
+
+[![Gitter](https://badges.gitter.im/PredictiveEcology/LandR_Biomass.svg)](https://gitter.im/PredictiveEcology/LandR_Biomass?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 # Overview
 
-Download and pre-process species biomass data to prepare species cover rasters.
-This module can currently access different data sources (kNN, CASFRI, Paul Pickell's dataset and data from forest inventories in Alberta), however only kNN datasets are freely available. Remaining datasets can only be accessed by authorized Google users.
+Download and pre-process species % cover data to prepare species cover rasters.
+This module can currently access different data sources (kNN, CASFRI, Paul Pickell's dataset and data from forest inventories in Alberta), however only kNN datasets are freely available.
+Remaining datasets can only be accessed by authorized Google users.
 
 The module defaults to processing cover data for 5 species/genera *Abies sp.*, *Picea glauca*, *Picea mariana*, *Pinus sp.* and  *Populus tremuloides* in a random polygon in Alberta.
 
-# Functioning
+# Usage
 
-After downloading the data that can be accessed for the species chosen, the module merges the datasets (if several are used) by filling in the gaps of higher quality data with lower quality data. The parameter `types` lists the data sources to be used and its order determines the hierarchy of data filling from the lowest quality to highest quality. So, e.g., if using `types = c("KNN", "CASFRI")`, CASFRI is considered the highest quality source, and filled in with information from KNN.
-If the user wishes to use another data source, they will need to proving an accompanying function prefixed `prepSpeciesLayers_*`, where * corresponds to theis new data source's character string in `types`. The user should follow the `LandR::prepSpeciesLayers_KNN` and `LandR::prepSpeciesLayers_CASFRI` functions as templates to build theirs.
+After downloading the data that can be accessed for the species chosen, the module merges the datasets (if several are used) by filling in the gaps of higher quality data with lower quality data.
+The parameter `types` lists the data sources to be used and its order determines the hierarchy of data filling from the lowest quality to highest quality. So, e.g., if using `types = c("KNN", "CASFRI")`, CASFRI is considered the highest quality source, and filled in with information from KNN.
+If the user wishes to use another data source, they will need to provide an accompanying function prefixed `prepSpeciesLayers_*`, where * corresponds to the new data source's character string in `types`. For instance, the user would create a `prepSpeciesLayers_MyDataType` function and pass `types = c("MyDataType")` to the `types` parameter.
+We suggest following the `LandR::prepSpeciesLayers_KNN` and `LandR::prepSpeciesLayers_CASFRI` functions as templates to build a custom function.
 
-# Links to other modules
 
-Intended for use with the Land-R-Biomass suite of models - if LandWeb project permissions are valid, then the full datasets used for the LandWeb can be used here.
-
-```{r Install-Missing-Or-Old-Packages, eval=FALSE}
-## as of Nov 25th 2019
-devtools::install_github("PredictiveEcology/reproducible@development", dependencies = FALSE)
-devtools::install_github("PredictiveEcology/SpaDES.core@development", dependencies = FALSE)
-devtools::install_github("PredictiveEcology/pemisc@development")
-devtools::install_github("PredictiveEcology/LandR@development")
+```{r Install-Missing-Or-Old-Packages, eval = FALSE}
+if (!require("SpaDES.install")) {
+  devtools::install_github("PredictiveEcology/SpaDES.install")
+}
+SpaDES.install::makeSureAllPackagesInstalled(modulePath = "../Biomass_speciesData")
 
 # User may want to set some options -- see ?reproducibleOptions 
 #    -- often will be set outside of project by user --
 # options(reproducible.inputPaths = "E:/Data/LandR_related/") # to re-use datasets across projects
-
 ```
 
-```{r runSpaDES, eval=TRUE}
+```{r runSpaDES}
 library(raster)
 library(SpaDES)
 
-setPaths(modulePath = "../", cachePath = "cache/")
+setPaths(inputPath = file.path(tempDir, "inputs"), 
+         cachePath = file.path(tempDir, "cache"), 
+         modulePath = "../", 
+         outputPath = file.path(tempDir, "outputs"))
 
 ## do you want to hand-draw a map or use defaults?
 # - note that large areas will take longer to compute
 handDrawMap <- TRUE
 
-if(handDrawMap) {
+if (handDrawMap) {
   dev()
   clearPlot()
   canadaMap <- Cache(getData, 'GADM', country = 'CAN', level = 1, path = "data/",
@@ -64,27 +68,65 @@ if(handDrawMap) {
   }
   
   ## hand-drawn study area
-  if(!exists("studyAreaLarge")) {
+  if (!exists("studyAreaLarge")) {
     message("Since there is no object called 'studyAreaLarge', please draw a study area with 10 points")
     
     # use Cache here, so that if you restart, can use same random polygon, allowing Cache to be effective during
     #   the simInit and spades calls below
     severalrandompoints <- Cache(clickCoordinates, 10) 
-    if(startsWith(attr(severalrandompoints, "tags"), "cache")) message("Taking studyAreaLarge from Cache")
-    studyAreaLarge <- SpatialPolygons(list(Polygons(list(Polygon(severalrandompoints$coords)), ID = "handDrawnPoly")),
-                                          proj4string = crs(canadaMap))
+    if (startsWith(attr(severalrandompoints, "tags"), "cache")) message("Taking studyAreaLarge from Cache")
+    studyAreaLarge <- SpatialPolygons(list(
+      Polygons(list(Polygon(severalrandompoints$coords)),
+               ID = "handDrawnPoly")),
+      proj4string = crs(canadaMap))
   }
+} else {
+  studyAreaLarge <- Cache(randomStudyArea, size = 1e8) # cache this so it creates a random one only once on a machine
 }
 
-modules <-  list("Biomass_speciesData")
-objects <- if(handDrawMap) {
-  list("studyAreaLarge" = studyAreaLarge,
-       "studyArea" = studyAreaLarge)  
-} else list()
+modules <- list("Biomass_speciesData")
+objects <- list("studyAreaLarge" = studyAreaLarge)
 
 opts <- options(reproducible.useCache = TRUE)
-mySim <- simInit(modules = modules, objects = objects)
+mySim <- simInit(modules = modules, objects = objects, paths = getPaths())
 
 mySimOut <- spades(mySim)
 options(opts)
 ```
+
+# Parameters
+
+Summary of user-visible parameters:
+
+```{r moduleParams, echo = FALSE, eval = TRUE}
+df_params <- SpaDES.core::moduleParams("Biomass_speciesData", "..")
+knitr::kable(df_params)
+```
+
+# Data dependencies
+
+## Input data
+
+Summary of input objects:
+
+```{r moduleInputs, echo = FALSE, eval = TRUE}
+df_inputs <- SpaDES.core::moduleInputs("Biomass_speciesData", "..")
+knitr::kable(df_inputs)
+```
+
+## Output data
+
+Summary of the module outputs:
+
+```{r moduleOutputs, echo = FALSE, eval = TRUE}
+df_outputs <- SpaDES.core::moduleOutputs("Biomass_speciesData", "..")
+knitr::kable(df_outputs)
+```
+
+# Links to other modules
+
+Intended for use with the LandR-Biomass suite of models - if LandWeb project permissions are valid, then the full datasets used for the LandWeb can be used here.
+
+## Getting help
+
+- <https://gitter.im/PredictiveEcology/LandR_Biomass>
