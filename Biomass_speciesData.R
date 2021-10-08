@@ -193,7 +193,7 @@ biomassDataInit <- function(sim) {
   ## this can happen when data has NAs instead of 0s and is not merged/overlayed (e.g. CASFRI)
   tempRas <- sim$rasterToMatchLarge
   tempRas[!is.na(tempRas[])] <- 0
-  sim$speciesLayers <- cover(sim$speciesLayers, tempRas)
+  sim$speciesLayers <- raster::cover(sim$speciesLayers, tempRas)
   rm(tempRas)
 
   sim$speciesLayers <- if (inMemory(sim$speciesLayers)) {
@@ -324,7 +324,7 @@ biomassDataInit <- function(sim) {
   if (!compareCRS(sim$studyAreaLarge, sim$rasterToMatchLarge)) {
     warning(paste0("studyAreaLarge and rasterToMatchLarge projections differ.\n",
                    "studyAreaLarge will be projected to match rasterToMatchLarge"))
-    sim$studyAreaLarge <- spTransform(sim$studyAreaLarge, crs(sim$rasterToMatchLarge))
+    sim$studyAreaLarge <- spTransform(sim$studyAreaLarge, raster::crs(sim$rasterToMatchLarge))
     sim$studyAreaLarge <- fixErrors(sim$studyAreaLarge)
   }
 
