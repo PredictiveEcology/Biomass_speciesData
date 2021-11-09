@@ -7,7 +7,7 @@ defineModule(sim, list(
   description = "Download and pre-process proprietary LandWeb data.",
   keywords = c("LandWeb", "LandR"),
   authors = c(
-    person(c("Eliot", "J", "B"), "McIntire", email = "eliot.mcintire@canada.ca", role = c("aut", "cre")),
+    person(c("Eliot", "J", "B"), "McIntire", email = "eliot.mcintire@nrcan-rncan.gc.ca", role = c("aut", "cre")),
     person(c("Alex", "M."), "Chubaty", email = "achubaty@for-cast.ca", role = c("aut")),
     person("Ceres", "Barros", email = "cbarros@mail.ubc.ca", role = c("aut"))
   ),
@@ -20,7 +20,7 @@ defineModule(sim, list(
   documentation = list("README.txt", "Biomass_speciesData.Rmd"),
   reqdPkgs = list("data.table", "magrittr", "pryr",
                   "raster", "reproducible (>= 1.2.6.9005)",
-                  "SpaDES.core", "SpaDES.tools", "LandR (>=0.0.12.9003)",
+                  "SpaDES.core", "SpaDES.tools", "LandR (>= 1.0.6.9000)",
                   "PredictiveEcology/pemisc@development"),
   parameters = rbind(
     #defineParameter("paramName", "paramClass", value, min, max, "parameter description"),
@@ -30,13 +30,17 @@ defineModule(sim, list(
     defineParameter("demoMode", "logical", FALSE, NA, NA,
                     desc = paste("if TRUE, the module can be run with no input objects.",
                                  "Else, at a minimum, studyAreaLarge must be provided")),
+    defineParameter("dataYear", "numeric", 2001, NA, NA,
+                    paste("Passed to 'paste0('prepSpeciesLayers_', types)' function to fetch data",
+                          "from that year (if applicable). Defaults to 2001 as the default kNN year.")),
     defineParameter("sppEquivCol", "character", "Boreal", NA, NA,
                     "The column in sim$specieEquivalency data.table to use as a naming convention"),
     defineParameter("types", "character", "KNN", NA, NA,
                     paste("The possible data sources. These must correspond to a function named",
-                          "paste0('prepSpeciesLayers_', types). Defaults to 'KNN', to get the",
-                          "Canadian Forestry Service, National Forest Inventory, kNN-derived species",
-                          "cover maps from 2001 - see https://open.canada.ca/data/en/dataset/ec9e2659-1c29-4ddb-87a2-6aced147a990",
+                          "paste0('prepSpeciesLayers_', types). Defaults to 'KNN'",
+                          "to get the Canadian Forestry Service, National Forest Inventory,",
+                          "kNN-derived species cover maps from year 'dataYear'.",
+                          "See https://open.canada.ca/data/en/dataset/ec9e2659-1c29-4ddb-87a2-6aced147a990",
                           "for metadata")),
     defineParameter("vegLeadingProportion", "numeric", 0.8, 0, 1,
                     "a number that define whether a species is leading for a given pixel"),
@@ -107,8 +111,9 @@ doEvent.Biomass_speciesData <- function(sim, eventTime, eventType) {
       devCur <- dev.cur()
       newDev <- if (!is.null(dev.list())) max(dev.list()) + 1 else 1
       quickPlot::dev(newDev)
-      plotVTM(speciesStack = raster::mask(sim$speciesLayers, sim$studyAreaReporting) %>%
-                raster::stack(),
+      sppStack <- raster::mask(sim$speciesLayers, sim$studyAreaReporting) %>%
+        raster::stack()
+      plotVTM(speciesStack = sppStack,
               vegLeadingProportion = P(sim)$vegLeadingProportion,
               sppEquiv = sim$sppEquiv,
               sppEquivCol = P(sim)$sppEquivCol,
@@ -157,6 +162,7 @@ biomassDataInit <- function(sim) {
                               sppEquiv = sim$sppEquiv,
                               sppEquivCol = P(sim)$sppEquivCol,
                               thresh = P(sim)$coverThresh,
+                              year = P(sim)$dataYear,
                               userTags = c(cacheTags, fnName, "prepSpeciesLayers"),
                               omitArgs = c("userTags"))
 
@@ -188,7 +194,7 @@ biomassDataInit <- function(sim) {
   ## this can happen when data has NAs instead of 0s and is not merged/overlayed (e.g. CASFRI)
   tempRas <- sim$rasterToMatchLarge
   tempRas[!is.na(tempRas[])] <- 0
-  sim$speciesLayers <- cover(sim$speciesLayers, tempRas)
+  sim$speciesLayers <- raster::cover(sim$speciesLayers, tempRas)
   rm(tempRas)
 
   sim$speciesLayers <- if (inMemory(sim$speciesLayers)) {
@@ -269,8 +275,8 @@ biomassDataInit <- function(sim) {
                                  "canada-forests-attributes_attributs-forests-canada/",
                                  "2001-attributes_attributs-2001/",
                                  "NFI_MODIS250m_2001_kNN_Structure_Biomass_TotalLiveAboveGround_v1.tif")
-      httr::with_config(config = httr::config(ssl_verifypeer = 0L), { ## TODO: re-enable verify
-        #necessary for KNN
+      # httr::with_config(config = httr::config(ssl_verifypeer = 0L), { ## TODO: re-enable verify
+      #necessary for KNN
       rawBiomassMapFilename <- basename(rawBiomassMapURL)
       rawBiomassMap <- Cache(prepInputs,
                              targetFile = rawBiomassMapFilename,
@@ -285,7 +291,7 @@ biomassDataInit <- function(sim) {
                              filename2 = NULL,
                              userTags = c(cacheTags, "rawBiomassMap"),
                              omitArgs = c("destinationPath", "targetFile", "userTags", "stable"))
-      })
+      # })
     } else {
       rawBiomassMap <- Cache(postProcess,
                              x = sim$rawBiomassMap,
@@ -319,7 +325,7 @@ biomassDataInit <- function(sim) {
   if (!compareCRS(sim$studyAreaLarge, sim$rasterToMatchLarge)) {
     warning(paste0("studyAreaLarge and rasterToMatchLarge projections differ.\n",
                    "studyAreaLarge will be projected to match rasterToMatchLarge"))
-    sim$studyAreaLarge <- spTransform(sim$studyAreaLarge, crs(sim$rasterToMatchLarge))
+    sim$studyAreaLarge <- spTransform(sim$studyAreaLarge, raster::crs(sim$rasterToMatchLarge))
     sim$studyAreaLarge <- fixErrors(sim$studyAreaLarge)
   }
 
@@ -329,7 +335,6 @@ biomassDataInit <- function(sim) {
 
     data("sppEquivalencies_CA", package = "LandR", envir = environment())
     sim$sppEquiv <- as.data.table(sppEquivalencies_CA)
-
 
     ## check spp column to use
     if (P(sim)$sppEquivCol == "Boreal") {
