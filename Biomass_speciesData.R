@@ -7,7 +7,7 @@ defineModule(sim, list(
   description = "Download and pre-process proprietary LandWeb data.",
   keywords = c("LandWeb", "LandR"),
   authors = c(
-    person(c("Eliot", "J", "B"), "McIntire", email = "eliot.mcintire@canada.ca", role = c("aut", "cre")),
+    person(c("Eliot", "J", "B"), "McIntire", email = "eliot.mcintire@nrcan-rncan.gc.ca", role = c("aut", "cre")),
     person(c("Alex", "M."), "Chubaty", email = "achubaty@for-cast.ca", role = c("aut")),
     person("Ceres", "Barros", email = "cbarros@mail.ubc.ca", role = c("aut"))
   ),
@@ -111,8 +111,9 @@ doEvent.Biomass_speciesData <- function(sim, eventTime, eventType) {
       devCur <- dev.cur()
       newDev <- if (!is.null(dev.list())) max(dev.list()) + 1 else 1
       quickPlot::dev(newDev)
-      plotVTM(speciesStack = raster::mask(sim$speciesLayers, sim$studyAreaReporting) %>%
-                raster::stack(),
+      sppStack <- raster::mask(sim$speciesLayers, sim$studyAreaReporting) %>%
+        raster::stack()
+      plotVTM(speciesStack = sppStack,
               vegLeadingProportion = P(sim)$vegLeadingProportion,
               sppEquiv = sim$sppEquiv,
               sppEquivCol = P(sim)$sppEquivCol,
@@ -334,7 +335,6 @@ biomassDataInit <- function(sim) {
 
     data("sppEquivalencies_CA", package = "LandR", envir = environment())
     sim$sppEquiv <- as.data.table(sppEquivalencies_CA)
-
 
     ## check spp column to use
     if (P(sim)$sppEquivCol == "Boreal") {
