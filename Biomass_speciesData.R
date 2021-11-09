@@ -19,8 +19,8 @@ defineModule(sim, list(
   citation = list("citation.bib"),
   documentation = list("README.txt", "Biomass_speciesData.Rmd"),
   reqdPkgs = list("data.table", "magrittr", "pryr",
-                  "raster", "reproducible (>= 1.2.6.9005)",
-                  "SpaDES.core", "SpaDES.tools", "LandR (>= 1.0.6.9000)",
+                  "raster", "reproducible (>= 1.2.6.9005)", "SpaDES.core", "SpaDES.tools",
+                  "PredictiveEcology/LandR@development (>= 1.0.6.9000)",
                   "PredictiveEcology/pemisc@development"),
   parameters = rbind(
     #defineParameter("paramName", "paramClass", value, min, max, "parameter description"),
