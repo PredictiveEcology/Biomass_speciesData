@@ -7,20 +7,19 @@ defineModule(sim, list(
   description = "Download and pre-process proprietary LandWeb data.",
   keywords = c("LandWeb", "LandR"),
   authors = c(
-    person(c("Eliot", "J", "B"), "McIntire", email = "eliot.mcintire@canada.ca", role = c("aut", "cre")),
+    person(c("Eliot", "J", "B"), "McIntire", email = "eliot.mcintire@nrcan-rncan.gc.ca", role = c("aut", "cre")),
     person(c("Alex", "M."), "Chubaty", email = "achubaty@for-cast.ca", role = c("aut")),
     person("Ceres", "Barros", email = "cbarros@mail.ubc.ca", role = c("aut"))
   ),
   childModules = character(0),
-  version = list(SpaDES.core = "0.2.3.9009", Biomass_speciesData = "1.0.0", LandR = "0.0.4.9002",
-                 reproducible = "1.0.0.9011"),
+  version = list(Biomass_speciesData = "1.0.0"),
   spatialExtent = raster::extent(rep(NA_real_, 4)),
   timeframe = as.POSIXlt(c(NA, NA)),
   timeunit = "year",
   citation = list("citation.bib"),
   documentation = list("README.txt", "Biomass_speciesData.Rmd"),
   reqdPkgs = list("data.table", "magrittr", "pryr",
-                  "raster", "reproducible", "SpaDES.core", "SpaDES.tools",
+                  "raster", "reproducible (>= 1.2.6.9005)", "SpaDES.core", "SpaDES.tools",
                   "PredictiveEcology/LandR@development (>= 1.0.6.9000)",
                   "PredictiveEcology/pemisc@development"),
   parameters = rbind(
@@ -28,13 +27,20 @@ defineModule(sim, list(
     defineParameter("coverThresh", "integer", 10, NA, NA,
                     paste("The minimum % cover a species needs to have (per pixel) in the study",
                           "area to be considered present")),
+    defineParameter("demoMode", "logical", FALSE, NA, NA,
+                    desc = paste("if TRUE, the module can be run with no input objects.",
+                                 "Else, at a minimum, studyAreaLarge must be provided")),
+    defineParameter("dataYear", "numeric", 2001, NA, NA,
+                    paste("Passed to 'paste0('prepSpeciesLayers_', types)' function to fetch data",
+                          "from that year (if applicable). Defaults to 2001 as the default kNN year.")),
     defineParameter("sppEquivCol", "character", "Boreal", NA, NA,
                     "The column in sim$specieEquivalency data.table to use as a naming convention"),
     defineParameter("types", "character", "KNN", NA, NA,
                     paste("The possible data sources. These must correspond to a function named",
-                          "paste0('prepSpeciesLayers_', types). Defaults to 'KNN', to get the",
-                          "Canadian Forestry Service, National Forest Inventory, kNN-derived species",
-                          "cover maps from 2001 - see https://open.canada.ca/data/en/dataset/ec9e2659-1c29-4ddb-87a2-6aced147a990",
+                          "paste0('prepSpeciesLayers_', types). Defaults to 'KNN'",
+                          "to get the Canadian Forestry Service, National Forest Inventory,",
+                          "kNN-derived species cover maps from year 'dataYear'.",
+                          "See https://open.canada.ca/data/en/dataset/ec9e2659-1c29-4ddb-87a2-6aced147a990",
                           "for metadata")),
     defineParameter("vegLeadingProportion", "numeric", 0.8, 0, 1,
                     "a number that define whether a species is leading for a given pixel"),
@@ -53,7 +59,7 @@ defineModule(sim, list(
     defineParameter(".useParallel", "numeric", parallel::detectCores(), NA, NA,
                     "Used in reading csv file with fread. Will be passed to data.table::setDTthreads.")
   ),
-  inputObjects = bind_rows(
+  inputObjects = bindrows(
     expectsInput("rasterToMatchLarge", "RasterLayer",
                  desc = paste("a raster of the studyAreaLarge in the same resolution and projection as biomassMap"),
                  sourceURL = ""),
@@ -77,7 +83,7 @@ defineModule(sim, list(
                               "Defaults to an area in Southwestern Alberta, Canada."),
                  sourceURL = NA)
   ),
-  outputObjects = bind_rows(
+  outputObjects = bindrows(
     createsOutput("speciesLayers", "RasterStack",
                   desc = "biomass percentage raster layers by species in Canada species map"),
     createsOutput("treed", "data.table",
@@ -103,9 +109,11 @@ doEvent.Biomass_speciesData <- function(sim, eventTime, eventType) {
     },
     initPlot = {
       devCur <- dev.cur()
-      quickPlot::dev(2)
-      plotVTM(speciesStack = raster::mask(sim$speciesLayers, sim$studyAreaReporting) %>%
-                raster::stack(),
+      newDev <- if (!is.null(dev.list())) max(dev.list()) + 1 else 1
+      quickPlot::dev(newDev)
+      sppStack <- raster::mask(sim$speciesLayers, sim$studyAreaReporting) %>%
+        raster::stack()
+      plotVTM(speciesStack = sppStack,
               vegLeadingProportion = P(sim)$vegLeadingProportion,
               sppEquiv = sim$sppEquiv,
               sppEquivCol = P(sim)$sppEquivCol,
@@ -134,7 +142,7 @@ biomassDataInit <- function(sim) {
 
     envirName <- attr(whereIsFnName, "name")
     if (is.null(envirName))
-      envirName <- whereIsFnName
+      envirName <- environmentName(whereIsFnName)
 
     message("#############################################")
     message(type, " -- Loading using ", fnName, " located in ", envirName)
@@ -154,6 +162,7 @@ biomassDataInit <- function(sim) {
                               sppEquiv = sim$sppEquiv,
                               sppEquivCol = P(sim)$sppEquivCol,
                               thresh = P(sim)$coverThresh,
+                              year = P(sim)$dataYear,
                               userTags = c(cacheTags, fnName, "prepSpeciesLayers"),
                               omitArgs = c("userTags"))
 
@@ -185,7 +194,7 @@ biomassDataInit <- function(sim) {
   ## this can happen when data has NAs instead of 0s and is not merged/overlayed (e.g. CASFRI)
   tempRas <- sim$rasterToMatchLarge
   tempRas[!is.na(tempRas[])] <- 0
-  sim$speciesLayers <- cover(sim$speciesLayers, tempRas)
+  sim$speciesLayers <- raster::cover(sim$speciesLayers, tempRas)
   rm(tempRas)
 
   sim$speciesLayers <- if (inMemory(sim$speciesLayers)) {
@@ -227,12 +236,17 @@ biomassDataInit <- function(sim) {
   message(currentModule(sim), ": using dataPath '", dPath, "'.")
 
   if (!suppliedElsewhere("studyAreaLarge", sim)) {
-    message("'studyAreaLarge' was not provided by user. Using a polygon (6250000 m^2) in southwestern Alberta, Canada")
-    sim$studyAreaLarge <- randomStudyArea(seed = 1234, size = (250^2)*100)
+    stop("Please provide a 'studyAreaLarge' polygon.
+         If parameterisation is to be done on the same area as 'studyArea'
+         provide the same polygon to 'studyAreaLarge'")
+    # message("'studyAreaLarge' was not provided by user. Using the same as 'studyArea'")
+    # sim <- objectSynonyms(sim, list(c("studyAreaLarge", "studyArea"))) # Jan 2021 we agreed to force user to provide a SA/SAL
   }
 
   if (is.na(P(sim)$.studyAreaName)) {
-    params(sim)[[currentModule(sim)]][[".studyAreaName"]] <- studyAreaName(sim$studyAreaLarge)
+    params(sim)[[currentModule(sim)]][[".studyAreaName"]] <- reproducible::studyAreaName(sim$studyAreaLarge)
+    message("The .studyAreaName is not supplied; derived name from sim$studyAreaLarge: ",
+            params(sim)[[currentModule(sim)]][[".studyAreaName"]])
   }
 
   if (!suppliedElsewhere("studyAreaReporting", sim)) {
@@ -261,6 +275,8 @@ biomassDataInit <- function(sim) {
                                  "canada-forests-attributes_attributs-forests-canada/",
                                  "2001-attributes_attributs-2001/",
                                  "NFI_MODIS250m_2001_kNN_Structure_Biomass_TotalLiveAboveGround_v1.tif")
+      # httr::with_config(config = httr::config(ssl_verifypeer = 0L), { ## TODO: re-enable verify
+      #necessary for KNN
       rawBiomassMapFilename <- basename(rawBiomassMapURL)
       rawBiomassMap <- Cache(prepInputs,
                              targetFile = rawBiomassMapFilename,
@@ -275,6 +291,7 @@ biomassDataInit <- function(sim) {
                              filename2 = NULL,
                              userTags = c(cacheTags, "rawBiomassMap"),
                              omitArgs = c("destinationPath", "targetFile", "userTags", "stable"))
+      # })
     } else {
       rawBiomassMap <- Cache(postProcess,
                              x = sim$rawBiomassMap,
@@ -308,7 +325,7 @@ biomassDataInit <- function(sim) {
   if (!compareCRS(sim$studyAreaLarge, sim$rasterToMatchLarge)) {
     warning(paste0("studyAreaLarge and rasterToMatchLarge projections differ.\n",
                    "studyAreaLarge will be projected to match rasterToMatchLarge"))
-    sim$studyAreaLarge <- spTransform(sim$studyAreaLarge, crs(sim$rasterToMatchLarge))
+    sim$studyAreaLarge <- spTransform(sim$studyAreaLarge, raster::crs(sim$rasterToMatchLarge))
     sim$studyAreaLarge <- fixErrors(sim$studyAreaLarge)
   }
 
@@ -318,8 +335,6 @@ biomassDataInit <- function(sim) {
 
     data("sppEquivalencies_CA", package = "LandR", envir = environment())
     sim$sppEquiv <- as.data.table(sppEquivalencies_CA)
-    ## By default, Abies_las is renamed to Abies_sp
-    sim$sppEquiv[KNN == "Abie_Las", LandR := "Abie_sp"]
 
     ## check spp column to use
     if (P(sim)$sppEquivCol == "Boreal") {
