@@ -342,7 +342,7 @@ biomassDataInit <- function(sim) {
                     "will attempt to use species listed under 'Boreal'",
                     "in the 'LandR::sppEquivalencies_CA' table"))
     } else {
-      if (grepl(P(sim)$sppEquivCol, names(sim$sppEquiv))) {
+      if (any(grepl(P(sim)$sppEquivCol, names(sim$sppEquiv)))) {
         message(paste("There is no 'sppEquiv' table supplied,",
                       "will attempt to use species listed under", P(sim)$sppEquivCol,
                       "in the 'LandR::sppEquivalencies_CA' table"))
