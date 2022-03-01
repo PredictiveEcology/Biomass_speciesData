@@ -316,7 +316,8 @@ biomassDataInit <- function(sim) {
     RTMvals <- getValues(sim$rasterToMatchLarge)
     sim$rasterToMatchLarge[!is.na(RTMvals)] <- 1
     sim$rasterToMatchLarge <- Cache(writeOutputs, sim$rasterToMatchLarge,
-                                    filename2 = file.path(cachePath(sim), "rasters", "rasterToMatchLarge.tif"),
+                                    filename2 = .suffix(file.path(dPath, "rasterToMatchLarge.tif"),
+                                                        paste0("_", P(sim)$.studyAreaName)),
                                     datatype = "INT2U", overwrite = TRUE,
                                     userTags = c(cacheTags, "rasterToMatchLarge"),
                                     omitArgs = c("userTags"))
