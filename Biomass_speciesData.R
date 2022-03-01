@@ -118,18 +118,21 @@ doEvent.Biomass_speciesData <- function(sim, eventTime, eventType) {
       sim <- biomassDataInit(sim)
     },
     initPlot = {
-      devCur <- dev.cur()
-      newDev <- if (!is.null(dev.list())) max(dev.list()) + 1 else 1
-      quickPlot::dev(newDev)
-      sppStack <- raster::mask(sim$speciesLayers, sim$studyAreaReporting) %>%
-        raster::stack()
-      plotVTM(speciesStack = sppStack,
+      newDev <- if (!is.null(dev.list())) {
+        devCur <- dev.cur()
+        max(dev.list()) + 1
+      } else {
+        1
+      }
+      dev.set(newDev)
+      plotVTM(speciesStack = raster::mask(sim$speciesLayers, sim$studyAreaReporting) %>%
+                raster::stack(),
               vegLeadingProportion = P(sim)$vegLeadingProportion,
               sppEquiv = sim$sppEquiv,
               sppEquivCol = P(sim)$sppEquivCol,
               colors = sim$sppColorVect,
               title = "Initial Types")
-      quickPlot::dev(devCur)
+      if (exists("devCur")) dev.set(devCur)
     },
     warning(paste("Undefined event type: '", current(sim)[1, "eventType", with = FALSE],
                   "' in module '", current(sim)[1, "moduleName", with = FALSE], "'", sep = ""))
