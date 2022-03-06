@@ -29,23 +29,22 @@ always_allow_html: true
 ```{r setup-Biomass-speciesData, include=FALSE}
 ## set cache.rebuild = TRUE whenever there are changes to the module code/metadata
 knitr::opts_chunk$set(echo = TRUE, eval = FALSE, warning = FALSE, 
-                      cache = 2, cache.rebuild = FALSE, results = "hold", dpi = 300)
+                      cache = 2, cache.rebuild = TRUE, results = "hold", dpi = 300)
 
 ## get citation style
 if (!file.exists("citations/ecology-letters.csl")) {
   dir.create("citations", showWarnings = FALSE)
   download.file("https://www.zotero.org/styles/ecology-letters?source=1", destfile = "citations/ecology-letters.csl")
 }
+```
 
-if (!require(dplyr)) {
-  install.packages("dplyr")
-  library(dplyr)
+```{r loadPkgs, include = FALSE, cache = FALSE}
+if (!require(Require)) {
+  install.packages("Require")
+  library(Require)
 }
 
-if (!require(data.table)) {
-  install.packages("data.table")
-  library(data.table)
-}
+Require(c("dplyr", "data.table"), install = TRUE)
 ```
 
 [![made-with-Markdown](https://img.shields.io/badge/Made%20with-Markdown-1f425f.png)](http://commonmark.org)
@@ -189,7 +188,7 @@ sppEquiv <- as.data.table(sppEquivalencies_CA)
 ## remove empty species names
 sppEquiv <- sppEquiv[!(is.na(Boreal) | is.na(KNN) | Boreal == "" | KNN == ""),]
 sppEquiv2 <- sppEquiv[, .("Species" = Latin_full, "Generic name" = EN_generic_full)]
-sppEquiv2$Species <- sub("(.*)", "\\*\\1\\*",  sppEquiv$Species)  ## for italics
+sppEquiv2[, Species := sub("(.*)", "\\*\\1\\*", Species)]  ## for italics
 
 knitr::kable(sppEquiv2, 
              caption = "List of species cover data downloaded by default by  (ref:Biomass-speciesData).") %>%
@@ -285,8 +284,8 @@ The general flow of *Biomass_speciesData* processes is:
     processing consists in sub-setting the data to the area defined by
     `studyAreaLarge` and ensuring that the spatial projection and resolution
     match those of `rasterToMatchLarge`. After spatial processing, species
-    layers that have no pixels with values >= to the `coverThresh` parameter are
-    excluded.
+    layers that have no pixels with values \>= to the `coverThresh` parameter
+    are excluded.
 
 2.  If more than one data source is listed in `types`, the second set of species
     cover layers is downloaded and processed as above.
@@ -306,7 +305,7 @@ The general flow of *Biomass_speciesData* processes is:
 
 ### Load `SpaDES` and other packages.
 
-```{r load-SpaDES-Biomass-speciesData, eval=FALSE}
+```{r load-SpaDES-Biomass-speciesData}
 if (!require(Require)) {
   install.packages("Require")
   library(Require)
@@ -375,7 +374,7 @@ Note that because this is a data module (i.e., only attempts to prepare data for
 the simulation) we are not iterating it and so both the start and end times are
 set to `1` here.
 
-```{r module usage example2-Biomass-speciesData, eval=FALSE}
+```{r module usage example2-Biomass-speciesData}
 opts <- options(reproducible.useCache = TRUE,
                 reproducible.inputPaths = paths$inputPath)
 
@@ -391,7 +390,7 @@ options(opts)
 Here are some of the data retrieved by *Biomass_speciesData* for a randomly
 generated study area within Canada.
 
-```{r fig-Biomass-speciesDataOutPlots, echo = FALSE, eval = TRUE, fig.show='hold', out.width = "50%", fig.cap = "(ref:Biomass-speciesData) automatically generates a plot of species dominance and number of presences in the study area, when `.plotInitialTime = 1` is passed as an argument."}
+```{r fig-Biomass-speciesDataOutPlots, eval=TRUE, echo=FALSE, fig.show='hold', cache=FALSE, fig.cap = "(ref:Biomass-speciesData) automatically generates a plot of species dominance and number of presences in the study area when `.plotInitialTime=1` is passed as an argument."}
 knitr::include_graphics(c("figures/testRunFigure.png"))
 ```
 
