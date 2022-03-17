@@ -390,7 +390,7 @@ options(opts)
 Here are some of the data retrieved by *Biomass_speciesData* for a randomly
 generated study area within Canada.
 
-```{r fig-Biomass-speciesDataOutPlots, eval=TRUE, echo=FALSE, fig.show='hold', cache=FALSE, fig.cap = "(ref:Biomass-speciesData) automatically generates a plot of species dominance and number of presences in the study area when `.plotInitialTime=1` is passed as an argument."}
+```{r fig-Biomass-speciesDataOutPlots, eval=TRUE, echo=FALSE, fig.cap = "(ref:Biomass-speciesData) automatically generates a plot of species dominance and number of presences in the study area when `.plotInitialTime=1` is passed as an argument."}
 knitr::include_graphics(c("figures/testRunFigure.png"))
 ```
 
