@@ -391,7 +391,9 @@ Here are some of the data retrieved by *Biomass_speciesData* for a randomly
 generated study area within Canada.
 
 ```{r fig-Biomass-speciesDataOutPlots, eval=TRUE, echo=FALSE, fig.cap = "(ref:Biomass-speciesData) automatically generates a plot of species dominance and number of presences in the study area when `.plotInitialTime=1` is passed as an argument."}
-knitr::include_graphics(c("figures/testRunFigure.png"))
+## make sure all include_graphics have wd attached to figure path
+## this is necessary to knit to pdf using child Rmds - see https://stackoverflow.com/questions/61065560/cant-compile-rmarkdown-pdf-with-image-in-child-rmd-latex-error-image-file
+knitr::include_graphics(normalizePath(c("figures/testRunFigure.png"), winslash = "/"))
 ```
 
 ## References
