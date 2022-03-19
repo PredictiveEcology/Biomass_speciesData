@@ -336,7 +336,8 @@ paths <- list(inputPath = normPath(file.path(tempDir, "inputs")),
               modulePath = normPath(spadesModulesDirectory), 
               outputPath = normPath(file.path(tempDir, "outputs")))
 
-getModule("PredictiveEcology/Biomass_speciesData", modulePath = spadesModulesDirectory, overwrite = TRUE)
+getModule("PredictiveEcology/Biomass_speciesData", 
+                       modulePath = spadesModulesDirectory, overwrite = TRUE)
 
 ## make sure all necessary packages are installed:
 makeSureAllPackagesInstalled(spadesModulesDirectory)
