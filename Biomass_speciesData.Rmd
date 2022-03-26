@@ -25,6 +25,7 @@ always_allow_html: true
 <!-- the following are text references used in captions for LaTeX compatibility -->
 
 (ref:Biomass-speciesData) *Biomass_speciesData*
+(ref:percent) %
 
 ```{r setup-Biomass-speciesData, include=FALSE}
 ## set cache.rebuild = TRUE whenever there are changes to the module code/metadata
@@ -42,7 +43,7 @@ if (!require(Require)) {
   library(Require)
 }
 
-Require(c("dplyr", "data.table"), install = TRUE)
+Require(c("dplyr", "data.table", "PredictiveEcology/LandR"), install = TRUE)
 ```
 
 ```{r badgeFigs-Biomass-speciesData, include=FALSE, eval = TRUE, cache = FALSE}
@@ -74,7 +75,7 @@ above\^\^**
 
 ### Module summary
 
-This module downloads and pre-process species % cover data layers to be passed
+This module downloads and pre-process species (ref:percent) cover data layers to be passed
 to other LandR data modules (e.g., *Biomass_borealDataPrep*) or to the LandR
 forest simulation module *Biomass_core*.
 
@@ -107,7 +108,7 @@ knitr::kable(df_params,
 
 *Biomass_speciesData* only runs two events:
 
--   Module "initiation" (`init` event), during which all species % cover layers
+-   Module "initiation" (`init` event), during which all species (ref:percent) cover layers
     are downloaded and processed.
 -   Plotting of the processed species cover layers (`initPlot` event).
 
@@ -143,12 +144,12 @@ within the LandR ecosystem
 
 ### Detailed description
 
-This module accesses and processes species percent cover (% cover) data for the
+This module accesses and processes species percent cover ((ref:percent) cover) data for the
 parametrisation and initialization of LandR *Biomass_core*. This module ensures
 1) all data use the same geospatial geometries and 2) that these are correctly
 re-projected to studyAreaLarge, and 3) attempts to sequentially fill-in and
 replace the lowest quality data with higher quality data when several data
-sources are used. It's primary output is a `RasterStack` of species % cover,
+sources are used. It's primary output is a `RasterStack` of species (ref:percent) cover,
 with each layer corresponding to a species.
 
 Currently, the module can access the Canadian Forest Inventory forest attributes
@@ -166,10 +167,12 @@ When multiple data sources are used, the module will use replace lower quality
 data with higher quality data following the order specified by the parameter
 `types` (see [Parameters]).
 
-The module can also exclude species % cover layers if they don't have a minimum
-% cover value in at least one pixel. This means that the user should still
+When multiple species of a given data source are to be grouped, (ref:percent) cover is summed across species of the same group within each pixel. Please see the `sppEquiv` input in <!-- section --> for information on how species groups are defined.
+
+The module can also exclude species (ref:percent) cover layers if they don't have a minimum
+(ref:percent) cover value in at least one pixel. This means that the user should still
 inspect in how many pixels the species is deemed present, as it is possible that
-some data have only a few pixels with high % cover for a given species. In this
+some data have only a few pixels with high (ref:percent) cover for a given species. In this
 case, the user may choose to exclude these species *a posteriori*. The summary
 plot automatically shown by *Biomass_speciesData* can help diagnose whether
 certain species are present in very few pixels (see Fig.
@@ -184,7 +187,7 @@ have been previously downloaded and stored in the folder specified by
 
 The module defaults to processing cover data fo all species listed in the
 `Boreal` column of the default `sppEquiv` input `data.table` object, for which
-there are available % cover layers in the kNN dataset (Table
+there are available (ref:percent) cover layers in the kNN dataset (Table
 \@ref(tab:defaultSppBiomass-speciesData); see `?LandR::sppEquivalencies_CA` for
 more information):
 
@@ -227,13 +230,12 @@ following are particularly important and deserve special attention:
     *Biomass_core*. It is particularly important here because it will determine
     whether and how species (and their cover layers) are merged, if this is
     desired by the user. For instance, if the user wishes to simulate a generic
-    *Picea spp.* that includes, *Picea glauca*, *Picea mariana* and *Picea
-    engelmannii*, they will need to provide these three species names in the
+    *Picea spp.* that includes, *Picea glauca*, *Picea mariana* and *Picea    engelmannii*, they will need to provide these three species names in the
     data column (e.g., `KNN` if obtaining forest attribute kNN data layers from
     the Canadian Forest Inventory), but the same name (e.g., "Pice_Spp") in the
     coumn chosen for the naming convention used throughout the simulation (the
     `sppEquivCol` parameter); see Table
-    \@ref(tab:mergingSpp-Biomass-speciesData) for an example)
+    \@ref(tab:mergingSpp-Biomass-speciesData) for an example).
 
 ```{r mergingSpp-Biomass-speciesData, echo = FALSE, eval = TRUE, message = FALSE}
 sppEquiv2 <- sppEquiv[grepl("Abie|Pice|Pinu_Con", Boreal), .(Latin_full, KNN, Boreal)][KNN != "Pice_Spp"]
@@ -246,7 +248,7 @@ sppEquiv2[, `:=`(Species = sub("(.*)", "\\*\\1\\*", Species),
                  `Modelled as` = sub("(.*)", "\\*\\1\\*", `Modelled as`))]  ## for italics
 
 knitr::kable(sppEquiv2, 
-             caption = "Example of species merging for simulation. Here the user wants to model _Abies balsamea_, _A. lasiocarpa_ and _Pinus contorta_ as separate species, but all _Picea_ species as a generic _Picea spp._. For this, all six species are identified in the 'KNN' column, so that their % cover layers can be obtained, but in the 'Boreal' column (which defines the naming convention used in the simulation in this example) all _Picea_ species have the same name. (ref:Biomass-speciesData) will merge their % cover data into a single layer by summing their cover per pixel.") %>%
+             caption = "Example of species merging for simulation. Here the user wants to model _Abies balsamea_, _A. lasiocarpa_ and _Pinus contorta_ as separate species, but all _Picea_ species as a generic _Picea spp._. For this, all six species are identified in the 'KNN' column, so that their (ref:percent) cover layers can be obtained, but in the 'Boreal' column (which defines the naming convention used in the simulation in this example) all _Picea_ species have the same name. (ref:Biomass-speciesData) will merge their (ref:percent) cover data into a single layer by summing their cover per pixel.") %>%
   kableExtra::kable_styling(latex_options = "scale_down", full_width = TRUE)
 ```
 
@@ -265,7 +267,7 @@ knitr::kable(df_params,
 Of the parameters listed in Table \@ref(tab:moduleParams2-Biomass-speciesData),
 the following are particularly important:
 
--   `coverThresh` -- integer. Defines a minimum % cover value (from 0-100) that
+-   `coverThresh` -- integer. Defines a minimum (ref:percent) cover value (from 0-100) that
     the species must have in at least one pixel to be considered present in the
     study area, otherwise it is excluded from the final stack of species layers.
     Note that this will affect what species have data for an eventual simulation
@@ -273,7 +275,7 @@ the following are particularly important:
     trait tables will need to match the species in the cover layers)
     accordingly.
 
--   `types` -- character. Which % cover data sources are to be used (see
+-   `types` -- character. Which (ref:percent) cover data sources are to be used (see
     [Detailed description]). Several data sources can be passed, in which case
     the module will overlay the lower quality layers with higher quality ones
     **following the order of data sources specified by `types`** -- i.e., if
@@ -346,7 +348,7 @@ makeSureAllPackagesInstalled(spadesModulesDirectory)
 ### Setup simulation
 
 For this demonstration we are using all default parameter values, except
-`coverThresh` , which is lowered to 5%. The species layers (the major output of
+`coverThresh` , which is lowered to 5(ref:percent). The species layers (the major output of
 interest) are saved automatically, so there is no need to tell `spades` what to
 save using the `outputs` argument (see `?SpaDES.core::outputs`).
 
