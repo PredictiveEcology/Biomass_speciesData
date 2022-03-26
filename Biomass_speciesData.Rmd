@@ -25,6 +25,7 @@ always_allow_html: true
 <!-- the following are text references used in captions for LaTeX compatibility -->
 
 (ref:Biomass-speciesData) *Biomass_speciesData*
+
 (ref:percent) %
 
 ```{r setup-Biomass-speciesData, include=FALSE}
