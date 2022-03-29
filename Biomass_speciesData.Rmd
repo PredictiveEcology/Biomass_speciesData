@@ -337,18 +337,16 @@ Require(c("PredictiveEcology/SpaDES.install",
 
 ```{r module usage example setup -Biomass-speciesData, eval = FALSE}
 tempDir <- tempdir()
-spadesModulesDirectory <- file.path(tempDir, "modules")
-
 paths <- list(inputPath = normPath(file.path(tempDir, "inputs")), 
               cachePath = normPath(file.path(tempDir, "cache")), 
-              modulePath = normPath(spadesModulesDirectory), 
+              modulePath = normPath(file.path(tempDir, "modules")), 
               outputPath = normPath(file.path(tempDir, "outputs")))
 
 getModule("PredictiveEcology/Biomass_speciesData", 
-                       modulePath = spadesModulesDirectory, overwrite = TRUE)
+                       modulePath = paths$modulePath, overwrite = TRUE)
 
 ## make sure all necessary packages are installed:
-makeSureAllPackagesInstalled(spadesModulesDirectory)
+makeSureAllPackagesInstalled(paths$modulePath)
 ```
 
 ### Setup simulation
