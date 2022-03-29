@@ -28,6 +28,14 @@ always_allow_html: true
 
 (ref:percent) %
 
+(ref:Abie-bal) *Abies balsamea*
+
+(ref:Abie-las) *A. lasiocarpa*
+
+(ref:Pinu-con) *Pinus contorta*
+
+(ref:Pice-sp) *Picea spp.*
+
 ```{r setup-Biomass-speciesData, include=FALSE}
 ## set cache.rebuild = TRUE whenever there are changes to the module code/metadata
 knitr::opts_chunk$set(echo = TRUE, eval = FALSE, warning = FALSE, 
@@ -254,7 +262,7 @@ sppEquiv2[, `:=`(Species = sub("(.*)", "\\*\\1\\*", Species),
                  `Modelled as` = sub("(.*)", "\\*\\1\\*", `Modelled as`))]  ## for italics
 
 knitr::kable(sppEquiv2, 
-             caption = "Example of species merging for simulation. Here the user wants to model _Abies balsamea_, _A. lasiocarpa_ and _Pinus contorta_ as separate species, but all _Picea_ species as a generic _Picea spp._. For this, all six species are identified in the 'KNN' column, so that their percent cover layers can be obtained, but in the 'Boreal' column (which defines the naming convention used in the simulation in this example) all _Picea_ species have the same name. (ref:Biomass-speciesData) will merge their percent cover data into a single layer by summing their cover per pixel.") %>%
+             caption = "Example of species merging for simulation. Here the user wants to model (ref:Abie-bal), (ref:Abie-las) and (ref:Pinu-con) as separate species, but all (ref:Pice-sp) as a genus-level group. For this, all six species are identified in the \\'KNN\\' column, so that their (ref:percent) cover layers can be obtained, but in the \\'Boreal\\' column (which defines the naming convention used in the simulation in this example) all (ref:Pice-sp) have the same name. (ref:Biomass-speciesData) will merge their (ref:percent) cover data into a single layer by summing their cover per pixel.") %>%
   kableExtra::kable_styling(latex_options = "scale_down", full_width = TRUE)
 ```
 
