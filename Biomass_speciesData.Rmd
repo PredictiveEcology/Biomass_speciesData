@@ -67,8 +67,8 @@ download.file(url = "https://img.shields.io/badge/Get%20help-Report%20issues-%3C
 ```
 
 [![made-with-Markdown](figures/markdownBadge.png)](http://commonmark.org)
-[![Generic
-badge](figures/genericBadge.png)](https://github.com/PredictiveEcology/Biomass_speciesData/issues)
+
+[![Generic badge](figures/genericBadge.png)](https://github.com/PredictiveEcology/Biomass_speciesData/issues)
 
 <!-- if knitting to pdf remember to add the pandoc_args: ["--extract-media", "."] option to yml in order to get the badge images -->
 
@@ -104,14 +104,16 @@ be controlled via `options(reproducible.destinationPath = ...)`.
 df_inputs <- SpaDES.core::moduleInputs("Biomass_speciesData", "..")[, c(1, 3)]  ## name + desc only
 knitr::kable(df_inputs,
              caption = "List of (ref:Biomass-speciesData) input objects and their description.") %>%
-  kableExtra::kable_styling(latex_options = "scale_down", full_width = TRUE)
+  kableExtra::kable_styling(latex_options = c("scale_down", "repeat_header"), full_width = TRUE) %>%
+  kableExtra::column_spec(column = 2, width = "40em")
 ```
 
 ```{r moduleParams-Biomass-speciesData, echo = FALSE, eval = TRUE, message = FALSE}
 df_params <- SpaDES.core::moduleParams("Biomass_speciesData", "..")[, c(1, 6)] ## name + desc only
 knitr::kable(df_params,
              caption = "List of (ref:Biomass-speciesData) parameters and their description.") %>%
-  kableExtra::kable_styling(latex_options = "scale_down", full_width = TRUE)
+  kableExtra::kable_styling(latex_options = c("scale_down", "repeat_header"), full_width = TRUE) %>%
+  kableExtra::column_spec(column = 2, width = "40em")
 ```
 
 ### Events
@@ -131,7 +133,8 @@ The module produces the following outputs (Table
 df_outputs <- SpaDES.core::moduleOutputs("Biomass_speciesData", "..")[, c(1, 3)] ## name + desc only
 knitr::kable(df_outputs,
              caption = "List of (ref:Biomass-speciesData) output objects and their description.") %>%
-  kableExtra::kable_styling(latex_options = "scale_down", full_width = TRUE)
+  kableExtra::kable_styling(latex_options = c("scale_down", "repeat_header"), full_width = TRUE) %>%
+  kableExtra::column_spec(column = 2, width = "40em")
 ```
 
 and automatically saves the processed species cover layers in the output path
@@ -216,7 +219,7 @@ sppEquiv2[, Species := sub("(.*)", "\\*\\1\\*", Species)]  ## for italics
 
 knitr::kable(sppEquiv2, 
              caption = "List of species cover data downloaded by default by  (ref:Biomass-speciesData).") %>%
-  kableExtra::kable_styling(latex_options = "scale_down", full_width = TRUE)
+  kableExtra::kable_styling(latex_options = c("scale_down", "repeat_header"), full_width = TRUE)
 ```
 
 #### Input objects
@@ -227,7 +230,7 @@ knitr::kable(sppEquiv2,
 df_inputs <- SpaDES.core::moduleInputs("Biomass_speciesData", "..")
 knitr::kable(df_inputs, 
              caption = "List of (ref:Biomass-speciesData) input objects and their description.") %>%
-  kableExtra::kable_styling(latex_options = "scale_down", full_width = TRUE)
+  kableExtra::kable_styling(latex_options = c("scale_down", "repeat_header"), full_width = TRUE)
 ```
 
 Of the inputs in Table \@ref(tab:moduleInputs2-Biomass-speciesData), the
@@ -263,7 +266,7 @@ sppEquiv2[, `:=`(Species = sub("(.*)", "\\*\\1\\*", Species),
 
 knitr::kable(sppEquiv2, 
              caption = "Example of species merging for simulation. Here the user wants to model (ref:Abie-bal), (ref:Abie-las) and (ref:Pinu-con) as separate species, but all (ref:Pice-sp) as a genus-level group. For this, all six species are identified in the \\'KNN\\' column, so that their (ref:percent) cover layers can be obtained, but in the \\'Boreal\\' column (which defines the naming convention used in the simulation in this example) all (ref:Pice-sp) have the same name. (ref:Biomass-speciesData) will merge their (ref:percent) cover data into a single layer by summing their cover per pixel.") %>%
-  kableExtra::kable_styling(latex_options = "scale_down", full_width = TRUE)
+  kableExtra::kable_styling(latex_options = c("scale_down", "repeat_header"), full_width = TRUE)
 ```
 
 #### Parameters
@@ -275,7 +278,7 @@ Table \@ref(tab:moduleParams2-Biomass-speciesData) lists all parameters used in
 df_params <- SpaDES.core::moduleParams("Biomass_speciesData", "..")
 knitr::kable(df_params,
              caption = "List of (ref:Biomass-speciesData) parameters and their description.") %>%
-  kableExtra::kable_styling(latex_options = "scale_down", full_width = TRUE)
+  kableExtra::kable_styling(latex_options = c("scale_down", "repeat_header"), full_width = TRUE)
 ```
 
 Of the parameters listed in Table \@ref(tab:moduleParams2-Biomass-speciesData),
@@ -351,7 +354,7 @@ paths <- list(inputPath = normPath(file.path(tempDir, "inputs")),
               outputPath = normPath(file.path(tempDir, "outputs")))
 
 getModule("PredictiveEcology/Biomass_speciesData", 
-                       modulePath = paths$modulePath, overwrite = TRUE)
+          modulePath = paths$modulePath, overwrite = TRUE)
 
 ## make sure all necessary packages are installed:
 makeSureAllPackagesInstalled(paths$modulePath)
