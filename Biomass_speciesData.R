@@ -342,7 +342,7 @@ biomassDataInit <- function(sim) {
                      "If this is wrong, provide raster"))
 
     sim$rasterToMatchLarge <- rawBiomassMap
-    RTMvals <- getValues(sim$rasterToMatchLarge)
+    RTMvals <- sim$rasterToMatchLarge[]
     sim$rasterToMatchLarge[!is.na(RTMvals)] <- 1
     sim$rasterToMatchLarge <- Cache(writeOutputs, sim$rasterToMatchLarge,
                                     filename2 = .suffix(file.path(dPath, "rasterToMatchLarge.tif"),
