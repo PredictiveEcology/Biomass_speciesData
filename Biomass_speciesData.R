@@ -298,18 +298,24 @@ biomassDataInit <- function(sim) {
 
   if (needRTM) {
     ## if rawBiomassMap exists, it needs to match SALarge, if it doesn't make it
-    if (!suppliedElsewhere("rawBiomassMap", sim) ||
-        !compareRaster(sim$rawBiomassMap, sim$studyAreaLarge, stopiffalse = FALSE)) {
-      rawBiomassMapURL <- paste0("http://ftp.maps.canada.ca/pub/nrcan_rncan/Forests_Foret/",
-                                 "canada-forests-attributes_attributs-forests-canada/",
-                                 "2001-attributes_attributs-2001/",
-                                 "NFI_MODIS250m_2001_kNN_Structure_Biomass_TotalLiveAboveGround_v1.tif")
+    if (!suppliedElsewhere("rawBiomassMap", sim)) {
+      if (P(sim)$dataYear == 2001) {
+        biomassURL <- extractURL("rawBiomassMap")
+      } else {
+        if (P(sim)$dataYear == 2011) {
+          biomassURL <- paste0("http://ftp.maps.canada.ca/pub/nrcan_rncan/Forests_Foret/",
+                               "canada-forests-attributes_attributs-forests-canada/2011-attributes_attributs-2011/",
+                               "NFI_MODIS250m_2011_kNN_Structure_Biomass_TotalLiveAboveGround_v1.tif")
+        } else {
+          stop("'P(sim)$dataYear' must be 2001 OR 2011")
+        }
+      }
       # httr::with_config(config = httr::config(ssl_verifypeer = 0L), { ## TODO: re-enable verify
       #necessary for KNN
-      rawBiomassMapFilename <- basename(rawBiomassMapURL)
+      rawBiomassMapFilename <- basename(biomassURL)
       rawBiomassMap <- Cache(prepInputs,
                              targetFile = rawBiomassMapFilename,
-                             url = rawBiomassMapURL,
+                             url = biomassURL,
                              destinationPath = dPath,
                              studyArea = sim$studyAreaLarge,
                              rasterToMatch = NULL,
