@@ -328,17 +328,21 @@ biomassDataInit <- function(sim) {
                              omitArgs = c("destinationPath", "targetFile", "userTags", "stable"))
       # })
     } else {
-      rawBiomassMap <- Cache(postProcess,
-                             x = sim$rawBiomassMap,
-                             studyArea = sim$studyAreaLarge,
-                             useSAcrs = FALSE,
-                             maskWithRTM = FALSE,   ## mask with SA
-                             method = "bilinear",
-                             datatype = "INT2U",
-                             filename2 = NULL,
-                             overwrite = TRUE,
-                             userTags = cacheTags,
-                             omitArgs = c("destinationPath", "targetFile", "userTags", "stable"))
+      if (!compareRaster(sim$rawBiomassMap, sim$studyAreaLarge, stopiffalse = FALSE)) {
+        rawBiomassMap <- Cache(postProcess,
+                               x = sim$rawBiomassMap,
+                               studyArea = sim$studyAreaLarge,
+                               useSAcrs = FALSE,
+                               maskWithRTM = FALSE,   ## mask with SA
+                               method = "bilinear",
+                               datatype = "INT2U",
+                               filename2 = NULL,
+                               overwrite = TRUE,
+                               userTags = cacheTags,
+                               omitArgs = c("destinationPath", "targetFile", "userTags", "stable"))
+      } else {
+        rawBiomassMap <- sim$rawBiomassMap
+      }
     }
 
     ## if we need rasterToMatchLarge, that means a) we don't have it, but b) we will have rawBiomassMap
