@@ -72,7 +72,7 @@ defineModule(sim, list(
                               "kNN-derived stand biomass map."),
                  sourceURL = ""),
     expectsInput("rawBiomassMap", "RasterLayer",
-                 desc = paste("total biomass raster layer in study area. Only used to create rasterToMatchLarge",
+                 desc = paste("total biomass raster layer in study area. Only used to create `rasterToMatchLarge`",
                               "if necessary. Defaults to the Canadian Forestry Service, National Forest Inventory,",
                               "kNN-derived total aboveground biomass map from 2001 (in tonnes/ha), unless",
                               "'dataYear' != 2001. See ",
