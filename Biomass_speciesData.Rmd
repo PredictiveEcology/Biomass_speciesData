@@ -26,10 +26,20 @@ always_allow_html: true
 
 (ref:Biomass-speciesData) *Biomass_speciesData*
 
+(ref:percent) %
+
+(ref:Abie-bal) *Abies balsamea*
+
+(ref:Abie-las) *A. lasiocarpa*
+
+(ref:Pinu-con) *Pinus contorta*
+
+(ref:Pice-sp) *Picea spp.*
+
 ```{r setup-Biomass-speciesData, include=FALSE}
 ## set cache.rebuild = TRUE whenever there are changes to the module code/metadata
 knitr::opts_chunk$set(echo = TRUE, eval = FALSE, warning = FALSE, 
-                      cache = 2, cache.rebuild = FALSE, results = "hold", dpi = 300)
+                      cache = TRUE, cache.rebuild = FALSE, results = "hold", dpi = 300)
 
 ## get citation style
 if (!file.exists("citations/ecology-letters.csl")) {
@@ -42,7 +52,7 @@ if (!require(Require)) {
   library(Require)
 }
 
-Require(c("dplyr", "data.table"), install = TRUE)
+Require(c("dplyr", "data.table", "PredictiveEcology/LandR"), install = TRUE)
 ```
 
 ```{r badgeFigs-Biomass-speciesData, include=FALSE, eval = TRUE, cache = FALSE}
@@ -57,6 +67,7 @@ download.file(url = "https://img.shields.io/badge/Get%20help-Report%20issues-%3C
 ```
 
 [![made-with-Markdown](figures/markdownBadge.png)](http://commonmark.org)
+
 [![Generic badge](figures/genericBadge.png)](https://github.com/PredictiveEcology/Biomass_speciesData/issues)
 
 <!-- if knitting to pdf remember to add the pandoc_args: ["--extract-media", "."] option to yml in order to get the badge images -->
@@ -74,9 +85,9 @@ above\^\^**
 
 ### Module summary
 
-This module downloads and pre-process species % cover data layers to be passed
-to other LandR data modules (e.g., *Biomass_borealDataPrep*) or to the LandR
-forest simulation module *Biomass_core*.
+This module downloads and pre-process species (ref:percent) cover data layers to
+be passed to other LandR data modules (e.g., *Biomass_borealDataPrep*) or to the
+LandR forest simulation module *Biomass_core*.
 
 ### Module inputs and parameters at a glance
 
@@ -93,22 +104,24 @@ be controlled via `options(reproducible.destinationPath = ...)`.
 df_inputs <- SpaDES.core::moduleInputs("Biomass_speciesData", "..")[, c(1, 3)]  ## name + desc only
 knitr::kable(df_inputs,
              caption = "List of (ref:Biomass-speciesData) input objects and their description.") %>%
-  kableExtra::kable_styling(latex_options = "scale_down", full_width = TRUE)
+  kableExtra::kable_styling(latex_options = c("scale_down", "repeat_header"), full_width = TRUE) %>%
+  kableExtra::column_spec(column = 2, width = "40em")
 ```
 
 ```{r moduleParams-Biomass-speciesData, echo = FALSE, eval = TRUE, message = FALSE}
 df_params <- SpaDES.core::moduleParams("Biomass_speciesData", "..")[, c(1, 6)] ## name + desc only
 knitr::kable(df_params,
              caption = "List of (ref:Biomass-speciesData) parameters and their description.") %>%
-  kableExtra::kable_styling(latex_options = "scale_down", full_width = TRUE)
+  kableExtra::kable_styling(latex_options = c("scale_down", "repeat_header"), full_width = TRUE) %>%
+  kableExtra::column_spec(column = 2, width = "40em")
 ```
 
 ### Events
 
 *Biomass_speciesData* only runs two events:
 
--   Module "initiation" (`init` event), during which all species % cover layers
-    are downloaded and processed.
+-   Module "initiation" (`init` event), during which all species (ref:percent)
+    cover layers are downloaded and processed.
 -   Plotting of the processed species cover layers (`initPlot` event).
 
 ### Module outputs
@@ -120,7 +133,8 @@ The module produces the following outputs (Table
 df_outputs <- SpaDES.core::moduleOutputs("Biomass_speciesData", "..")[, c(1, 3)] ## name + desc only
 knitr::kable(df_outputs,
              caption = "List of (ref:Biomass-speciesData) output objects and their description.") %>%
-  kableExtra::kable_styling(latex_options = "scale_down", full_width = TRUE)
+  kableExtra::kable_styling(latex_options = c("scale_down", "repeat_header"), full_width = TRUE) %>%
+  kableExtra::column_spec(column = 2, width = "40em")
 ```
 
 and automatically saves the processed species cover layers in the output path
@@ -143,13 +157,13 @@ within the LandR ecosystem
 
 ### Detailed description
 
-This module accesses and processes species percent cover (% cover) data for the
-parametrisation and initialization of LandR *Biomass_core*. This module ensures
-1) all data use the same geospatial geometries and 2) that these are correctly
-re-projected to studyAreaLarge, and 3) attempts to sequentially fill-in and
-replace the lowest quality data with higher quality data when several data
-sources are used. It's primary output is a `RasterStack` of species % cover,
-with each layer corresponding to a species.
+This module accesses and processes species percent cover ((ref:percent) cover)
+data for the parametrisation and initialization of LandR *Biomass_core*. This
+module ensures 1) all data use the same geospatial geometries and 2) that these
+are correctly re-projected to studyAreaLarge, and 3) attempts to sequentially
+fill-in and replace the lowest quality data with higher quality data when
+several data sources are used. It's primary output is a `RasterStack` of species
+(ref:percent) cover, with each layer corresponding to a species.
 
 Currently, the module can access the Canadian Forest Inventory forest attributes
 kNN dataset [the default; @BeaudoinEtAl2017], the Common Attribute Schema for
@@ -166,14 +180,19 @@ When multiple data sources are used, the module will use replace lower quality
 data with higher quality data following the order specified by the parameter
 `types` (see [Parameters]).
 
-The module can also exclude species % cover layers if they don't have a minimum
-% cover value in at least one pixel. This means that the user should still
-inspect in how many pixels the species is deemed present, as it is possible that
-some data have only a few pixels with high % cover for a given species. In this
-case, the user may choose to exclude these species *a posteriori*. The summary
-plot automatically shown by *Biomass_speciesData* can help diagnose whether
-certain species are present in very few pixels (see Fig.
-\@ref(fig:fig-Biomass-speciesDataOutPlots)).
+When multiple species of a given data source are to be grouped, (ref:percent)
+cover is summed across species of the same group within each pixel. Please see
+the `sppEquiv` input in [Input objects] for information on how species groups
+are defined.
+
+The module can also exclude species (ref:percent) cover layers if they don't
+have a minimum (ref:percent) cover value in at least one pixel. This means that
+the user should still inspect in how many pixels the species is deemed present,
+as it is possible that some data have only a few pixels with high (ref:percent)
+cover for a given species. In this case, the user may choose to exclude these
+species *a posteriori*. The summary plot automatically shown by
+*Biomass_speciesData* can help diagnose whether certain species are present in
+very few pixels (see Fig. \@ref(fig:fig-Biomass-speciesDataOutPlots)).
 
 ### Initialization, inputs and parameters
 
@@ -184,7 +203,7 @@ have been previously downloaded and stored in the folder specified by
 
 The module defaults to processing cover data fo all species listed in the
 `Boreal` column of the default `sppEquiv` input `data.table` object, for which
-there are available % cover layers in the kNN dataset (Table
+there are available (ref:percent) cover layers in the kNN dataset (Table
 \@ref(tab:defaultSppBiomass-speciesData); see `?LandR::sppEquivalencies_CA` for
 more information):
 
@@ -200,7 +219,7 @@ sppEquiv2[, Species := sub("(.*)", "\\*\\1\\*", Species)]  ## for italics
 
 knitr::kable(sppEquiv2, 
              caption = "List of species cover data downloaded by default by  (ref:Biomass-speciesData).") %>%
-  kableExtra::kable_styling(latex_options = "scale_down", full_width = TRUE)
+  kableExtra::kable_styling(latex_options = c("scale_down", "repeat_header"), full_width = TRUE)
 ```
 
 #### Input objects
@@ -211,7 +230,7 @@ knitr::kable(sppEquiv2,
 df_inputs <- SpaDES.core::moduleInputs("Biomass_speciesData", "..")
 knitr::kable(df_inputs, 
              caption = "List of (ref:Biomass-speciesData) input objects and their description.") %>%
-  kableExtra::kable_styling(latex_options = "scale_down", full_width = TRUE)
+  kableExtra::kable_styling(latex_options = c("scale_down", "repeat_header"), full_width = TRUE)
 ```
 
 Of the inputs in Table \@ref(tab:moduleInputs2-Biomass-speciesData), the
@@ -233,7 +252,7 @@ following are particularly important and deserve special attention:
     the Canadian Forest Inventory), but the same name (e.g., "Pice_Spp") in the
     coumn chosen for the naming convention used throughout the simulation (the
     `sppEquivCol` parameter); see Table
-    \@ref(tab:mergingSpp-Biomass-speciesData) for an example)
+    \@ref(tab:mergingSpp-Biomass-speciesData) for an example).
 
 ```{r mergingSpp-Biomass-speciesData, echo = FALSE, eval = TRUE, message = FALSE}
 sppEquiv2 <- sppEquiv[grepl("Abie|Pice|Pinu_Con", Boreal), .(Latin_full, KNN, Boreal)][KNN != "Pice_Spp"]
@@ -246,8 +265,8 @@ sppEquiv2[, `:=`(Species = sub("(.*)", "\\*\\1\\*", Species),
                  `Modelled as` = sub("(.*)", "\\*\\1\\*", `Modelled as`))]  ## for italics
 
 knitr::kable(sppEquiv2, 
-             caption = "Example of species merging for simulation. Here the user wants to model _Abies balsamea_, _A. lasiocarpa_ and _Pinus contorta_ as separate species, but all _Picea_ species as a generic _Picea spp._. For this, all six species are identified in the 'KNN' column, so that their % cover layers can be obtained, but in the 'Boreal' column (which defines the naming convention used in the simulation in this example) all _Picea_ species have the same name. (ref:Biomass-speciesData) will merge their % cover data into a single layer by summing their cover per pixel.") %>%
-  kableExtra::kable_styling(latex_options = "scale_down", full_width = TRUE)
+             caption = "Example of species merging for simulation. Here the user wants to model (ref:Abie-bal), (ref:Abie-las) and (ref:Pinu-con) as separate species, but all (ref:Pice-sp) as a genus-level group. For this, all six species are identified in the \\'KNN\\' column, so that their (ref:percent) cover layers can be obtained, but in the \\'Boreal\\' column (which defines the naming convention used in the simulation in this example) all (ref:Pice-sp) have the same name. (ref:Biomass-speciesData) will merge their (ref:percent) cover data into a single layer by summing their cover per pixel.") %>%
+  kableExtra::kable_styling(latex_options = c("scale_down", "repeat_header"), full_width = TRUE)
 ```
 
 #### Parameters
@@ -259,29 +278,29 @@ Table \@ref(tab:moduleParams2-Biomass-speciesData) lists all parameters used in
 df_params <- SpaDES.core::moduleParams("Biomass_speciesData", "..")
 knitr::kable(df_params,
              caption = "List of (ref:Biomass-speciesData) parameters and their description.") %>%
-  kableExtra::kable_styling(latex_options = "scale_down", full_width = TRUE)
+  kableExtra::kable_styling(latex_options = c("scale_down", "repeat_header"), full_width = TRUE)
 ```
 
 Of the parameters listed in Table \@ref(tab:moduleParams2-Biomass-speciesData),
 the following are particularly important:
 
--   `coverThresh` -- integer. Defines a minimum % cover value (from 0-100) that
-    the species must have in at least one pixel to be considered present in the
-    study area, otherwise it is excluded from the final stack of species layers.
-    Note that this will affect what species have data for an eventual simulation
-    and the user will need to adjust simulation parameters (e.g., species in
-    trait tables will need to match the species in the cover layers)
-    accordingly.
+-   `coverThresh` -- integer. Defines a minimum (ref:percent) cover value (from
+    0-100) that the species must have in at least one pixel to be considered
+    present in the study area, otherwise it is excluded from the final stack of
+    species layers. Note that this will affect what species have data for an
+    eventual simulation and the user will need to adjust simulation parameters
+    (e.g., species in trait tables will need to match the species in the cover
+    layers) accordingly.
 
--   `types` -- character. Which % cover data sources are to be used (see
-    [Detailed description]). Several data sources can be passed, in which case
-    the module will overlay the lower quality layers with higher quality ones
-    **following the order of data sources specified by `types`** -- i.e., if
-    `types == c("KNN", "CASFRI", "ForestInventory")`, *KNN* is assumed to be the
-    lowest quality data set and *ForestInventory* the highest: values in *KNN*
-    layers are replaced with overlapping values from *CASFRI* layers and values
-    from *KNN* and *CASFRI* layers are replaced with overlapping values of
-    *ForestInventory* layers.
+-   `types` -- character. Which (ref:percent) cover data sources are to be used
+    (see [Detailed description]). Several data sources can be passed, in which
+    case the module will overlay the lower quality layers with higher quality
+    ones **following the order of data sources specified by `types`** -- i.e.,
+    if `types == c("KNN", "CASFRI", "ForestInventory")`, *KNN* is assumed to be
+    the lowest quality data set and *ForestInventory* the highest: values in
+    *KNN* layers are replaced with overlapping values from *CASFRI* layers and
+    values from *KNN* and *CASFRI* layers are replaced with overlapping values
+    of *ForestInventory* layers.
 
 ### Simulation flow
 
@@ -329,26 +348,25 @@ Require(c("PredictiveEcology/SpaDES.install",
 
 ```{r module usage example setup -Biomass-speciesData, eval = FALSE}
 tempDir <- tempdir()
-spadesModulesDirectory <- file.path(tempDir, "modules")
-
 paths <- list(inputPath = normPath(file.path(tempDir, "inputs")), 
               cachePath = normPath(file.path(tempDir, "cache")), 
-              modulePath = normPath(spadesModulesDirectory), 
+              modulePath = normPath(file.path(tempDir, "modules")), 
               outputPath = normPath(file.path(tempDir, "outputs")))
 
 getModule("PredictiveEcology/Biomass_speciesData", 
-                       modulePath = spadesModulesDirectory, overwrite = TRUE)
+          modulePath = paths$modulePath, overwrite = TRUE)
 
 ## make sure all necessary packages are installed:
-makeSureAllPackagesInstalled(spadesModulesDirectory)
+makeSureAllPackagesInstalled(paths$modulePath)
 ```
 
 ### Setup simulation
 
 For this demonstration we are using all default parameter values, except
-`coverThresh` , which is lowered to 5%. The species layers (the major output of
-interest) are saved automatically, so there is no need to tell `spades` what to
-save using the `outputs` argument (see `?SpaDES.core::outputs`).
+`coverThresh` , which is lowered to 5(ref:percent). The species layers (the
+major output of interest) are saved automatically, so there is no need to tell
+`spades` what to save using the `outputs` argument (see
+`?SpaDES.core::outputs`).
 
 We pass the global parameter `.plotInitialTime = 1` in the `simInitAndSpades`
 function to activate plotting.
@@ -396,10 +414,10 @@ mySimOut <- simInitAndSpades(times = list(start = 1, end = 1),
 options(opts)
 ```
 
-Here are some of the data retrieved by *Biomass_speciesData* for a randomly
-generated study area within Canada.
+Here are some of outputs of *Biomass_speciesData* (dominant species) in a
+randomly generated study area within Canada.
 
-```{r fig-Biomass-speciesDataOutPlots, eval=TRUE, echo=FALSE, fig.cap = "(ref:Biomass-speciesData) automatically generates a plot of species dominance and number of presences in the study area when `.plotInitialTime=1` is passed as an argument."}
+```{r fig-Biomass-speciesDataOutPlots, eval=TRUE, echo=FALSE, fig.align = 'center', out.width = "70%", fig.cap = "(ref:Biomass-speciesData) automatically generates a plot of species dominance and number of presences in the study area when `.plotInitialTime=1` is passed as an argument."}
 ## make sure all include_graphics have wd attached to figure path
 ## this is necessary to knit to pdf using child Rmds - see https://stackoverflow.com/questions/61065560/cant-compile-rmarkdown-pdf-with-image-in-child-rmd-latex-error-image-file
 knitr::include_graphics(normalizePath(c("figures/testRunFigure.png"), winslash = "/"))
