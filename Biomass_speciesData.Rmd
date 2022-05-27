@@ -58,30 +58,52 @@ Require(c("dplyr", "data.table", "PredictiveEcology/LandR"), install = TRUE)
 ```{r badgeFigs-Biomass-speciesData, include=FALSE, eval = TRUE, cache = FALSE}
 dir.create("figures", showWarnings = FALSE)
 
-download.file(url = "https://img.shields.io/badge/Made%20with-Markdown-1f425f.png",
-              destfile = "figures/markdownBadge.png",
-              mode = 'wb')
-download.file(url = "https://img.shields.io/badge/Get%20help-Report%20issues-%3CCOLOR%3E.png",
-              destfile = "figures/genericBadge.png",
+if (!file.exists("figures/markdownBadge.png")) {
+  download.file(url = "https://img.shields.io/badge/Made%20with-Markdown-1f425f.png",
+                destfile = "figures/markdownBadge.png",
+                mode = 'wb')
+}
+if (!file.exists("figures/issuesBadge.png")) {
+  download.file(url = "https://img.shields.io/badge/Get%20help-Report%20issues-%3CCOLOR%3E.png",
+                destfile = "figures/issuesBadge.png",
+                mode = 'wb')
+}
+
+modversion <- paste(unlist(SpaDES.core::moduleMetadata(module = 'Biomass_speciesData', path = '..')$version), collapse = ".")
+download.file(url = paste0("https://img.shields.io/badge/Biomass_speciesData-", paste("v.", modversion),
+                           "-%3CCOLOR%3E.png"),
+              destfile = "figures/moduleVersionBadge.png",
               mode = 'wb')
 ```
 
-[![made-with-Markdown](figures/markdownBadge.png)](http://commonmark.org)
+[![module-version-Badge](figures/moduleVersionBadge.png)](https://github.com/CeresBarros/Biomass_speciesData/commit/9250d68f905b8828d7965c733ab436e8a01fdf17)
 
-[![Generic badge](figures/genericBadge.png)](https://github.com/PredictiveEcology/Biomass_speciesData/issues)
+[![Issues-badge](figures/issuesBadge.png)](https://github.com/PredictiveEcology/Biomass_speciesData/issues)
 
 <!-- if knitting to pdf remember to add the pandoc_args: ["--extract-media", "."] option to yml in order to get the badge images -->
-
-**This documentation is work in progress. Potential discrepancies and omissions
-may exist for the time being. If you find any, do contact us using the link
-above\^\^**
 
 #### Authors:
 
 `r paste(as.character(SpaDES.core::moduleMetadata(module = 'Biomass_speciesData', path = '..')$authors), sep = ', ')`
 <!-- ideally separate authors with new lines, '\n' not working -->
 
+**This documentation is work in progress. Potential discrepancies and omissions
+may exist for the time being. If you find any, contact us using the "Get help"
+link above\^\^**
+
 ## Module Overview
+
+### Quick links
+
+-   [General functioning](#bsppdata-general-functioning)
+
+-   [List of input objects](#bsppdata-inputs-list)
+
+-   [List of parameters](#bsppdata-params-list)
+
+-   [List of outputs](#bsppdata-outputs-list)
+
+-   [Simulation flow and module events](#bsppdata-sim-flow)
 
 ### Module summary
 
@@ -89,76 +111,28 @@ This module downloads and pre-process species (ref:percent) cover data layers to
 be passed to other LandR data modules (e.g., *Biomass_borealDataPrep*) or to the
 LandR forest simulation module *Biomass_core*.
 
-### Module inputs and parameters at a glance
+### Links to other modules {#bsppdata-links-modules}
 
-Below are the full list of input objects (Table
-\@ref(tab:moduleInputs-Biomass-speciesData)) and parameters (Table
-\@ref(tab:moduleParams-Biomass-speciesData)) that *Biomass_speciesData* expects.
-Of these, the only input that **must** be provided (i.e., *Biomass_speciesData*
-does not have a default for) is `studyAreaLarge`.
+Intended to be used with any LandR modules that require species percent cover
+raster layers. See
+[here](https://rpubs.com/PredictiveEcology/LandR_Module_Ecosystem) for all
+available modules in the LandR ecosystem and select *Biomass_borealDataPrep*
+from the drop-down menu to see potential linkages.
 
-Raw data layers downloaded by the module are saved in `dataPath(sim)`, which can
-be controlled via `options(reproducible.destinationPath = ...)`.
+-   [*Biomass_borealDataPrep*](https://github.com/PredictiveEcology/Biomass_borealDataPrep):
+    prepares all parameters and inputs (including initial landscape conditions)
+    that *Biomass_core* needs to run a realistic simulation. By default, the
+    values/inputs produced are relevant for boreal forests of Western Canada;
 
-```{r moduleInputs-Biomass-speciesData, echo = FALSE, eval = TRUE, message = FALSE}
-df_inputs <- SpaDES.core::moduleInputs("Biomass_speciesData", "..")[, c(1, 3)]  ## name + desc only
-knitr::kable(df_inputs,
-             caption = "List of (ref:Biomass-speciesData) input objects and their description.") %>%
-  kableExtra::kable_styling(latex_options = c("scale_down", "repeat_header"), full_width = TRUE) %>%
-  kableExtra::column_spec(column = 2, width = "40em")
-```
-
-```{r moduleParams-Biomass-speciesData, echo = FALSE, eval = TRUE, message = FALSE}
-df_params <- SpaDES.core::moduleParams("Biomass_speciesData", "..")[, c(1, 6)] ## name + desc only
-knitr::kable(df_params,
-             caption = "List of (ref:Biomass-speciesData) parameters and their description.") %>%
-  kableExtra::kable_styling(latex_options = c("scale_down", "repeat_header"), full_width = TRUE) %>%
-  kableExtra::column_spec(column = 2, width = "40em")
-```
-
-### Events
-
-*Biomass_speciesData* only runs two events:
-
--   Module "initiation" (`init` event), during which all species (ref:percent)
-    cover layers are downloaded and processed.
--   Plotting of the processed species cover layers (`initPlot` event).
-
-### Module outputs
-
-The module produces the following outputs (Table
-\@ref(tab:moduleOutputs-Biomass-speciesData)):
-
-```{r moduleOutputs-Biomass-speciesData, echo = FALSE, eval = TRUE, message = FALSE}
-df_outputs <- SpaDES.core::moduleOutputs("Biomass_speciesData", "..")[, c(1, 3)] ## name + desc only
-knitr::kable(df_outputs,
-             caption = "List of (ref:Biomass-speciesData) output objects and their description.") %>%
-  kableExtra::kable_styling(latex_options = c("scale_down", "repeat_header"), full_width = TRUE) %>%
-  kableExtra::column_spec(column = 2, width = "40em")
-```
-
-and automatically saves the processed species cover layers in the output path
-defined in `getPaths(sim)$outputPath`.
-
-### Links to other modules
-
-Intended to be used with other LandR data modules (e.g.,
-*Biomass_borealDataPrep*) that require species cover data and the LandR forest
-simulation *Biomass_core* module. You can see all *potential* module linkages
-within the LandR ecosystem
-[here](https://rpubs.com/PredictiveEcology/LandR_Module_Ecosystem). Select
-*Biomass_speciesData* from the drop-down menu to see linkages.
-
-### Getting help
-
--   <https://github.com/PredictiveEcology/Biomass_speciesData/issues>
+-   [*Biomass_core*](https://github.com/PredictiveEcology/Biomass_core): core
+    forest dynamics simulation module.
 
 ## Module manual
 
-### Detailed description
+### General functioning {#bsppdata-general-functioning}
 
 This module accesses and processes species percent cover ((ref:percent) cover)
-data for the parametrisation and initialization of LandR *Biomass_core*. This
+data for the parametrisation and initialisation of LandR *Biomass_core*. This
 module ensures 1) all data use the same geospatial geometries and 2) that these
 are correctly re-projected to studyAreaLarge, and 3) attempts to sequentially
 fill-in and replace the lowest quality data with higher quality data when
@@ -194,44 +168,12 @@ species *a posteriori*. The summary plot automatically shown by
 *Biomass_speciesData* can help diagnose whether certain species are present in
 very few pixels (see Fig. \@ref(fig:fig-Biomass-speciesDataOutPlots)).
 
-### Initialization, inputs and parameters
+#### List of input objects {#bsppdata-inputs-list}
 
-*Biomass_speciesData* initializes itself and prepares all inputs provided that
-it has internet access to download the raw data layers (or that these layers
-have been previously downloaded and stored in the folder specified by
-`options("reproducible.destinationPath")`).
-
-The module defaults to processing cover data fo all species listed in the
-`Boreal` column of the default `sppEquiv` input `data.table` object, for which
-there are available (ref:percent) cover layers in the kNN dataset (Table
-\@ref(tab:defaultSppBiomass-speciesData); see `?LandR::sppEquivalencies_CA` for
-more information):
-
-```{r defaultSppBiomass-speciesData, echo = FALSE, eval = TRUE, message = FALSE}
-data("sppEquivalencies_CA", package = "LandR", envir = environment())
-sppEquiv <- as.data.table(sppEquivalencies_CA)
-
-## filter only common species between kNN and default "Boreal" column
-## remove empty species names
-sppEquiv <- sppEquiv[!(is.na(Boreal) | is.na(KNN) | Boreal == "" | KNN == ""),]
-sppEquiv2 <- sppEquiv[, .("Species" = Latin_full, "Generic name" = EN_generic_full)]
-sppEquiv2[, Species := sub("(.*)", "\\*\\1\\*", Species)]  ## for italics
-
-knitr::kable(sppEquiv2, 
-             caption = "List of species cover data downloaded by default by  (ref:Biomass-speciesData).") %>%
-  kableExtra::kable_styling(latex_options = c("scale_down", "repeat_header"), full_width = TRUE)
-```
-
-#### Input objects
-
-*Biomass_speciesData* requires the following input data layers
-
-```{r moduleInputs2-Biomass-speciesData, echo = FALSE, eval = TRUE, message = FALSE}
-df_inputs <- SpaDES.core::moduleInputs("Biomass_speciesData", "..")
-knitr::kable(df_inputs, 
-             caption = "List of (ref:Biomass-speciesData) input objects and their description.") %>%
-  kableExtra::kable_styling(latex_options = c("scale_down", "repeat_header"), full_width = TRUE)
-```
+Below is the full list of input objects that *Biomass_speciesData* requires
+(Table \@ref(tab:moduleInputs2-Biomass-speciesData)). Of these, the only input
+that **must** be provided (i.e., *Biomass_speciesData* does not have a default
+for) is `studyAreaLarge`.
 
 Of the inputs in Table \@ref(tab:moduleInputs2-Biomass-speciesData), the
 following are particularly important and deserve special attention:
@@ -269,20 +211,18 @@ knitr::kable(sppEquiv2,
   kableExtra::kable_styling(latex_options = c("scale_down", "repeat_header"), full_width = TRUE)
 ```
 
-#### Parameters
-
-Table \@ref(tab:moduleParams2-Biomass-speciesData) lists all parameters used in
-*Biomass_speciesData* and their detailed information.
-
-```{r moduleParams2-Biomass-speciesData, echo = FALSE, eval = TRUE, message = FALSE}
-df_params <- SpaDES.core::moduleParams("Biomass_speciesData", "..")
-knitr::kable(df_params,
-             caption = "List of (ref:Biomass-speciesData) parameters and their description.") %>%
+```{r moduleInputs2-Biomass-speciesData, echo = FALSE, eval = TRUE, message = FALSE}
+df_inputs <- SpaDES.core::moduleInputs("Biomass_speciesData", "..")
+knitr::kable(df_inputs, 
+             caption = "List of (ref:Biomass-speciesData) input objects and their description.") %>%
   kableExtra::kable_styling(latex_options = c("scale_down", "repeat_header"), full_width = TRUE)
 ```
 
-Of the parameters listed in Table \@ref(tab:moduleParams2-Biomass-speciesData),
-the following are particularly important:
+#### List of parameters {#bsppdata-params-list}
+
+Table \@ref(tab:moduleParams2-Biomass-speciesData) lists all parameters used in
+*Biomass_speciesData* and their detailed information. Of these parameters, the
+following are particularly important:
 
 -   `coverThresh` -- integer. Defines a minimum (ref:percent) cover value (from
     0-100) that the species must have in at least one pixel to be considered
@@ -302,7 +242,63 @@ the following are particularly important:
     values from *KNN* and *CASFRI* layers are replaced with overlapping values
     of *ForestInventory* layers.
 
-### Simulation flow
+```{r moduleParams2-Biomass-speciesData, echo = FALSE, eval = TRUE, message = FALSE}
+df_params <- SpaDES.core::moduleParams("Biomass_speciesData", "..")
+knitr::kable(df_params,
+             caption = "List of (ref:Biomass-speciesData) parameters and their description.") %>%
+  kableExtra::kable_styling(latex_options = c("scale_down", "repeat_header"), full_width = TRUE)
+```
+
+#### List of outputs {#bsppdata-outputs-list}
+
+The module produces the outputs in Table
+\@ref(tab:moduleOutputs-Biomass-speciesData), and automatically saves the
+processed species cover layers in the output path defined in
+`getPaths(sim)$outputPath`.
+
+```{r moduleOutputs-Biomass-speciesData, echo = FALSE, eval = TRUE, message = FALSE}
+df_outputs <- SpaDES.core::moduleOutputs("Biomass_speciesData", "..")[, c(1, 3)] ## name + desc only
+knitr::kable(df_outputs,
+             caption = "List of (ref:Biomass-speciesData) output objects and their description.") %>%
+  kableExtra::kable_styling(latex_options = c("scale_down", "repeat_header"), full_width = TRUE) %>%
+  kableExtra::column_spec(column = 2, width = "40em")
+```
+
+### Simulation flow and module events {#bsppdata-sim-flow}
+
+*Biomass_speciesData* initialises itself and prepares all inputs provided that
+it has internet access to download the raw data layers, or that these layers
+have been previously downloaded and stored in the folder specified by
+`options("reproducible.destinationPath")`[^biomass_speciesdata-1].
+
+[^biomass_speciesdata-1]: Raw data layers downloaded by the module are saved in
+    \`dataPath(sim)\`, which can be controlled via
+    \`options(reproducible.destinationPath = ...)\`.
+
+The module defaults to processing cover data fo all species listed in the
+`Boreal` column of the default `sppEquiv` input `data.table` object, for which
+there are available (ref:percent) cover layers in the kNN dataset (Table
+\@ref(tab:defaultSppBiomass-speciesData); see `?LandR::sppEquivalencies_CA` for
+more information):
+
+```{r defaultSppBiomass-speciesData, echo = FALSE, eval = TRUE, message = FALSE}
+data("sppEquivalencies_CA", package = "LandR", envir = environment())
+sppEquiv <- as.data.table(sppEquivalencies_CA)
+
+## filter only common species between kNN and default "Boreal" column
+## remove empty species names
+sppEquiv <- sppEquiv[!(is.na(Boreal) | is.na(KNN) | Boreal == "" | KNN == ""),]
+sppEquiv2 <- sppEquiv[, .("Species" = Latin_full, "Generic name" = EN_generic_full)]
+sppEquiv2[, Species := sub("(.*)", "\\*\\1\\*", Species)]  ## for italics
+
+knitr::kable(sppEquiv2, 
+             caption = "List of species cover data downloaded by default by  (ref:Biomass-speciesData).") %>%
+  kableExtra::kable_styling(latex_options = c("scale_down", "repeat_header"), full_width = TRUE)
+```
+
+*Biomass_speciesData* only runs two events, the `init` event where all species
+cover layers are processed and a plotting event (`initPlot`) that plots the
+final layers.
 
 The general flow of *Biomass_speciesData* processes is:
 
@@ -324,11 +320,14 @@ The general flow of *Biomass_speciesData* processes is:
 
 4.  Steps 2 and 3 are repeated for remaining data sources listed in `types`.
 
-5.  Final layers are saved to disk and plotted. A summary of number of pixels
-    with forest cover are calculated (`treed`and `numTreed` output objects; see
-    [Module outputs]).
+5.  Final layers are saved to disk and plotted (`initPlot` event). A summary of
+    number of pixels with forest cover are calculated (`treed`and `numTreed`
+    output objects; see [Module outputs]).
 
-## Usage example
+## Usage example {#bsppdata-example}
+
+This module can be run stand-alone, but it only compiles species percent cover
+datr into layers used by other modules.
 
 ### Load `SpaDES` and other packages.
 
@@ -423,4 +422,4 @@ randomly generated study area within Canada.
 knitr::include_graphics(normalizePath(c("figures/testRunFigure.png"), winslash = "/"))
 ```
 
-## References
+## References {#bsppdata-refs}
