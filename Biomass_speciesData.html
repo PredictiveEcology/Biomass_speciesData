@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+<title>LandR <em>Biomass_speciesData</em> Module</title>
+
+<script type="text/javascript">
+window.onload = function() {
+  var imgs = document.getElementsByTagName('img'), i, img;
+  for (i = 0; i < imgs.length; i++) {
+    img = imgs[i];
+    // center an image if it is the only element of its parent
+    if (img.parentElement.childElementCount === 1)
+      img.parentElement.style.textAlign = 'center';
+  }
+};
+</script>
+
+<!-- Styles for R syntax highlighter -->
+<style type="text/css">
+   pre .operator,
+   pre .paren {
+     color: rgb(104, 118, 135)
+   }
+
+   pre .literal {
+     color: #990073
+   }
+
+   pre .number {
+     color: #099;
+   }
+
+   pre .comment {
+     color: #998;
+     font-style: italic
+   }
+
+   pre .keyword {
+     color: #900;
+     font-weight: bold
+   }
+
+   pre .identifier {
+     color: rgb(0, 0, 0);
+   }
+
+   pre .string {
+     color: #d14;
+   }
+</style>
+
+<!-- R syntax highlighter -->
+<script type="text/javascript">
+var hljs=new function(){function m(p){return p.replace(/&/gm,"&amp;").replace(/</gm,"&lt;")}function f(r,q,p){return RegExp(q,"m"+(r.cI?"i":"")+(p?"g":""))}function b(r){for(var p=0;p<r.childNodes.length;p++){var q=r.childNodes[p];if(q.nodeName=="CODE"){return q}if(!(q.nodeType==3&&q.nodeValue.match(/\s+/))){break}}}function h(t,s){var p="";for(var r=0;r<t.childNodes.length;r++){if(t.childNodes[r].nodeType==3){var q=t.childNodes[r].nodeValue;if(s){q=q.replace(/\n/g,"")}p+=q}else{if(t.childNodes[r].nodeName=="BR"){p+="\n"}else{p+=h(t.childNodes[r])}}}if(/MSIE [678]/.test(navigator.userAgent)){p=p.replace(/\r/g,"\n")}return p}function a(s){var r=s.className.split(/\s+/);r=r.concat(s.parentNode.className.split(/\s+/));for(var q=0;q<r.length;q++){var p=r[q].replace(/^language-/,"");if(e[p]){return p}}}function c(q){var p=[];(function(s,t){for(var r=0;r<s.childNodes.length;r++){if(s.childNodes[r].nodeType==3){t+=s.childNodes[r].nodeValue.length}else{if(s.childNodes[r].nodeName=="BR"){t+=1}else{if(s.childNodes[r].nodeType==1){p.push({event:"start",offset:t,node:s.childNodes[r]});t=arguments.callee(s.childNodes[r],t);p.push({event:"stop",offset:t,node:s.childNodes[r]})}}}}return t})(q,0);return p}function k(y,w,x){var q=0;var z="";var s=[];function u(){if(y.length&&w.length){if(y[0].offset!=w[0].offset){return(y[0].offset<w[0].offset)?y:w}else{return w[0].event=="start"?y:w}}else{return y.length?y:w}}function t(D){var A="<"+D.nodeName.toLowerCase();for(var B=0;B<D.attributes.length;B++){var C=D.attributes[B];A+=" "+C.nodeName.toLowerCase();if(C.value!==undefined&&C.value!==false&&C.value!==null){A+='="'+m(C.value)+'"'}}return A+">"}while(y.length||w.length){var v=u().splice(0,1)[0];z+=m(x.substr(q,v.offset-q));q=v.offset;if(v.event=="start"){z+=t(v.node);s.push(v.node)}else{if(v.event=="stop"){var p,r=s.length;do{r--;p=s[r];z+=("</"+p.nodeName.toLowerCase()+">")}while(p!=v.node);s.splice(r,1);while(r<s.length){z+=t(s[r]);r++}}}}return z+m(x.substr(q))}function j(){function q(x,y,v){if(x.compiled){return}var u;var s=[];if(x.k){x.lR=f(y,x.l||hljs.IR,true);for(var w in x.k){if(!x.k.hasOwnProperty(w)){continue}if(x.k[w] instanceof Object){u=x.k[w]}else{u=x.k;w="keyword"}for(var r in u){if(!u.hasOwnProperty(r)){continue}x.k[r]=[w,u[r]];s.push(r)}}}if(!v){if(x.bWK){x.b="\\b("+s.join("|")+")\\s"}x.bR=f(y,x.b?x.b:"\\B|\\b");if(!x.e&&!x.eW){x.e="\\B|\\b"}if(x.e){x.eR=f(y,x.e)}}if(x.i){x.iR=f(y,x.i)}if(x.r===undefined){x.r=1}if(!x.c){x.c=[]}x.compiled=true;for(var t=0;t<x.c.length;t++){if(x.c[t]=="self"){x.c[t]=x}q(x.c[t],y,false)}if(x.starts){q(x.starts,y,false)}}for(var p in e){if(!e.hasOwnProperty(p)){continue}q(e[p].dM,e[p],true)}}function d(B,C){if(!j.called){j();j.called=true}function q(r,M){for(var L=0;L<M.c.length;L++){if((M.c[L].bR.exec(r)||[null])[0]==r){return M.c[L]}}}function v(L,r){if(D[L].e&&D[L].eR.test(r)){return 1}if(D[L].eW){var M=v(L-1,r);return M?M+1:0}return 0}function w(r,L){return L.i&&L.iR.test(r)}function K(N,O){var M=[];for(var L=0;L<N.c.length;L++){M.push(N.c[L].b)}var r=D.length-1;do{if(D[r].e){M.push(D[r].e)}r--}while(D[r+1].eW);if(N.i){M.push(N.i)}return f(O,M.join("|"),true)}function p(M,L){var N=D[D.length-1];if(!N.t){N.t=K(N,E)}N.t.lastIndex=L;var r=N.t.exec(M);return r?[M.substr(L,r.index-L),r[0],false]:[M.substr(L),"",true]}function z(N,r){var L=E.cI?r[0].toLowerCase():r[0];var M=N.k[L];if(M&&M instanceof Array){return M}return false}function F(L,P){L=m(L);if(!P.k){return L}var r="";var O=0;P.lR.lastIndex=0;var M=P.lR.exec(L);while(M){r+=L.substr(O,M.index-O);var N=z(P,M);if(N){x+=N[1];r+='<span class="'+N[0]+'">'+M[0]+"</span>"}else{r+=M[0]}O=P.lR.lastIndex;M=P.lR.exec(L)}return r+L.substr(O,L.length-O)}function J(L,M){if(M.sL&&e[M.sL]){var r=d(M.sL,L);x+=r.keyword_count;return r.value}else{return F(L,M)}}function I(M,r){var L=M.cN?'<span class="'+M.cN+'">':"";if(M.rB){y+=L;M.buffer=""}else{if(M.eB){y+=m(r)+L;M.buffer=""}else{y+=L;M.buffer=r}}D.push(M);A+=M.r}function G(N,M,Q){var R=D[D.length-1];if(Q){y+=J(R.buffer+N,R);return false}var P=q(M,R);if(P){y+=J(R.buffer+N,R);I(P,M);return P.rB}var L=v(D.length-1,M);if(L){var O=R.cN?"</span>":"";if(R.rE){y+=J(R.buffer+N,R)+O}else{if(R.eE){y+=J(R.buffer+N,R)+O+m(M)}else{y+=J(R.buffer+N+M,R)+O}}while(L>1){O=D[D.length-2].cN?"</span>":"";y+=O;L--;D.length--}var r=D[D.length-1];D.length--;D[D.length-1].buffer="";if(r.starts){I(r.starts,"")}return R.rE}if(w(M,R)){throw"Illegal"}}var E=e[B];var D=[E.dM];var A=0;var x=0;var y="";try{var s,u=0;E.dM.buffer="";do{s=p(C,u);var t=G(s[0],s[1],s[2]);u+=s[0].length;if(!t){u+=s[1].length}}while(!s[2]);if(D.length>1){throw"Illegal"}return{r:A,keyword_count:x,value:y}}catch(H){if(H=="Illegal"){return{r:0,keyword_count:0,value:m(C)}}else{throw H}}}function g(t){var p={keyword_count:0,r:0,value:m(t)};var r=p;for(var q in e){if(!e.hasOwnProperty(q)){continue}var s=d(q,t);s.language=q;if(s.keyword_count+s.r>r.keyword_count+r.r){r=s}if(s.keyword_count+s.r>p.keyword_count+p.r){r=p;p=s}}if(r.language){p.second_best=r}return p}function i(r,q,p){if(q){r=r.replace(/^((<[^>]+>|\t)+)/gm,function(t,w,v,u){return w.replace(/\t/g,q)})}if(p){r=r.replace(/\n/g,"<br>")}return r}function n(t,w,r){var x=h(t,r);var v=a(t);var y,s;if(v){y=d(v,x)}else{return}var q=c(t);if(q.length){s=document.createElement("pre");s.innerHTML=y.value;y.value=k(q,c(s),x)}y.value=i(y.value,w,r);var u=t.className;if(!u.match("(\\s|^)(language-)?"+v+"(\\s|$)")){u=u?(u+" "+v):v}if(/MSIE [678]/.test(navigator.userAgent)&&t.tagName=="CODE"&&t.parentNode.tagName=="PRE"){s=t.parentNode;var p=document.createElement("div");p.innerHTML="<pre><code>"+y.value+"</code></pre>";t=p.firstChild.firstChild;p.firstChild.cN=s.cN;s.parentNode.replaceChild(p.firstChild,s)}else{t.innerHTML=y.value}t.className=u;t.result={language:v,kw:y.keyword_count,re:y.r};if(y.second_best){t.second_best={language:y.second_best.language,kw:y.second_best.keyword_count,re:y.second_best.r}}}function o(){if(o.called){return}o.called=true;var r=document.getElementsByTagName("pre");for(var p=0;p<r.length;p++){var q=b(r[p]);if(q){n(q,hljs.tabReplace)}}}function l(){if(window.addEventListener){window.addEventListener("DOMContentLoaded",o,false);window.addEventListener("load",o,false)}else{if(window.attachEvent){window.attachEvent("onload",o)}else{window.onload=o}}}var e={};this.LANGUAGES=e;this.highlight=d;this.highlightAuto=g;this.fixMarkup=i;this.highlightBlock=n;this.initHighlighting=o;this.initHighlightingOnLoad=l;this.IR="[a-zA-Z][a-zA-Z0-9_]*";this.UIR="[a-zA-Z_][a-zA-Z0-9_]*";this.NR="\\b\\d+(\\.\\d+)?";this.CNR="\\b(0[xX][a-fA-F0-9]+|(\\d+(\\.\\d*)?|\\.\\d+)([eE][-+]?\\d+)?)";this.BNR="\\b(0b[01]+)";this.RSR="!|!=|!==|%|%=|&|&&|&=|\\*|\\*=|\\+|\\+=|,|\\.|-|-=|/|/=|:|;|<|<<|<<=|<=|=|==|===|>|>=|>>|>>=|>>>|>>>=|\\?|\\[|\\{|\\(|\\^|\\^=|\\||\\|=|\\|\\||~";this.ER="(?![\\s\\S])";this.BE={b:"\\\\.",r:0};this.ASM={cN:"string",b:"'",e:"'",i:"\\n",c:[this.BE],r:0};this.QSM={cN:"string",b:'"',e:'"',i:"\\n",c:[this.BE],r:0};this.CLCM={cN:"comment",b:"//",e:"$"};this.CBLCLM={cN:"comment",b:"/\\*",e:"\\*/"};this.HCM={cN:"comment",b:"#",e:"$"};this.NM={cN:"number",b:this.NR,r:0};this.CNM={cN:"number",b:this.CNR,r:0};this.BNM={cN:"number",b:this.BNR,r:0};this.inherit=function(r,s){var p={};for(var q in r){p[q]=r[q]}if(s){for(var q in s){p[q]=s[q]}}return p}}();hljs.LANGUAGES.cpp=function(){var a={keyword:{"false":1,"int":1,"float":1,"while":1,"private":1,"char":1,"catch":1,"export":1,virtual:1,operator:2,sizeof:2,dynamic_cast:2,typedef:2,const_cast:2,"const":1,struct:1,"for":1,static_cast:2,union:1,namespace:1,unsigned:1,"long":1,"throw":1,"volatile":2,"static":1,"protected":1,bool:1,template:1,mutable:1,"if":1,"public":1,friend:2,"do":1,"return":1,"goto":1,auto:1,"void":2,"enum":1,"else":1,"break":1,"new":1,extern:1,using:1,"true":1,"class":1,asm:1,"case":1,typeid:1,"short":1,reinterpret_cast:2,"default":1,"double":1,register:1,explicit:1,signed:1,typename:1,"try":1,"this":1,"switch":1,"continue":1,wchar_t:1,inline:1,"delete":1,alignof:1,char16_t:1,char32_t:1,constexpr:1,decltype:1,noexcept:1,nullptr:1,static_assert:1,thread_local:1,restrict:1,_Bool:1,complex:1},built_in:{std:1,string:1,cin:1,cout:1,cerr:1,clog:1,stringstream:1,istringstream:1,ostringstream:1,auto_ptr:1,deque:1,list:1,queue:1,stack:1,vector:1,map:1,set:1,bitset:1,multiset:1,multimap:1,unordered_set:1,unordered_map:1,unordered_multiset:1,unordered_multimap:1,array:1,shared_ptr:1}};return{dM:{k:a,i:"</",c:[hljs.CLCM,hljs.CBLCLM,hljs.QSM,{cN:"string",b:"'\\\\?.",e:"'",i:"."},{cN:"number",b:"\\b(\\d+(\\.\\d*)?|\\.\\d+)(u|U|l|L|ul|UL|f|F)"},hljs.CNM,{cN:"preprocessor",b:"#",e:"$"},{cN:"stl_container",b:"\\b(deque|list|queue|stack|vector|map|set|bitset|multiset|multimap|unordered_map|unordered_set|unordered_multiset|unordered_multimap|array)\\s*<",e:">",k:a,r:10,c:["self"]}]}}}();hljs.LANGUAGES.r={dM:{c:[hljs.HCM,{cN:"number",b:"\\b0[xX][0-9a-fA-F]+[Li]?\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\b\\d+(?:[eE][+\\-]?\\d*)?L\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\b\\d+\\.(?!\\d)(?:i\\b)?",e:hljs.IMMEDIATE_RE,r:1},{cN:"number",b:"\\b\\d+(?:\\.\\d*)?(?:[eE][+\\-]?\\d*)?i?\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\.\\d+(?:[eE][+\\-]?\\d*)?i?\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"keyword",b:"(?:tryCatch|library|setGeneric|setGroupGeneric)\\b",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\.\\.\\.",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\.\\.\\d+(?![\\w.])",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\b(?:function)",e:hljs.IMMEDIATE_RE,r:2},{cN:"keyword",b:"(?:if|in|break|next|repeat|else|for|return|switch|while|try|stop|warning|require|attach|detach|source|setMethod|setClass)\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"literal",b:"(?:NA|NA_integer_|NA_real_|NA_character_|NA_complex_)\\b",e:hljs.IMMEDIATE_RE,r:10},{cN:"literal",b:"(?:NULL|TRUE|FALSE|T|F|Inf|NaN)\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"identifier",b:"[a-zA-Z.][a-zA-Z0-9._]*\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"operator",b:"<\\-(?!\\s*\\d)",e:hljs.IMMEDIATE_RE,r:2},{cN:"operator",b:"\\->|<\\-",e:hljs.IMMEDIATE_RE,r:1},{cN:"operator",b:"%%|~",e:hljs.IMMEDIATE_RE},{cN:"operator",b:">=|<=|==|!=|\\|\\||&&|=|\\+|\\-|\\*|/|\\^|>|<|!|&|\\||\\$|:",e:hljs.IMMEDIATE_RE,r:0},{cN:"operator",b:"%",e:"%",i:"\\n",r:1},{cN:"identifier",b:"`",e:"`",r:0},{cN:"string",b:'"',e:'"',c:[hljs.BE],r:0},{cN:"string",b:"'",e:"'",c:[hljs.BE],r:0},{cN:"paren",b:"[[({\\])}]",e:hljs.IMMEDIATE_RE,r:0}]}};
+hljs.initHighlightingOnLoad();
+</script>
+
+
+
+<style type="text/css">
+body, td {
+   font-family: sans-serif;
+   background-color: white;
+   font-size: 13px;
+}
+
+body {
+  max-width: 800px;
+  margin: auto;
+  padding: 1em;
+  line-height: 20px;
+}
+
+tt, code, pre {
+   font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace;
+}
+
+h1 {
+   font-size:2.2em;
+}
+
+h2 {
+   font-size:1.8em;
+}
+
+h3 {
+   font-size:1.4em;
+}
+
+h4 {
+   font-size:1.0em;
+}
+
+h5 {
+   font-size:0.9em;
+}
+
+h6 {
+   font-size:0.8em;
+}
+
+a:visited {
+   color: rgb(50%, 0%, 50%);
+}
+
+pre, img {
+  max-width: 100%;
+}
+pre {
+  overflow-x: auto;
+}
+pre code {
+   display: block; padding: 0.5em;
+}
+
+code {
+  font-size: 92%;
+  border: 1px solid #ccc;
+}
+
+code[class] {
+  background-color: #F8F8F8;
+}
+
+table, td, th {
+  border: none;
+}
+
+blockquote {
+   color:#666666;
+   margin:0;
+   padding-left: 1em;
+   border-left: 0.5em #EEE solid;
+}
+
+hr {
+   height: 0px;
+   border-bottom: none;
+   border-top-width: thin;
+   border-top-style: dotted;
+   border-top-color: #999999;
+}
+
+@media print {
+   * {
+      background: transparent !important;
+      color: black !important;
+      filter:none !important;
+      -ms-filter: none !important;
+   }
+
+   body {
+      font-size:12pt;
+      max-width:100%;
+   }
+
+   a, a:visited {
+      text-decoration: underline;
+   }
+
+   hr {
+      visibility: hidden;
+      page-break-before: always;
+   }
+
+   pre, blockquote {
+      padding-right: 1em;
+      page-break-inside: avoid;
+   }
+
+   tr, img {
+      page-break-inside: avoid;
+   }
+
+   img {
+      max-width: 100% !important;
+   }
+
+   @page :left {
+      margin: 15mm 20mm 15mm 10mm;
+   }
+
+   @page :right {
+      margin: 15mm 10mm 15mm 20mm;
+   }
+
+   p, h2, h3 {
+      orphans: 3; widows: 3;
+   }
+
+   h2, h3 {
+      page-break-after: avoid;
+   }
+}
+</style>
+
+
+
+</head>
+
+<body>
+<h1>LandR <em>Biomass_speciesData</em> Module</h1>
+
+<!-- the following are text references used in captions for LaTeX compatibility -->
+
+<p>(ref:Biomass-speciesData) <em>Biomass_speciesData</em></p>
+
+<p><a href="http://commonmark.org"><img src="https://img.shields.io/badge/Made%20with-Markdown-1f425f.png" alt="made-with-Markdown"/></a>
+<a href="https://github.com/PredictiveEcology/Biomass_speciesData/issues"><img src="https://img.shields.io/badge/Get%20help-Report%20issues-%3CCOLOR%3E.png" alt="Generic
+badge"/></a></p>
+
+<!-- if knitting to pdf remember to add the pandoc_args: ["--extract-media", "."] option to yml in order to get the badge images -->
+
+<p><strong>This documentation is work in progress. Potential discrepancies and omissions
+may exist for the time being. If you find any, do contact us using the link
+above^^</strong></p>
+
+<h4>Authors:</h4>
+
+<p>Eliot J B McIntire <a href="mailto:eliot.mcintire@nrcan-rncan.gc.ca">eliot.mcintire@nrcan-rncan.gc.ca</a> [aut, cre], Alex M. Chubaty <a href="mailto:achubaty@for-cast.ca">achubaty@for-cast.ca</a> [aut], Ceres Barros <a href="mailto:cbarros@mail.ubc.ca">cbarros@mail.ubc.ca</a> [aut]</p>
+
+<!-- ideally separate authors with new lines, '\n' not working -->
+
+<h2>Module Overview</h2>
+
+<h3>Module summary</h3>
+
+<p>This module downloads and pre-process species % cover data layers to be passed
+to other LandR data modules (e.g., <em>Biomass_borealDataPrep</em>) or to the LandR
+forest simulation module <em>Biomass_core</em>.</p>
+
+<h3>Module inputs and parameters at a glance</h3>
+
+<p>Below are the full list of input objects (Table
+\@ref(tab:moduleInputs-Biomass-speciesData)) and parameters (Table
+\@ref(tab:moduleParams-Biomass-speciesData)) that <em>Biomass_speciesData</em> expects.
+Of these, the only input that <strong>must</strong> be provided (i.e., <em>Biomass_speciesData</em>
+does not have a default for) is <code>studyAreaLarge</code>.</p>
+
+<p>Raw data layers downloaded by the module are saved in <code>dataPath(sim)</code>, which can
+be controlled via <code>options(reproducible.destinationPath = ...)</code>.</p>
+
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>List of (ref:Biomass-speciesData) input objects and their description.</caption>
+ <thead>
+  <tr>
+   <th style="text-align:left;"> objectName </th>
+   <th style="text-align:left;"> desc </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> rasterToMatchLarge </td>
+   <td style="text-align:left;"> a raster of studyAreaLarge in the same resolution and projection the simulation&rsquo;s. Defaults to the using the Canadian Forestry Service, National Forest Inventory, kNN-derived stand biomass map. </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> sppColorVect </td>
+   <td style="text-align:left;"> A named vector of colors to use for plotting. The names must be in sim$sppEquiv[[sim$sppEquivCol]], and should also contain a color for &lsquo;Mixed&rsquo; </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> sppEquiv </td>
+   <td style="text-align:left;"> table of species equivalencies. See LandR::sppEquivalencies_CA. </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> studyAreaLarge </td>
+   <td style="text-align:left;"> Polygon to use as the parametrisation study area. Must be provided by the user. Note that studyAreaLarge is only used for parameter estimation, and can be larger than the actual study area used for LandR simulations (e.g, larger than studyArea in LandR Biomass_core). </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> studyAreaReporting </td>
+   <td style="text-align:left;"> multipolygon (typically smaller/unbuffered than studyAreaLarge and studyArea in LandR Biomass_core) to use for plotting/reporting. If not provided, will default to studyAreaLarge. </td>
+  </tr>
+</tbody>
+</table>
+
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>List of (ref:Biomass-speciesData) parameters and their description.</caption>
+ <thead>
+  <tr>
+   <th style="text-align:left;"> paramName </th>
+   <th style="text-align:left;"> paramDesc </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> coverThresh </td>
+   <td style="text-align:left;"> The minimum % cover a species needs to have (per pixel) in the study area to be considered present </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> dataYear </td>
+   <td style="text-align:left;"> Passed to paste0(&lsquo;prepSpeciesLayers_&rsquo;, types) function to fetch data from that year (if applicable). Defaults to 2001 as the default kNN year. </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> sppEquivCol </td>
+   <td style="text-align:left;"> The column in sim$sppEquiv data.table to group species by and use as a naming convention. If different species in, e.g., the kNN data have the same name in the chosen column, their data are merged into one species by summing their % cover in each raster cell. </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> types </td>
+   <td style="text-align:left;"> The possible data sources. These must correspond to a function named paste0(&lsquo;prepSpeciesLayers_&rsquo;, types). Defaults to &lsquo;KNN&rsquo; to get the Canadian Forestry Service, National Forest Inventory, kNN-derived species cover maps from year &lsquo;dataYear&rsquo;, using the LandR::prepSpeciesLayers_KNN function (see https://open.canada.ca/ data/en/dataset/ec9e2659-1c29-4ddb-87a2-6aced147a990 for details on these data). Other currently available options are &lsquo;ONFRI&rsquo;, &lsquo;CASFRI&rsquo;, &lsquo;Pickell&rsquo; and &lsquo;ForestInventory&rsquo;, which attempt to get proprietary data - the user must be granted access first. A custom function can be used to retrieve any data, just as long as it is accessible by the module (e.g., in the global environment) and is named as paste0(&lsquo;prepSpeciesLayers_&rsquo;, types). </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> vegLeadingProportion </td>
+   <td style="text-align:left;"> a number that defines whether a species is leading for a given pixel. Only used for plotting. </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> .plotInitialTime </td>
+   <td style="text-align:left;"> This describes the simulation time at which the first plot event should occur </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> .plotInterval </td>
+   <td style="text-align:left;"> This describes the simulation time interval between plot events </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> .saveInitialTime </td>
+   <td style="text-align:left;"> This describes the simulation time at which the first save event should occur </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> .saveInterval </td>
+   <td style="text-align:left;"> This describes the simulation time interval between save events </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> .studyAreaName </td>
+   <td style="text-align:left;"> Human-readable name for the study area used. If NA, a hash of studyAreaLarge will be used. </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> .useCache </td>
+   <td style="text-align:left;"> Controls cache; caches the init event by default </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> .useParallel </td>
+   <td style="text-align:left;"> Used in reading csv file with fread. Will be passed to data.table::setDTthreads. </td>
+  </tr>
+</tbody>
+</table>
+
+<h3>Events</h3>
+
+<p><em>Biomass_speciesData</em> only runs two events:</p>
+
+<ul>
+<li>  Module &ldquo;initiation&rdquo; (<code>init</code> event), during which all species % cover layers
+are downloaded and processed.</li>
+<li>  Plotting of the processed species cover layers (<code>initPlot</code> event).</li>
+</ul>
+
+<h3>Module outputs</h3>
+
+<p>The module produces the following outputs (Table
+\@ref(tab:moduleOutputs-Biomass-speciesData)):</p>
+
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>List of (ref:Biomass-speciesData) output objects and their description.</caption>
+ <thead>
+  <tr>
+   <th style="text-align:left;"> objectName </th>
+   <th style="text-align:left;"> desc </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> speciesLayers </td>
+   <td style="text-align:left;"> biomass percentage raster layers by species in Canada species map </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> treed </td>
+   <td style="text-align:left;"> Table with one logical column for each species, indicating whether there were non-zero cover values in each pixel. </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> numTreed </td>
+   <td style="text-align:left;"> a named vector with number of pixels with non-zero cover values for each species </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> nonZeroCover </td>
+   <td style="text-align:left;"> A single value indicating how many pixels have non-zero cover </td>
+  </tr>
+</tbody>
+</table>
+
+<p>and automatically saves the processed species cover layers in the output path
+defined in <code>getPaths(sim)$outputPath</code>.</p>
+
+<h3>Links to other modules</h3>
+
+<p>Intended to be used with other LandR data modules (e.g.,
+<em>Biomass_borealDataPrep</em>) that require species cover data and the LandR forest
+simulation <em>Biomass_core</em> module. You can see all <em>potential</em> module linkages
+within the LandR ecosystem
+<a href="https://rpubs.com/PredictiveEcology/LandR_Module_Ecosystem">here</a>. Select
+<em>Biomass_speciesData</em> from the drop-down menu to see linkages.</p>
+
+<h3>Getting help</h3>
+
+<ul>
+<li>  <a href="https://github.com/PredictiveEcology/Biomass_speciesData/issues">https://github.com/PredictiveEcology/Biomass_speciesData/issues</a></li>
+</ul>
+
+<h2>Module manual</h2>
+
+<h3>Detailed description</h3>
+
+<p>This module accesses and processes species percent cover (% cover) data for the
+parametrisation and initialization of LandR <em>Biomass_core</em>. This module ensures
+1) all data use the same geospatial geometries and 2) that these are correctly
+re-projected to studyAreaLarge, and 3) attempts to sequentially fill-in and
+replace the lowest quality data with higher quality data when several data
+sources are used. It&#39;s primary output is a <code>RasterStack</code> of species % cover,
+with each layer corresponding to a species.</p>
+
+<p>Currently, the module can access the Canadian Forest Inventory forest attributes
+kNN dataset [the default; @BeaudoinEtAl2017], the Common Attribute Schema for
+Forest Resource Inventories [CASFRI; @Cosco2011] dataset, the Ontario Forest
+Resource Inventory (ONFRI), a dataset specific to Alberta compiled by Paul
+Pickell, and other Alberta forest inventory datasets. However, <strong>only the NFI
+kNN data are freely available</strong> &ndash; access to the other datasets must be granted
+by module developers and data owners, and a Google account is required.
+Nevertheless, the module is flexible enough that any user can use it to process
+additional datasets, provided that an adequate R function is passed to the
+module (see <code>types</code> parameter details in [Parameters])</p>
+
+<p>When multiple data sources are used, the module will use replace lower quality
+data with higher quality data following the order specified by the parameter
+<code>types</code> (see [Parameters]).</p>
+
+<p>The module can also exclude species % cover layers if they don&#39;t have a minimum
+% cover value in at least one pixel. This means that the user should still
+inspect in how many pixels the species is deemed present, as it is possible that
+some data have only a few pixels with high % cover for a given species. In this
+case, the user may choose to exclude these species <em>a posteriori</em>. The summary
+plot automatically shown by <em>Biomass_speciesData</em> can help diagnose whether
+certain species are present in very few pixels (see Fig.
+\@ref(fig:fig-Biomass-speciesDataOutPlots)).</p>
+
+<h3>Initialization, inputs and parameters</h3>
+
+<p><em>Biomass_speciesData</em> initializes itself and prepares all inputs provided that
+it has internet access to download the raw data layers (or that these layers
+have been previously downloaded and stored in the folder specified by
+<code>options(&quot;reproducible.destinationPath&quot;)</code>).</p>
+
+<p>The module defaults to processing cover data fo all species listed in the
+<code>Boreal</code> column of the default <code>sppEquiv</code> input <code>data.table</code> object, for which
+there are available % cover layers in the kNN dataset (Table
+\@ref(tab:defaultSppBiomass-speciesData); see <code>?LandR::sppEquivalencies_CA</code> for
+more information):</p>
+
+<pre><code>## Error in set(x, j = name, value = value): RHS of assignment to existing column &#39;Species&#39; is zero length but not NULL. If you intend to delete the column use NULL. Otherwise, the RHS must have length &gt; 0; e.g., NA_integer_. If you are trying to change the column type to be an empty list column then, as with all column type changes, provide a full length RHS vector such as vector(&#39;list&#39;,nrow(DT)); i.e., &#39;plonk&#39; in the new column.
+</code></pre>
+
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>List of species cover data downloaded by default by  (ref:Biomass-speciesData).</caption>
+ <thead>
+  <tr>
+   <th style="text-align:left;"> Species </th>
+   <th style="text-align:left;"> Generic name </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> Abies balsamea </td>
+   <td style="text-align:left;"> Balsam Fir </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Abies lasiocarpa </td>
+   <td style="text-align:left;"> Fir </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Acer negundo </td>
+   <td style="text-align:left;"> Boxelder maple </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Acer pensylvanicum </td>
+   <td style="text-align:left;"> Striped maple </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Acer saccharum </td>
+   <td style="text-align:left;"> Sugar maple </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Acer spicatum </td>
+   <td style="text-align:left;"> Mountain maple </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Acer spp. </td>
+   <td style="text-align:left;"> Maple </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Alnus spp </td>
+   <td style="text-align:left;"> Alder </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Betula alleghaniensis </td>
+   <td style="text-align:left;"> Swamp birch </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Betula papyrifera </td>
+   <td style="text-align:left;"> Paper birch </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Betula populifolia </td>
+   <td style="text-align:left;"> Gray birch </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Betula spp. </td>
+   <td style="text-align:left;"> Birch </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Fagus grandifolia </td>
+   <td style="text-align:left;"> American beech </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Fraxinus americana </td>
+   <td style="text-align:left;"> American ash </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Fraxinus nigra </td>
+   <td style="text-align:left;"> Black ash </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Larix laricina </td>
+   <td style="text-align:left;"> Tamarack </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Larix lyallii </td>
+   <td style="text-align:left;"> Alpine larch </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Larix occidentalis </td>
+   <td style="text-align:left;"> Western larch </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Larix spp. </td>
+   <td style="text-align:left;"> Larch </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Picea engelmannii </td>
+   <td style="text-align:left;"> Engelmann&rsquo;s spruce </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Picea glauca </td>
+   <td style="text-align:left;"> White.Spruce </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Picea mariana </td>
+   <td style="text-align:left;"> Black.Spruce </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Picea spp. </td>
+   <td style="text-align:left;"> Spruce </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Pinus albicaulis </td>
+   <td style="text-align:left;"> Whitebark pine </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Pinus banksiana </td>
+   <td style="text-align:left;"> Jack pine </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Pinus contorta </td>
+   <td style="text-align:left;"> Lodgepole pine </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Pinus monticola </td>
+   <td style="text-align:left;"> Western white pine </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Pinus resinosa </td>
+   <td style="text-align:left;"> Red pine </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Pinus spp. </td>
+   <td style="text-align:left;"> Pine </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Populus balsamifera v. balsamifera </td>
+   <td style="text-align:left;"> Balsam poplar </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Populus trichocarpa </td>
+   <td style="text-align:left;"> Black cottonwood </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Populus grandidentata </td>
+   <td style="text-align:left;"> White poplar </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Populus spp. </td>
+   <td style="text-align:left;"> Poplar </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Populus tremuloides </td>
+   <td style="text-align:left;"> Trembling poplar </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Tsuga canadensis </td>
+   <td style="text-align:left;"> Eastern hemlock </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Tsuga spp. </td>
+   <td style="text-align:left;"> Hemlock </td>
+  </tr>
+</tbody>
+</table>
+
+<h4>Input objects</h4>
+
+<p><em>Biomass_speciesData</em> requires the following input data layers</p>
+
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>List of (ref:Biomass-speciesData) input objects and their description.</caption>
+ <thead>
+  <tr>
+   <th style="text-align:left;"> objectName </th>
+   <th style="text-align:left;"> objectClass </th>
+   <th style="text-align:left;"> desc </th>
+   <th style="text-align:left;"> sourceURL </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> rasterToMatchLarge </td>
+   <td style="text-align:left;"> RasterLayer </td>
+   <td style="text-align:left;"> a raster of studyAreaLarge in the same resolution and projection the simulation&rsquo;s. Defaults to the using the Canadian Forestry Service, National Forest Inventory, kNN-derived stand biomass map. </td>
+   <td style="text-align:left;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> sppColorVect </td>
+   <td style="text-align:left;"> character </td>
+   <td style="text-align:left;"> A named vector of colors to use for plotting. The names must be in sim$sppEquiv[[sim$sppEquivCol]], and should also contain a color for &lsquo;Mixed&rsquo; </td>
+   <td style="text-align:left;"> NA </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> sppEquiv </td>
+   <td style="text-align:left;"> data.table </td>
+   <td style="text-align:left;"> table of species equivalencies. See LandR::sppEquivalencies_CA. </td>
+   <td style="text-align:left;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> studyAreaLarge </td>
+   <td style="text-align:left;"> SpatialPolygonsDataFrame </td>
+   <td style="text-align:left;"> Polygon to use as the parametrisation study area. Must be provided by the user. Note that studyAreaLarge is only used for parameter estimation, and can be larger than the actual study area used for LandR simulations (e.g, larger than studyArea in LandR Biomass_core). </td>
+   <td style="text-align:left;"> NA </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> studyAreaReporting </td>
+   <td style="text-align:left;"> SpatialPolygonsDataFrame </td>
+   <td style="text-align:left;"> multipolygon (typically smaller/unbuffered than studyAreaLarge and studyArea in LandR Biomass_core) to use for plotting/reporting. If not provided, will default to studyAreaLarge. </td>
+   <td style="text-align:left;"> NA </td>
+  </tr>
+</tbody>
+</table>
+
+<p>Of the inputs in Table \@ref(tab:moduleInputs2-Biomass-speciesData), the
+following are particularly important and deserve special attention:</p>
+
+<ul>
+<li><p><code>studyAreaLarge</code> &ndash; the polygon defining the area for which species cover
+data area desired. It can be larger (but never smaller) that the study area
+used in the simulation of forest dynamics (i.e., <code>studyArea</code> object in
+<em>Biomass_core</em>).</p></li>
+<li><p><code>sppEquiv</code> &ndash; a table of correspondences between different species naming
+conventions. This table is used across several LandR modules, including
+<em>Biomass_core</em>. It is particularly important here because it will determine
+whether and how species (and their cover layers) are merged, if this is
+desired by the user. For instance, if the user wishes to simulate a generic
+<em>Picea spp.</em> that includes, <em>Picea glauca</em>, <em>Picea mariana</em> and <em>Picea
+engelmannii</em>, they will need to provide these three species names in the
+data column (e.g., <code>KNN</code> if obtaining forest attribute kNN data layers from
+the Canadian Forest Inventory), but the same name (e.g., &ldquo;Pice_Spp&rdquo;) in the
+coumn chosen for the naming convention used throughout the simulation (the
+<code>sppEquivCol</code> parameter); see Table
+\@ref(tab:mergingSpp-Biomass-speciesData) for an example)</p></li>
+</ul>
+
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>Example of species merging for simulation. Here the user wants to model _Abies balsamea_, _A. lasiocarpa_ and _Pinus contorta_ as separate species, but all _Picea_ species as a generic _Picea spp._. For this, all six species are identified in the &lsquo;KNN&rsquo; column, so that their % cover layers can be obtained, but in the &lsquo;Boreal&rsquo; column (which defines the naming convention used in the simulation in this example) all _Picea_ species have the same name. (ref:Biomass-speciesData) will merge their % cover data into a single layer by summing their cover per pixel.</caption>
+ <thead>
+  <tr>
+   <th style="text-align:left;"> Species </th>
+   <th style="text-align:left;"> KNN </th>
+   <th style="text-align:left;"> Boreal </th>
+   <th style="text-align:left;"> Modelled as </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> *Abies balsamea* </td>
+   <td style="text-align:left;"> Abie_Bal </td>
+   <td style="text-align:left;"> Abie_Bal </td>
+   <td style="text-align:left;"> *Abies balsamea* </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> *Abies lasiocarpa* </td>
+   <td style="text-align:left;"> Abie_Las </td>
+   <td style="text-align:left;"> Abie_Las </td>
+   <td style="text-align:left;"> *Abies lasiocarpa* </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> *Picea engelmannii* </td>
+   <td style="text-align:left;"> Pice_Eng </td>
+   <td style="text-align:left;"> Pice_Spp </td>
+   <td style="text-align:left;"> *Picea spp.* </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> *Picea glauca* </td>
+   <td style="text-align:left;"> Pice_Gla </td>
+   <td style="text-align:left;"> Pice_Spp </td>
+   <td style="text-align:left;"> *Picea spp.* </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> *Picea mariana* </td>
+   <td style="text-align:left;"> Pice_Mar </td>
+   <td style="text-align:left;"> Pice_Spp </td>
+   <td style="text-align:left;"> *Picea spp.* </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> *Pinus contorta* </td>
+   <td style="text-align:left;"> Pinu_Con </td>
+   <td style="text-align:left;"> Pinu_Con </td>
+   <td style="text-align:left;"> *Pinus contorta* </td>
+  </tr>
+</tbody>
+</table>
+
+<h4>Parameters</h4>
+
+<p>Table \@ref(tab:moduleParams2-Biomass-speciesData) lists all parameters used in
+<em>Biomass_speciesData</em> and their detailed information.</p>
+
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>List of (ref:Biomass-speciesData) parameters and their description.</caption>
+ <thead>
+  <tr>
+   <th style="text-align:left;"> paramName </th>
+   <th style="text-align:left;"> paramClass </th>
+   <th style="text-align:left;"> default </th>
+   <th style="text-align:left;"> min </th>
+   <th style="text-align:left;"> max </th>
+   <th style="text-align:left;"> paramDesc </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> coverThresh </td>
+   <td style="text-align:left;"> integer </td>
+   <td style="text-align:left;"> 10 </td>
+   <td style="text-align:left;"> NA </td>
+   <td style="text-align:left;"> NA </td>
+   <td style="text-align:left;"> The minimum % cover a species needs to have (per pixel) in the study area to be considered present </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> dataYear </td>
+   <td style="text-align:left;"> numeric </td>
+   <td style="text-align:left;"> 2001 </td>
+   <td style="text-align:left;"> NA </td>
+   <td style="text-align:left;"> NA </td>
+   <td style="text-align:left;"> Passed to paste0(&lsquo;prepSpeciesLayers_&rsquo;, types) function to fetch data from that year (if applicable). Defaults to 2001 as the default kNN year. </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> sppEquivCol </td>
+   <td style="text-align:left;"> character </td>
+   <td style="text-align:left;"> Boreal </td>
+   <td style="text-align:left;"> NA </td>
+   <td style="text-align:left;"> NA </td>
+   <td style="text-align:left;"> The column in sim$sppEquiv data.table to group species by and use as a naming convention. If different species in, e.g., the kNN data have the same name in the chosen column, their data are merged into one species by summing their % cover in each raster cell. </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> types </td>
+   <td style="text-align:left;"> character </td>
+   <td style="text-align:left;"> KNN </td>
+   <td style="text-align:left;"> NA </td>
+   <td style="text-align:left;"> NA </td>
+   <td style="text-align:left;"> The possible data sources. These must correspond to a function named paste0(&lsquo;prepSpeciesLayers_&rsquo;, types). Defaults to &lsquo;KNN&rsquo; to get the Canadian Forestry Service, National Forest Inventory, kNN-derived species cover maps from year &lsquo;dataYear&rsquo;, using the LandR::prepSpeciesLayers_KNN function (see https://open.canada.ca/ data/en/dataset/ec9e2659-1c29-4ddb-87a2-6aced147a990 for details on these data). Other currently available options are &lsquo;ONFRI&rsquo;, &lsquo;CASFRI&rsquo;, &lsquo;Pickell&rsquo; and &lsquo;ForestInventory&rsquo;, which attempt to get proprietary data - the user must be granted access first. A custom function can be used to retrieve any data, just as long as it is accessible by the module (e.g., in the global environment) and is named as paste0(&lsquo;prepSpeciesLayers_&rsquo;, types). </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> vegLeadingProportion </td>
+   <td style="text-align:left;"> numeric </td>
+   <td style="text-align:left;"> 0.8 </td>
+   <td style="text-align:left;"> 0 </td>
+   <td style="text-align:left;"> 1 </td>
+   <td style="text-align:left;"> a number that defines whether a species is leading for a given pixel. Only used for plotting. </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> .plotInitialTime </td>
+   <td style="text-align:left;"> numeric </td>
+   <td style="text-align:left;"> NA </td>
+   <td style="text-align:left;"> NA </td>
+   <td style="text-align:left;"> NA </td>
+   <td style="text-align:left;"> This describes the simulation time at which the first plot event should occur </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> .plotInterval </td>
+   <td style="text-align:left;"> numeric </td>
+   <td style="text-align:left;"> NA </td>
+   <td style="text-align:left;"> NA </td>
+   <td style="text-align:left;"> NA </td>
+   <td style="text-align:left;"> This describes the simulation time interval between plot events </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> .saveInitialTime </td>
+   <td style="text-align:left;"> numeric </td>
+   <td style="text-align:left;"> NA </td>
+   <td style="text-align:left;"> NA </td>
+   <td style="text-align:left;"> NA </td>
+   <td style="text-align:left;"> This describes the simulation time at which the first save event should occur </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> .saveInterval </td>
+   <td style="text-align:left;"> numeric </td>
+   <td style="text-align:left;"> NA </td>
+   <td style="text-align:left;"> NA </td>
+   <td style="text-align:left;"> NA </td>
+   <td style="text-align:left;"> This describes the simulation time interval between save events </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> .studyAreaName </td>
+   <td style="text-align:left;"> character </td>
+   <td style="text-align:left;"> NA </td>
+   <td style="text-align:left;"> NA </td>
+   <td style="text-align:left;"> NA </td>
+   <td style="text-align:left;"> Human-readable name for the study area used. If NA, a hash of studyAreaLarge will be used. </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> .useCache </td>
+   <td style="text-align:left;"> logical </td>
+   <td style="text-align:left;"> init </td>
+   <td style="text-align:left;"> NA </td>
+   <td style="text-align:left;"> NA </td>
+   <td style="text-align:left;"> Controls cache; caches the init event by default </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> .useParallel </td>
+   <td style="text-align:left;"> numeric </td>
+   <td style="text-align:left;"> 16 </td>
+   <td style="text-align:left;"> NA </td>
+   <td style="text-align:left;"> NA </td>
+   <td style="text-align:left;"> Used in reading csv file with fread. Will be passed to data.table::setDTthreads. </td>
+  </tr>
+</tbody>
+</table>
+
+<p>Of the parameters listed in Table \@ref(tab:moduleParams2-Biomass-speciesData),
+the following are particularly important:</p>
+
+<ul>
+<li><p><code>coverThresh</code> &ndash; integer. Defines a minimum % cover value (from 0-100) that
+the species must have in at least one pixel to be considered present in the
+study area, otherwise it is excluded from the final stack of species layers.
+Note that this will affect what species have data for an eventual simulation
+and the user will need to adjust simulation parameters (e.g., species in
+trait tables will need to match the species in the cover layers)
+accordingly.</p></li>
+<li><p><code>types</code> &ndash; character. Which % cover data sources are to be used (see
+[Detailed description]). Several data sources can be passed, in which case
+the module will overlay the lower quality layers with higher quality ones
+<strong>following the order of data sources specified by <code>types</code></strong> &ndash; i.e., if
+<code>types == c(&quot;KNN&quot;, &quot;CASFRI&quot;, &quot;ForestInventory&quot;)</code>, <em>KNN</em> is assumed to be the
+lowest quality data set and <em>ForestInventory</em> the highest: values in <em>KNN</em>
+layers are replaced with overlapping values from <em>CASFRI</em> layers and values
+from <em>KNN</em> and <em>CASFRI</em> layers are replaced with overlapping values of
+<em>ForestInventory</em> layers.</p></li>
+</ul>
+
+<h3>Simulation flow</h3>
+
+<p>The general flow of <em>Biomass_speciesData</em> processes is:</p>
+
+<ol>
+<li><p>Download (if necessary) of and spatial processing of species cover layers
+from the first data source listed in the <code>types</code> parameter. Spatial
+processing consists in sub-setting the data to the area defined by
+<code>studyAreaLarge</code> and ensuring that the spatial projection and resolution
+match those of <code>rasterToMatchLarge</code>. After spatial processing, species
+layers that have no pixels with values &gt;= to the <code>coverThresh</code> parameter are
+excluded.</p></li>
+<li><p>If more than one data source is listed in <code>types</code>, the second set of species
+cover layers is downloaded and processed as above.</p></li>
+<li><p>The second set of layers is assumed to be the highest quality dataset and
+used to replaced overlapping pixel values on the first (including for
+species whose layers may have been initially excluded after applying the
+<code>coverThresh</code> filter).</p></li>
+<li><p>Steps 2 and 3 are repeated for remaining data sources listed in <code>types</code>.</p></li>
+<li><p>Final layers are saved to disk and plotted. A summary of number of pixels
+with forest cover are calculated (<code>treed</code>and <code>numTreed</code> output objects; see
+[Module outputs]).</p></li>
+</ol>
+
+<h2>Usage example</h2>
+
+<h3>Load <code>SpaDES</code> and other packages.</h3>
+
+<pre><code class="r">if (!require(Require)) {
+  install.packages(&quot;Require&quot;)
+  library(Require)
+}
+
+Require(c(&quot;PredictiveEcology/SpaDES.install&quot;,
+          &quot;SpaDES&quot;, &quot;PredictiveEcology/SpaDES.core@development&quot;,
+          &quot;PredictiveEcology/LandR&quot;), 
+        install_githubArgs = list(dependencies = TRUE))
+</code></pre>
+
+<h3>Get module, necessary packages and set up folder directories</h3>
+
+<pre><code class="r">tempDir &lt;- tempdir()
+spadesModulesDirectory &lt;- file.path(tempDir, &quot;modules&quot;)
+
+paths &lt;- list(inputPath = normPath(file.path(tempDir, &quot;inputs&quot;)), 
+              cachePath = normPath(file.path(tempDir, &quot;cache&quot;)), 
+              modulePath = normPath(spadesModulesDirectory), 
+              outputPath = normPath(file.path(tempDir, &quot;outputs&quot;)))
+
+getModule(&quot;PredictiveEcology/Biomass_speciesData&quot;, modulePath = spadesModulesDirectory, overwrite = TRUE)
+
+## make sure all necessary packages are installed:
+makeSureAllPackagesInstalled(spadesModulesDirectory)
+</code></pre>
+
+<h3>Setup simulation</h3>
+
+<p>For this demonstration we are using all default parameter values, except
+<code>coverThresh</code> , which is lowered to 5%. The species layers (the major output of
+interest) are saved automatically, so there is no need to tell <code>spades</code> what to
+save using the <code>outputs</code> argument (see <code>?SpaDES.core::outputs</code>).</p>
+
+<p>We pass the global parameter <code>.plotInitialTime = 1</code> in the <code>simInitAndSpades</code>
+function to activate plotting.</p>
+
+<pre><code class="r"># User may want to set some options -- see ?reproducibleOptions 
+#    -- e.g., often the path to the &#39;inputs&#39; folder will be set outside of project by user:
+# options(reproducible.inputPaths = &quot;E:/Data/LandR_related/&quot;) # to re-use datasets across projects
+studyAreaLarge &lt;- Cache(randomStudyArea, size = 1e7,
+                        cacheRepo = paths$cachePath) # cache this so it creates a random one only once on a machine
+
+# Pick the species you want to work with -- here we use the naming convention in &quot;Boreal&quot; column of LandR::sppEquivalencies_CA (default)
+speciesNameConvention &lt;- &quot;Boreal&quot;
+speciesToUse &lt;- c(&quot;Pice_Gla&quot;, &quot;Popu_Tre&quot;, &quot;Pinu_Con&quot;)
+
+sppEquiv &lt;- LandR::sppEquivalencies_CA[get(speciesNameConvention) %in% speciesToUse]
+# Assign a colour convention for graphics for each species
+sppColorVect &lt;- LandR::sppColors(sppEquiv, speciesNameConvention,
+                                 newVals = &quot;Mixed&quot;, palette = &quot;Set1&quot;)
+
+## Usage example
+modules &lt;- list(&quot;Biomass_speciesData&quot;)
+objects &lt;- list(&quot;studyAreaLarge&quot; = studyAreaLarge,
+                &quot;sppEquiv&quot; = sppEquiv,
+                &quot;sppColorVect&quot; = sppColorVect)
+params &lt;- list(&quot;Biomass_speciesData&quot; = list(&quot;coverThresh&quot; = 5L))
+</code></pre>
+
+<h3>Run module</h3>
+
+<p>Note that because this is a data module (i.e., only attempts to prepare data for
+the simulation) we are not iterating it and so both the start and end times are
+set to <code>1</code> here.</p>
+
+<pre><code class="r">opts &lt;- options(reproducible.useCache = TRUE,
+                reproducible.inputPaths = paths$inputPath)
+
+mySimOut &lt;- simInitAndSpades(times = list(start = 1, end = 1),
+                             modules = modules, 
+                             parameters = params,
+                             objects = objects, 
+                             paths = paths,
+                             .plotInitialTime = 1)
+options(opts)
+</code></pre>
+
+<p>Here are some of the data retrieved by <em>Biomass_speciesData</em> for a randomly
+generated study area within Canada.</p>
+
+<p><img src="data:image/png;base64,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" title="(ref:Biomass-speciesData) automatically generates a plot of species dominance and number of presences in the study area, when `.plotInitialTime = 1` is passed as an argument." alt="(ref:Biomass-speciesData) automatically generates a plot of species dominance and number of presences in the study area, when `.plotInitialTime = 1` is passed as an argument." width="50%" /></p>
+
+<h2>References</h2>
+
+</body>
+
+</html>
