@@ -6,3 +6,9 @@ E:/GitHub/../.httr-oauth
 E:/GitHub/../.httr-oauth-SUSPENDED
 
 cache/
+
+*_cache/
+*_files/
+
+## these are downloaded automatically, no point in caching
+figures/*Badge.png

@@ -1,90 +1,408 @@
 ---
-title: "Biomass_speciesData"
-author: "Eliot McIntire, Alex M Chubaty, Ceres Barros"
-date: "16 July 2018"
+title: "LandR _Biomass_speciesData_ Manual"
+subtitle: "v.`r SpaDES.core::moduleMetadata(module = 'Biomass_speciesData', path = '..')$version`"
+date: "Last updated: `r Sys.Date()`"
 output:
-  pdf_document: default
-editor_options: 
+  bookdown::html_document2:
+    toc: true
+    toc_float: true
+    theme: sandstone
+    number_sections: false
+    df_print: paged
+    keep_md: yes
+editor_options:
   chunk_output_type: console
+  markdown: 
+    wrap: 80
+bibliography: citations/references_Biomass_speciesData.bib
+citation-style: citations/ecology-letters.csl
+link-citations: true
+always_allow_html: true
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
-```
+# LandR *Biomass_speciesData* Module
 
-# Overview
+<!-- the following are text references used in captions for LaTeX compatibility -->
 
-Download and pre-process species biomass data to prepare species cover rasters.
-This module can currently access different data sources (kNN, CASFRI, Paul Pickell's dataset and data from forest inventories in Alberta), however only kNN datasets are freely available. Remaining datasets can only be accessed by authorized Google users.
+(ref:Biomass-speciesData) *Biomass_speciesData*
 
-The module defaults to processing cover data for 5 species/genera *Abies sp.*, *Picea glauca*, *Picea mariana*, *Pinus sp.* and  *Populus tremuloides* in a random polygon in Alberta.
+```{r setup-Biomass-speciesData, include=FALSE}
+## set cache.rebuild = TRUE whenever there are changes to the module code/metadata
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE, warning = FALSE, 
+                      cache = 2, cache.rebuild = FALSE, results = "hold", dpi = 300)
 
-# Functioning
-
-After downloading the data that can be accessed for the species chosen, the module merges the datasets (if several are used) by filling in the gaps of higher quality data with lower quality data. The parameter `types` lists the data sources to be used and its order determines the hierarchy of data filling from the lowest quality to highest quality. So, e.g., if using `types = c("KNN", "CASFRI")`, CASFRI is considered the highest quality source, and filled in with information from KNN.
-If the user wishes to use another data source, they will need to proving an accompanying function prefixed `prepSpeciesLayers_*`, where * corresponds to theis new data source's character string in `types`. The user should follow the `LandR::prepSpeciesLayers_KNN` and `LandR::prepSpeciesLayers_CASFRI` functions as templates to build theirs.
-
-# Links to other modules
-
-Intended for use with the Land-R-Biomass suite of models - if LandWeb project permissions are valid, then the full datasets used for the LandWeb can be used here.
-
-```{r Install-Missing-Or-Old-Packages, eval=FALSE}
-## as of Nov 25th 2019
-devtools::install_github("PredictiveEcology/reproducible@development", dependencies = FALSE)
-devtools::install_github("PredictiveEcology/SpaDES.core@development", dependencies = FALSE)
-devtools::install_github("PredictiveEcology/pemisc@development")
-devtools::install_github("PredictiveEcology/LandR@development")
-
-# User may want to set some options -- see ?reproducibleOptions 
-#    -- often will be set outside of project by user --
-# options(reproducible.inputPaths = "E:/Data/LandR_related/") # to re-use datasets across projects
-
-```
-
-```{r runSpaDES, eval=TRUE}
-library(raster)
-library(SpaDES)
-
-setPaths(modulePath = "../", cachePath = "cache/")
-
-## do you want to hand-draw a map or use defaults?
-# - note that large areas will take longer to compute
-handDrawMap <- TRUE
-
-if(handDrawMap) {
-  dev()
-  clearPlot()
-  canadaMap <- Cache(getData, 'GADM', country = 'CAN', level = 1, path = "data/",
-                     cacheRepo = getPaths()$cachePath, quick = FALSE)
-  possibleStudyArea <- "../LandscapesInMotion/data/maps/Foothills_study_area.shp"
-  Plot(canadaMap, speedup = 5, visualSqueeze = 0.9) # 5 seemed optimal
-  if (file.exists(possibleStudyArea)) {
-    LIM_SA <- shapefile(possibleStudyArea)
-    Plot(LIM_SA, addTo = "canadaMap", col = "green")
-  }
-  
-  ## hand-drawn study area
-  if(!exists("studyAreaLarge")) {
-    message("Since there is no object called 'studyAreaLarge', please draw a study area with 10 points")
-    
-    # use Cache here, so that if you restart, can use same random polygon, allowing Cache to be effective during
-    #   the simInit and spades calls below
-    severalrandompoints <- Cache(clickCoordinates, 10) 
-    if(startsWith(attr(severalrandompoints, "tags"), "cache")) message("Taking studyAreaLarge from Cache")
-    studyAreaLarge <- SpatialPolygons(list(Polygons(list(Polygon(severalrandompoints$coords)), ID = "handDrawnPoly")),
-                                          proj4string = crs(canadaMap))
-  }
+## get citation style
+if (!file.exists("citations/ecology-letters.csl")) {
+  dir.create("citations", showWarnings = FALSE)
+  download.file("https://www.zotero.org/styles/ecology-letters?source=1", destfile = "citations/ecology-letters.csl")
 }
 
-modules <-  list("Biomass_speciesData")
-objects <- if(handDrawMap) {
-  list("studyAreaLarge" = studyAreaLarge,
-       "studyArea" = studyAreaLarge)  
-} else list()
+if (!require(Require)) {
+  install.packages("Require")
+  library(Require)
+}
 
-opts <- options(reproducible.useCache = TRUE)
-mySim <- simInit(modules = modules, objects = objects)
+Require(c("dplyr", "data.table"), install = TRUE)
+```
 
-mySimOut <- spades(mySim)
+```{r badgeFigs-Biomass-speciesData, include=FALSE, eval = TRUE, cache = FALSE}
+dir.create("figures", showWarnings = FALSE)
+
+download.file(url = "https://img.shields.io/badge/Made%20with-Markdown-1f425f.png",
+              destfile = "figures/markdownBadge.png",
+              mode = 'wb')
+download.file(url = "https://img.shields.io/badge/Get%20help-Report%20issues-%3CCOLOR%3E.png",
+              destfile = "figures/genericBadge.png",
+              mode = 'wb')
+```
+
+[![made-with-Markdown](figures/markdownBadge.png)](http://commonmark.org)
+[![Generic badge](figures/genericBadge.png)](https://github.com/PredictiveEcology/Biomass_speciesData/issues)
+
+<!-- if knitting to pdf remember to add the pandoc_args: ["--extract-media", "."] option to yml in order to get the badge images -->
+
+**This documentation is work in progress. Potential discrepancies and omissions
+may exist for the time being. If you find any, do contact us using the link
+above\^\^**
+
+#### Authors:
+
+`r paste(as.character(SpaDES.core::moduleMetadata(module = 'Biomass_speciesData', path = '..')$authors), sep = ', ')`
+<!-- ideally separate authors with new lines, '\n' not working -->
+
+## Module Overview
+
+### Module summary
+
+This module downloads and pre-process species % cover data layers to be passed
+to other LandR data modules (e.g., *Biomass_borealDataPrep*) or to the LandR
+forest simulation module *Biomass_core*.
+
+### Module inputs and parameters at a glance
+
+Below are the full list of input objects (Table
+\@ref(tab:moduleInputs-Biomass-speciesData)) and parameters (Table
+\@ref(tab:moduleParams-Biomass-speciesData)) that *Biomass_speciesData* expects.
+Of these, the only input that **must** be provided (i.e., *Biomass_speciesData*
+does not have a default for) is `studyAreaLarge`.
+
+Raw data layers downloaded by the module are saved in `dataPath(sim)`, which can
+be controlled via `options(reproducible.destinationPath = ...)`.
+
+```{r moduleInputs-Biomass-speciesData, echo = FALSE, eval = TRUE, message = FALSE}
+df_inputs <- SpaDES.core::moduleInputs("Biomass_speciesData", "..")[, c(1, 3)]  ## name + desc only
+knitr::kable(df_inputs,
+             caption = "List of (ref:Biomass-speciesData) input objects and their description.") %>%
+  kableExtra::kable_styling(latex_options = "scale_down", full_width = TRUE)
+```
+
+```{r moduleParams-Biomass-speciesData, echo = FALSE, eval = TRUE, message = FALSE}
+df_params <- SpaDES.core::moduleParams("Biomass_speciesData", "..")[, c(1, 6)] ## name + desc only
+knitr::kable(df_params,
+             caption = "List of (ref:Biomass-speciesData) parameters and their description.") %>%
+  kableExtra::kable_styling(latex_options = "scale_down", full_width = TRUE)
+```
+
+### Events
+
+*Biomass_speciesData* only runs two events:
+
+-   Module "initiation" (`init` event), during which all species % cover layers
+    are downloaded and processed.
+-   Plotting of the processed species cover layers (`initPlot` event).
+
+### Module outputs
+
+The module produces the following outputs (Table
+\@ref(tab:moduleOutputs-Biomass-speciesData)):
+
+```{r moduleOutputs-Biomass-speciesData, echo = FALSE, eval = TRUE, message = FALSE}
+df_outputs <- SpaDES.core::moduleOutputs("Biomass_speciesData", "..")[, c(1, 3)] ## name + desc only
+knitr::kable(df_outputs,
+             caption = "List of (ref:Biomass-speciesData) output objects and their description.") %>%
+  kableExtra::kable_styling(latex_options = "scale_down", full_width = TRUE)
+```
+
+and automatically saves the processed species cover layers in the output path
+defined in `getPaths(sim)$outputPath`.
+
+### Links to other modules
+
+Intended to be used with other LandR data modules (e.g.,
+*Biomass_borealDataPrep*) that require species cover data and the LandR forest
+simulation *Biomass_core* module. You can see all *potential* module linkages
+within the LandR ecosystem
+[here](https://rpubs.com/PredictiveEcology/LandR_Module_Ecosystem). Select
+*Biomass_speciesData* from the drop-down menu to see linkages.
+
+### Getting help
+
+-   <https://github.com/PredictiveEcology/Biomass_speciesData/issues>
+
+## Module manual
+
+### Detailed description
+
+This module accesses and processes species percent cover (% cover) data for the
+parametrisation and initialization of LandR *Biomass_core*. This module ensures
+1) all data use the same geospatial geometries and 2) that these are correctly
+re-projected to studyAreaLarge, and 3) attempts to sequentially fill-in and
+replace the lowest quality data with higher quality data when several data
+sources are used. It's primary output is a `RasterStack` of species % cover,
+with each layer corresponding to a species.
+
+Currently, the module can access the Canadian Forest Inventory forest attributes
+kNN dataset [the default; @BeaudoinEtAl2017], the Common Attribute Schema for
+Forest Resource Inventories [CASFRI; @Cosco2011] dataset, the Ontario Forest
+Resource Inventory (ONFRI), a dataset specific to Alberta compiled by Paul
+Pickell, and other Alberta forest inventory datasets. However, **only the NFI
+kNN data are freely available** -- access to the other datasets must be granted
+by module developers and data owners, and a Google account is required.
+Nevertheless, the module is flexible enough that any user can use it to process
+additional datasets, provided that an adequate R function is passed to the
+module (see `types` parameter details in [Parameters])
+
+When multiple data sources are used, the module will use replace lower quality
+data with higher quality data following the order specified by the parameter
+`types` (see [Parameters]).
+
+The module can also exclude species % cover layers if they don't have a minimum
+% cover value in at least one pixel. This means that the user should still
+inspect in how many pixels the species is deemed present, as it is possible that
+some data have only a few pixels with high % cover for a given species. In this
+case, the user may choose to exclude these species *a posteriori*. The summary
+plot automatically shown by *Biomass_speciesData* can help diagnose whether
+certain species are present in very few pixels (see Fig.
+\@ref(fig:fig-Biomass-speciesDataOutPlots)).
+
+### Initialization, inputs and parameters
+
+*Biomass_speciesData* initializes itself and prepares all inputs provided that
+it has internet access to download the raw data layers (or that these layers
+have been previously downloaded and stored in the folder specified by
+`options("reproducible.destinationPath")`).
+
+The module defaults to processing cover data fo all species listed in the
+`Boreal` column of the default `sppEquiv` input `data.table` object, for which
+there are available % cover layers in the kNN dataset (Table
+\@ref(tab:defaultSppBiomass-speciesData); see `?LandR::sppEquivalencies_CA` for
+more information):
+
+```{r defaultSppBiomass-speciesData, echo = FALSE, eval = TRUE, message = FALSE}
+data("sppEquivalencies_CA", package = "LandR", envir = environment())
+sppEquiv <- as.data.table(sppEquivalencies_CA)
+
+## filter only common species between kNN and default "Boreal" column
+## remove empty species names
+sppEquiv <- sppEquiv[!(is.na(Boreal) | is.na(KNN) | Boreal == "" | KNN == ""),]
+sppEquiv2 <- sppEquiv[, .("Species" = Latin_full, "Generic name" = EN_generic_full)]
+sppEquiv2[, Species := sub("(.*)", "\\*\\1\\*", Species)]  ## for italics
+
+knitr::kable(sppEquiv2, 
+             caption = "List of species cover data downloaded by default by  (ref:Biomass-speciesData).") %>%
+  kableExtra::kable_styling(latex_options = "scale_down", full_width = TRUE)
+```
+
+#### Input objects
+
+*Biomass_speciesData* requires the following input data layers
+
+```{r moduleInputs2-Biomass-speciesData, echo = FALSE, eval = TRUE, message = FALSE}
+df_inputs <- SpaDES.core::moduleInputs("Biomass_speciesData", "..")
+knitr::kable(df_inputs, 
+             caption = "List of (ref:Biomass-speciesData) input objects and their description.") %>%
+  kableExtra::kable_styling(latex_options = "scale_down", full_width = TRUE)
+```
+
+Of the inputs in Table \@ref(tab:moduleInputs2-Biomass-speciesData), the
+following are particularly important and deserve special attention:
+
+-   `studyAreaLarge` -- the polygon defining the area for which species cover
+    data area desired. It can be larger (but never smaller) that the study area
+    used in the simulation of forest dynamics (i.e., `studyArea` object in
+    *Biomass_core*).
+
+-   `sppEquiv` -- a table of correspondences between different species naming
+    conventions. This table is used across several LandR modules, including
+    *Biomass_core*. It is particularly important here because it will determine
+    whether and how species (and their cover layers) are merged, if this is
+    desired by the user. For instance, if the user wishes to simulate a generic
+    *Picea spp.* that includes, *Picea glauca*, *Picea mariana* and *Picea
+    engelmannii*, they will need to provide these three species names in the
+    data column (e.g., `KNN` if obtaining forest attribute kNN data layers from
+    the Canadian Forest Inventory), but the same name (e.g., "Pice_Spp") in the
+    coumn chosen for the naming convention used throughout the simulation (the
+    `sppEquivCol` parameter); see Table
+    \@ref(tab:mergingSpp-Biomass-speciesData) for an example)
+
+```{r mergingSpp-Biomass-speciesData, echo = FALSE, eval = TRUE, message = FALSE}
+sppEquiv2 <- sppEquiv[grepl("Abie|Pice|Pinu_Con", Boreal), .(Latin_full, KNN, Boreal)][KNN != "Pice_Spp"]
+sppEquiv2[grepl("Pice_", KNN), Boreal := "Pice_Spp"]
+sppEquiv2[, "Modelled as" := Latin_full]
+sppEquiv2[Boreal == "Pice_Spp", `Modelled as` := "Picea spp."]
+setnames(sppEquiv2, "Latin_full", "Species")
+
+sppEquiv2[, `:=`(Species = sub("(.*)", "\\*\\1\\*", Species),
+                 `Modelled as` = sub("(.*)", "\\*\\1\\*", `Modelled as`))]  ## for italics
+
+knitr::kable(sppEquiv2, 
+             caption = "Example of species merging for simulation. Here the user wants to model _Abies balsamea_, _A. lasiocarpa_ and _Pinus contorta_ as separate species, but all _Picea_ species as a generic _Picea spp._. For this, all six species are identified in the 'KNN' column, so that their % cover layers can be obtained, but in the 'Boreal' column (which defines the naming convention used in the simulation in this example) all _Picea_ species have the same name. (ref:Biomass-speciesData) will merge their % cover data into a single layer by summing their cover per pixel.") %>%
+  kableExtra::kable_styling(latex_options = "scale_down", full_width = TRUE)
+```
+
+#### Parameters
+
+Table \@ref(tab:moduleParams2-Biomass-speciesData) lists all parameters used in
+*Biomass_speciesData* and their detailed information.
+
+```{r moduleParams2-Biomass-speciesData, echo = FALSE, eval = TRUE, message = FALSE}
+df_params <- SpaDES.core::moduleParams("Biomass_speciesData", "..")
+knitr::kable(df_params,
+             caption = "List of (ref:Biomass-speciesData) parameters and their description.") %>%
+  kableExtra::kable_styling(latex_options = "scale_down", full_width = TRUE)
+```
+
+Of the parameters listed in Table \@ref(tab:moduleParams2-Biomass-speciesData),
+the following are particularly important:
+
+-   `coverThresh` -- integer. Defines a minimum % cover value (from 0-100) that
+    the species must have in at least one pixel to be considered present in the
+    study area, otherwise it is excluded from the final stack of species layers.
+    Note that this will affect what species have data for an eventual simulation
+    and the user will need to adjust simulation parameters (e.g., species in
+    trait tables will need to match the species in the cover layers)
+    accordingly.
+
+-   `types` -- character. Which % cover data sources are to be used (see
+    [Detailed description]). Several data sources can be passed, in which case
+    the module will overlay the lower quality layers with higher quality ones
+    **following the order of data sources specified by `types`** -- i.e., if
+    `types == c("KNN", "CASFRI", "ForestInventory")`, *KNN* is assumed to be the
+    lowest quality data set and *ForestInventory* the highest: values in *KNN*
+    layers are replaced with overlapping values from *CASFRI* layers and values
+    from *KNN* and *CASFRI* layers are replaced with overlapping values of
+    *ForestInventory* layers.
+
+### Simulation flow
+
+The general flow of *Biomass_speciesData* processes is:
+
+1.  Download (if necessary) of and spatial processing of species cover layers
+    from the first data source listed in the `types` parameter. Spatial
+    processing consists in sub-setting the data to the area defined by
+    `studyAreaLarge` and ensuring that the spatial projection and resolution
+    match those of `rasterToMatchLarge`. After spatial processing, species
+    layers that have no pixels with values \>= to the `coverThresh` parameter
+    are excluded.
+
+2.  If more than one data source is listed in `types`, the second set of species
+    cover layers is downloaded and processed as above.
+
+3.  The second set of layers is assumed to be the highest quality dataset and
+    used to replaced overlapping pixel values on the first (including for
+    species whose layers may have been initially excluded after applying the
+    `coverThresh` filter).
+
+4.  Steps 2 and 3 are repeated for remaining data sources listed in `types`.
+
+5.  Final layers are saved to disk and plotted. A summary of number of pixels
+    with forest cover are calculated (`treed`and `numTreed` output objects; see
+    [Module outputs]).
+
+## Usage example
+
+### Load `SpaDES` and other packages.
+
+```{r load-SpaDES-Biomass-speciesData}
+if (!require(Require)) {
+  install.packages("Require")
+  library(Require)
+}
+
+Require(c("PredictiveEcology/SpaDES.install",
+          "SpaDES", "PredictiveEcology/SpaDES.core@development",
+          "PredictiveEcology/LandR"), 
+        install_githubArgs = list(dependencies = TRUE))
+```
+
+### Get module, necessary packages and set up folder directories
+
+```{r module usage example setup -Biomass-speciesData, eval = FALSE}
+tempDir <- tempdir()
+spadesModulesDirectory <- file.path(tempDir, "modules")
+
+paths <- list(inputPath = normPath(file.path(tempDir, "inputs")), 
+              cachePath = normPath(file.path(tempDir, "cache")), 
+              modulePath = normPath(spadesModulesDirectory), 
+              outputPath = normPath(file.path(tempDir, "outputs")))
+
+getModule("PredictiveEcology/Biomass_speciesData", 
+                       modulePath = spadesModulesDirectory, overwrite = TRUE)
+
+## make sure all necessary packages are installed:
+makeSureAllPackagesInstalled(spadesModulesDirectory)
+```
+
+### Setup simulation
+
+For this demonstration we are using all default parameter values, except
+`coverThresh` , which is lowered to 5%. The species layers (the major output of
+interest) are saved automatically, so there is no need to tell `spades` what to
+save using the `outputs` argument (see `?SpaDES.core::outputs`).
+
+We pass the global parameter `.plotInitialTime = 1` in the `simInitAndSpades`
+function to activate plotting.
+
+```{r  module usage example setup2-Biomass-speciesData, eval = FALSE}
+# User may want to set some options -- see ?reproducibleOptions 
+#    -- e.g., often the path to the 'inputs' folder will be set outside of project by user:
+# options(reproducible.inputPaths = "E:/Data/LandR_related/") # to re-use datasets across projects
+studyAreaLarge <- Cache(randomStudyArea, size = 1e7,
+                        cacheRepo = paths$cachePath) # cache this so it creates a random one only once on a machine
+
+# Pick the species you want to work with -- here we use the naming convention in "Boreal" column of LandR::sppEquivalencies_CA (default)
+speciesNameConvention <- "Boreal"
+speciesToUse <- c("Pice_Gla", "Popu_Tre", "Pinu_Con")
+
+sppEquiv <- LandR::sppEquivalencies_CA[get(speciesNameConvention) %in% speciesToUse]
+# Assign a colour convention for graphics for each species
+sppColorVect <- LandR::sppColors(sppEquiv, speciesNameConvention,
+                                 newVals = "Mixed", palette = "Set1")
+
+## Usage example
+modules <- list("Biomass_speciesData")
+objects <- list("studyAreaLarge" = studyAreaLarge,
+                "sppEquiv" = sppEquiv,
+                "sppColorVect" = sppColorVect)
+params <- list("Biomass_speciesData" = list("coverThresh" = 5L))
+```
+
+### Run module
+
+Note that because this is a data module (i.e., only attempts to prepare data for
+the simulation) we are not iterating it and so both the start and end times are
+set to `1` here.
+
+```{r module usage example2-Biomass-speciesData}
+opts <- options(reproducible.useCache = TRUE,
+                reproducible.inputPaths = paths$inputPath)
+
+mySimOut <- simInitAndSpades(times = list(start = 1, end = 1),
+                             modules = modules, 
+                             parameters = params,
+                             objects = objects, 
+                             paths = paths,
+                             .plotInitialTime = 1)
 options(opts)
 ```
+
+Here are some of the data retrieved by *Biomass_speciesData* for a randomly
+generated study area within Canada.
+
+```{r fig-Biomass-speciesDataOutPlots, eval=TRUE, echo=FALSE, fig.cap = "(ref:Biomass-speciesData) automatically generates a plot of species dominance and number of presences in the study area when `.plotInitialTime=1` is passed as an argument."}
+## make sure all include_graphics have wd attached to figure path
+## this is necessary to knit to pdf using child Rmds - see https://stackoverflow.com/questions/61065560/cant-compile-rmarkdown-pdf-with-image-in-child-rmd-latex-error-image-file
+knitr::include_graphics(normalizePath(c("figures/testRunFigure.png"), winslash = "/"))
+```
+
+## References
