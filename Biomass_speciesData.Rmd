@@ -194,6 +194,14 @@ following are particularly important and deserve special attention:
     \@ref(tab:mergingSpp-Biomass-speciesData) for an example).
 
 ```{r mergingSpp-Biomass-speciesData, echo = FALSE, eval = TRUE, message = FALSE}
+data("sppEquivalencies_CA", package = "LandR", envir = environment())
+sppEquiv <- as.data.table(sppEquivalencies_CA)
+
+## filter only common species between kNN and default "Boreal" column
+## remove empty species names
+sppEquiv <- sppEquiv[!(is.na(Boreal) | is.na(KNN) | Boreal == "" | KNN == ""),]
+
+## select only a few species, then merge some
 sppEquiv2 <- sppEquiv[grepl("Abie|Pice|Pinu_Con", Boreal), .(Latin_full, KNN, Boreal)][KNN != "Pice_Spp"]
 sppEquiv2[grepl("Pice_", KNN), Boreal := "Pice_Spp"]
 sppEquiv2[, "Modelled as" := Latin_full]
@@ -278,12 +286,6 @@ there are available (ref:percent) cover layers in the kNN dataset (Table
 more information):
 
 ```{r defaultSppBiomass-speciesData, echo = FALSE, eval = TRUE, message = FALSE}
-data("sppEquivalencies_CA", package = "LandR", envir = environment())
-sppEquiv <- as.data.table(sppEquivalencies_CA)
-
-## filter only common species between kNN and default "Boreal" column
-## remove empty species names
-sppEquiv <- sppEquiv[!(is.na(Boreal) | is.na(KNN) | Boreal == "" | KNN == ""),]
 sppEquiv2 <- sppEquiv[, .("Species" = Latin_full, "Generic name" = EN_generic_full)]
 sppEquiv2[, Species := sub("(.*)", "\\*\\1\\*", Species)]  ## for italics
 
