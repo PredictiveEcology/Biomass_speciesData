@@ -266,11 +266,10 @@ knitr::kable(df_outputs,
 *Biomass_speciesData* initialises itself and prepares all inputs provided that
 it has internet access to download the raw data layers, or that these layers
 have been previously downloaded and stored in the folder specified by
-`options("reproducible.destinationPath")`[^biomass_speciesdata-1].
+`options("reproducible.destinationPath")`[^1].
 
-[^biomass_speciesdata-1]: Raw data layers downloaded by the module are saved in
-    \`dataPath(sim)\`, which can be controlled via
-    \`options(reproducible.destinationPath = ...)\`.
+[^1]: Raw data layers downloaded by the module are saved in \`dataPath(sim)\`,
+    which can be controlled via \`options(reproducible.destinationPath = ...)\`.
 
 The module defaults to processing cover data fo all species listed in the
 `Boreal` column of the default `sppEquiv` input `data.table` object, for which
