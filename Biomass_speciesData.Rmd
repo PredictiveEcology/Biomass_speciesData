@@ -5,6 +5,7 @@ output:
   bookdown::html_document2:
     toc: true
     toc_float: true
+    toc_depth: 4
     theme: sandstone
     number_sections: false
     df_print: paged
@@ -119,10 +120,12 @@ from the drop-down menu to see potential linkages.
 -   [*Biomass_borealDataPrep*](https://github.com/PredictiveEcology/Biomass_borealDataPrep):
     prepares all parameters and inputs (including initial landscape conditions)
     that *Biomass_core* needs to run a realistic simulation. By default, the
-    values/inputs produced are relevant for boreal forests of Western Canada;
+    values/inputs produced are relevant for boreal forests of Western Canada. Used 
+    downstream from *Biomass_speciesData*;
 
 -   [*Biomass_core*](https://github.com/PredictiveEcology/Biomass_core): core
-    forest dynamics simulation module.
+    forest dynamics simulation module. Used 
+    downstream from *Biomass_speciesData*.
 
 ## Module manual
 
@@ -226,8 +229,10 @@ knitr::kable(df_inputs,
 #### List of parameters {#bsppdata-params-list}
 
 Table \@ref(tab:moduleParams2-Biomass-speciesData) lists all parameters used in
-*Biomass_speciesData* and their detailed information. Of these parameters, the
-following are particularly important:
+*Biomass_speciesData* and their detailed information. All these parameters have default values
+specified in the module's metadata. 
+
+Of these parameters, the following are particularly important:
 
 -   `coverThresh` -- integer. Defines a minimum (ref:percent) cover value (from
     0-100) that the species must have in at least one pixel to be considered
@@ -262,7 +267,7 @@ processed species cover layers in the output path defined in
 `getPaths(sim)$outputPath`.
 
 ```{r moduleOutputs-Biomass-speciesData, echo = FALSE, eval = TRUE, message = FALSE}
-df_outputs <- SpaDES.core::moduleOutputs("Biomass_speciesData", "..")[, c(1, 3)] ## name + desc only
+df_outputs <- SpaDES.core::moduleOutputs("Biomass_speciesData", "..")
 knitr::kable(df_outputs,
              caption = "List of (ref:Biomass-speciesData) output objects and their description.") %>%
   kableExtra::kable_styling(latex_options = c("scale_down", "repeat_header"), full_width = TRUE) %>%
@@ -274,10 +279,7 @@ knitr::kable(df_outputs,
 *Biomass_speciesData* initialises itself and prepares all inputs provided that
 it has internet access to download the raw data layers, or that these layers
 have been previously downloaded and stored in the folder specified by
-`options("reproducible.destinationPath")`[^1].
-
-[^1]: Raw data layers downloaded by the module are saved in \`dataPath(sim)\`,
-    which can be controlled via \`options(reproducible.destinationPath = ...)\`.
+`options("reproducible.destinationPath")`[^biomass_speciesdata-1].
 
 The module defaults to processing cover data fo all species listed in the
 `Boreal` column of the default `sppEquiv` input `data.table` object, for which
@@ -419,5 +421,9 @@ randomly generated study area within Canada.
 ## this is necessary to knit to pdf using child Rmds - see https://stackoverflow.com/questions/61065560/cant-compile-rmarkdown-pdf-with-image-in-child-rmd-latex-error-image-file
 knitr::include_graphics(normalizePath(c("figures/testRunFigure.png"), winslash = "/"))
 ```
+
+[^biomass_speciesdata-1]: Raw data layers downloaded by the module are saved in
+    \`dataPath(sim)\`, which can be controlled via
+    \`options(reproducible.destinationPath = ...)\`.
 
 ## References {#bsppdata-refs}
