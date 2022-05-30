@@ -68,7 +68,7 @@ if (!file.exists("figures/issuesBadge.png")) {
 }
 
 modversion <- paste(unlist(SpaDES.core::moduleMetadata(module = 'Biomass_speciesData', path = '..')$version), collapse = ".")
-download.file(url = paste0("https://img.shields.io/badge/Biomass_speciesData-", paste("v.", modversion),
+download.file(url = paste0("https://img.shields.io/badge/Biomass_speciesData-", paste0("v.%20", modversion),
                            "-%3CCOLOR%3E.png"),
               destfile = "figures/moduleVersionBadge.png",
               mode = 'wb')
@@ -105,9 +105,10 @@ link above\^\^**
 
 ### Module summary
 
-This module downloads and pre-process species (ref:percent) cover data layers to
-be passed to other LandR data modules (e.g., *Biomass_borealDataPrep*) or to the
-LandR forest simulation module *Biomass_core*.
+LandR *Biomass_speciesData* (hereafter *Biomass_speciesData*) downloads 
+and pre-processes species (ref:percent) cover data layers used by other LandR 
+data modules (e.g., *Biomass_borealDataPrep*) and by the LandR forest simulation 
+module *Biomass_core*.
 
 ### Links to other modules {#bsppdata-links-modules}
 
@@ -119,8 +120,8 @@ from the drop-down menu to see potential linkages.
 
 -   [*Biomass_borealDataPrep*](https://github.com/PredictiveEcology/Biomass_borealDataPrep):
     prepares all parameters and inputs (including initial landscape conditions)
-    that *Biomass_core* needs to run a realistic simulation. By default, the
-    values/inputs produced are relevant for boreal forests of Western Canada. Used 
+    that *Biomass_core* needs to run a realistic simulation. Default values/inputs
+    produced are relevant for boreal forests of Western Canada. Used 
     downstream from *Biomass_speciesData*;
 
 -   [*Biomass_core*](https://github.com/PredictiveEcology/Biomass_core): core
@@ -131,7 +132,7 @@ from the drop-down menu to see potential linkages.
 
 ### General functioning {#bsppdata-general-functioning}
 
-This module accesses and processes species percent cover ((ref:percent) cover)
+*Biomass_speciesData* accesses and processes species percent cover ((ref:percent) cover)
 data for the parametrisation and initialisation of LandR *Biomass_core*. This
 module ensures 1) all data use the same geospatial geometries and 2) that these
 are correctly re-projected to studyAreaLarge, and 3) attempts to sequentially
