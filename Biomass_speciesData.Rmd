@@ -128,71 +128,73 @@ link above\^\^**
 
 ### Module summary
 
-LandR *Biomass_speciesData* (hereafter *Biomass_speciesData*) downloads 
-and pre-processes species (ref:percent) cover data layers used by other LandR 
-data modules (e.g., *Biomass_borealDataPrep*) and by the LandR forest simulation 
-module *Biomass_core*.
+LandR *Biomass_speciesData* (hereafter *Biomass_speciesData*) downloads and
+pre-processes species percent ((ref:percent) cover) data layers used by other
+LandR data modules (e.g., *Biomass_borealDataPrep*) and by the LandR forest
+simulation module *Biomass_core*.
 
 ### Links to other modules {#bsppdata-links-modules}
 
-Intended to be used with any LandR modules that require species percent cover
-raster layers. See
+*Biomass_speciesData* is intended to be used with any LandR modules that require
+species (ref:percent) cover raster layers (see examples below). See
 [here](https://rpubs.com/PredictiveEcology/LandR_Module_Ecosystem) for all
-available modules in the LandR ecosystem and select *Biomass_borealDataPrep*
-from the drop-down menu to see potential linkages.
+available modules in the LandR ecosystem and select *Biomass_speciesData* from
+the drop-down menu to see potential linkages.
 
 -   [*Biomass_borealDataPrep*](https://github.com/PredictiveEcology/Biomass_borealDataPrep):
     prepares all parameters and inputs (including initial landscape conditions)
-    that *Biomass_core* needs to run a realistic simulation. Default values/inputs
-    produced are relevant for boreal forests of Western Canada. Used 
-    downstream from *Biomass_speciesData*;
+    that *Biomass_core* needs to run a realistic simulation. Default
+    values/inputs produced are relevant for boreal forests of Western Canada.
+    Used downstream from *Biomass_speciesData*;
 
 -   [*Biomass_core*](https://github.com/PredictiveEcology/Biomass_core): core
-    forest dynamics simulation module. Used 
-    downstream from *Biomass_speciesData*.
+    forest dynamics simulation module. Used downstream from
+    *Biomass_speciesData*.
 
 ## Module manual
 
 ### General functioning {#bsppdata-general-functioning}
 
-*Biomass_speciesData* accesses and processes species percent cover ((ref:percent) cover)
-data for the parametrisation and initialisation of LandR *Biomass_core*. This
-module ensures 1) all data use the same geospatial geometries and 2) that these
-are correctly re-projected to studyAreaLarge, and 3) attempts to sequentially
-fill-in and replace the lowest quality data with higher quality data when
-several data sources are used. It's primary output is a `RasterStack` of species
-(ref:percent) cover, with each layer corresponding to a species.
+*Biomass_speciesData* accesses and processes species (ref:percent) cover data
+for the parametrisation and initialisation of LandR *Biomass_core*. This module
+ensures 1) that all data use the same geospatial geometries and 2) that these
+are correctly re-projected to the study area used for parametrisation
+(`studyAreaLarge` polygon), and 3) attempts to sequentially fill-in and replace
+the lowest quality data with higher quality data when several data sources are
+used. It's primary output is a `RasterStack` of species (ref:percent) cover,
+with each layer corresponding to a species.
 
-Currently, the module can access the Canadian Forest Inventory forest attributes
-kNN dataset [the default; @BeaudoinEtAl2017], the Common Attribute Schema for
-Forest Resource Inventories [CASFRI; @Cosco2011] dataset, the Ontario Forest
-Resource Inventory (ONFRI), a dataset specific to Alberta compiled by Paul
-Pickell, and other Alberta forest inventory datasets. However, **only the NFI
-kNN data are freely available** -- access to the other datasets must be granted
-by module developers and data owners, and a Google account is required.
-Nevertheless, the module is flexible enough that any user can use it to process
-additional datasets, provided that an adequate R function is passed to the
-module (see `types` parameter details in [Parameters])
+Currently, the module can access the Canadian National Forest Inventory (NFI)
+forest attributes kNN dataset [the default; @BeaudoinEtAl2017], the Common
+Attribute Schema for Forest Resource Inventories dataset [CASFRI; @Cosco2011],
+the Ontario Forest Resource Inventory (ONFRI), a dataset specific to Alberta
+compiled by Paul Pickell, and other Alberta forest inventory datasets. However,
+**only the NFI kNN data are freely available** and access to the other datasets
+must be granted by module developers and data owners, and requires a Google
+account. Nevertheless, the module is flexible enough that any user can use it to
+process additional datasets, provided that an adequate R function is passed to
+the module (see `types` parameter details in the [list of
+parameters](#bsppdata-params-list))
 
-When multiple data sources are used, the module will use replace lower quality
-data with higher quality data following the order specified by the parameter
-`types` (see [Parameters]).
+When multiple data sources are used, the module will replace lower quality data
+with higher quality data following the order specified in the `types` parameter.
 
 When multiple species of a given data source are to be grouped, (ref:percent)
 cover is summed across species of the same group within each pixel. Please see
-the `sppEquiv` input in [Input objects] for information on how species groups
-are defined.
+the `sppEquiv` in the [list of input objects](#bsppdata-inputs-list) for
+information on how to define species groups.
 
 The module can also exclude species (ref:percent) cover layers if they don't
-have a minimum (ref:percent) cover value in at least one pixel. This means that
-the user should still inspect in how many pixels the species is deemed present,
-as it is possible that some data have only a few pixels with high (ref:percent)
-cover for a given species. In this case, the user may choose to exclude these
-species *a posteriori*. The summary plot automatically shown by
-*Biomass_speciesData* can help diagnose whether certain species are present in
-very few pixels (see Fig. \@ref(fig:fig-Biomass-speciesDataOutPlots)).
+have a minimum (ref:percent) cover value in at least one pixel. The user should
+still inspect where species is deemed present (e.g., in how many pixels in
+total), as it is possible that some datasets only have a few pixels where the
+species is present, but with reported high (ref:percent) cover. In this case,
+the user may choose to exclude these species *a posteriori*. The summary plot
+automatically shown by *Biomass_speciesData* can help diagnose whether certain
+species are present in very few pixels (see Fig.
+\@ref(fig:fig-Biomass-speciesDataOutPlots)).
 
-#### List of input objects {#bsppdata-inputs-list}
+### List of input objects {#bsppdata-inputs-list}
 
 Below is the full list of input objects that *Biomass_speciesData* requires
 (Table \@ref(tab:moduleInputs2-Biomass-speciesData)). Of these, the only input
@@ -203,22 +205,22 @@ Of the inputs in Table \@ref(tab:moduleInputs2-Biomass-speciesData), the
 following are particularly important and deserve special attention:
 
 -   `studyAreaLarge` -- the polygon defining the area for which species cover
-    data area desired. It can be larger (but never smaller) that the study area
+    data are desired. It can be larger (but never smaller) that the study area
     used in the simulation of forest dynamics (i.e., `studyArea` object in
-    *Biomass_core*).
+    *Biomass_core*), in which case it should fully cover it.
 
 -   `sppEquiv` -- a table of correspondences between different species naming
     conventions. This table is used across several LandR modules, including
     *Biomass_core*. It is particularly important here because it will determine
-    whether and how species (and their cover layers) are merged, if this is
-    desired by the user. For instance, if the user wishes to simulate a generic
-    *Picea spp.* that includes, *Picea glauca*, *Picea mariana* and *Picea
-    engelmannii*, they will need to provide these three species names in the
-    data column (e.g., `KNN` if obtaining forest attribute kNN data layers from
-    the Canadian Forest Inventory), but the same name (e.g., "Pice_Spp") in the
-    coumn chosen for the naming convention used throughout the simulation (the
-    `sppEquivCol` parameter); see Table
-    \@ref(tab:mergingSpp-Biomass-speciesData) for an example).
+    whether and which species (and their cover layers) are merged. For instance,
+    if the user wishes to simulate a generic *Picea spp.* that includes, *Picea
+    glauca*, *Picea mariana* and *Picea engelmannii*, they will need to provide
+    these three species names in the data column (e.g., `KNN` if obtaining
+    forest attribute kNN data layers from the National Forest Inventory), but
+    the same name (e.g., "Pice_Spp") in the column chosen for the naming
+    convention used throughout the simulation (defined by the `sppEquivCol`
+    parameter). See Table \@ref(tab:mergingSpp-Biomass-speciesData) for an
+    example.
 
 ```{r mergingSpp-Biomass-speciesData, echo = FALSE, eval = TRUE, message = FALSE}
 data("sppEquivalencies_CA", package = "LandR", envir = environment())
@@ -239,7 +241,7 @@ sppEquiv2[, `:=`(Species = sub("(.*)", "\\*\\1\\*", Species),
                  `Modelled as` = sub("(.*)", "\\*\\1\\*", `Modelled as`))]  ## for italics
 
 knitr::kable(sppEquiv2, 
-             caption = "Example of species merging for simulation. Here the user wants to model (ref:Abie-bal), (ref:Abie-las) and (ref:Pinu-con) as separate species, but all (ref:Pice-sp) as a genus-level group. For this, all six species are identified in the \\'KNN\\' column, so that their (ref:percent) cover layers can be obtained, but in the \\'Boreal\\' column (which defines the naming convention used in the simulation in this example) all (ref:Pice-sp) have the same name. (ref:Biomass-speciesData) will merge their (ref:percent) cover data into a single layer by summing their cover per pixel.") %>%
+             caption = "Example of species merging for simulation. Here the user wants to model (ref:Abie-bal), (ref:Abie-las) and (ref:Pinu-con) as separate species, but all (ref:Pice-sp) as a genus-level group. For this, all six species are separately identified in the \\'KNN\\' column, so that their (ref:percent) cover layers can be obtained, but in the \\'Boreal\\' column (which defines the naming convention used in the simulation in this example) all (ref:Pice-sp) have the same name. (ref:Biomass-speciesData) will merge their (ref:percent) cover data into a single layer by summing their cover per pixel.") %>%
   kableExtra::kable_styling(latex_options = c("scale_down", "repeat_header"), full_width = TRUE)
 ```
 
@@ -250,21 +252,20 @@ knitr::kable(df_inputs,
   kableExtra::kable_styling(latex_options = c("scale_down", "repeat_header"), full_width = TRUE)
 ```
 
-#### List of parameters {#bsppdata-params-list}
+### List of parameters {#bsppdata-params-list}
 
 Table \@ref(tab:moduleParams2-Biomass-speciesData) lists all parameters used in
-*Biomass_speciesData* and their detailed information. All these parameters have default values
-specified in the module's metadata. 
+*Biomass_speciesData* and their detailed information. All these parameters have
+default values specified in the module's metadata.
 
 Of these parameters, the following are particularly important:
 
 -   `coverThresh` -- integer. Defines a minimum (ref:percent) cover value (from
     0-100) that the species must have in at least one pixel to be considered
     present in the study area, otherwise it is excluded from the final stack of
-    species layers. Note that this will affect what species have data for an
-    eventual simulation and the user will need to adjust simulation parameters
-    (e.g., species in trait tables will need to match the species in the cover
-    layers) accordingly.
+    species layers (`speciesLayers`). Note that this will affect what species have data for an
+    eventual simulation and the user will need to adjust simulation parameters accordingly
+    (e.g., species in trait tables will need to match the species in `speciesLayers`).
 
 -   `types` -- character. Which (ref:percent) cover data sources are to be used
     (see [Detailed description]). Several data sources can be passed, in which
@@ -283,7 +284,7 @@ knitr::kable(df_params,
   kableExtra::kable_styling(latex_options = c("scale_down", "repeat_header"), full_width = TRUE)
 ```
 
-#### List of outputs {#bsppdata-outputs-list}
+### List of outputs {#bsppdata-outputs-list}
 
 The module produces the outputs in Table
 \@ref(tab:moduleOutputs-Biomass-speciesData), and automatically saves the
@@ -347,6 +348,10 @@ The general flow of *Biomass_speciesData* processes is:
 5.  Final layers are saved to disk and plotted (`initPlot` event). A summary of
     number of pixels with forest cover are calculated (`treed`and `numTreed`
     output objects; see [Module outputs]).
+
+[^biomass_speciesdata-1]: Raw data layers downloaded by the module are saved in
+    \`dataPath(sim)\`, which can be controlled via
+    \`options(reproducible.destinationPath = ...)\`.
 
 ## Usage example {#bsppdata-example}
 
@@ -445,9 +450,5 @@ randomly generated study area within Canada.
 ## this is necessary to knit to pdf using child Rmds - see https://stackoverflow.com/questions/61065560/cant-compile-rmarkdown-pdf-with-image-in-child-rmd-latex-error-image-file
 knitr::include_graphics(normalizePath(c("figures/testRunFigure.png"), winslash = "/"))
 ```
-
-[^biomass_speciesdata-1]: Raw data layers downloaded by the module are saved in
-    \`dataPath(sim)\`, which can be controlled via
-    \`options(reproducible.destinationPath = ...)\`.
 
 ## References {#bsppdata-refs}
