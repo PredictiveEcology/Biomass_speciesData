@@ -73,7 +73,7 @@ defineModule(sim, list(
                  sourceURL = ""),
     expectsInput("sppColorVect", "character",
                  desc = paste("A named vector of colors to use for plotting.",
-                              "The names must be in sim$sppEquiv[[sim$sppEquivCol]],",
+                              "The names must be in `sim$sppEquiv[[sim$sppEquivCol]]`,",
                               "and should also contain a color for 'Mixed'"),
                  sourceURL = NA),
     expectsInput("sppEquiv", "data.table",
