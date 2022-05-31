@@ -75,7 +75,7 @@ download.file(url = paste0("https://img.shields.io/badge/Biomass_speciesData-", 
               mode = 'wb')
 ```
 
-``` {r moduleBadge-Biomass-speciesData, echo = FALSE, eval = TRUE, cache = FALSE, results = "asis"}
+```{r moduleBadge-Biomass-speciesData, echo = FALSE, eval = TRUE, cache = FALSE, results = "asis"}
 ## try to automatically get the commit URL and the path to the badge image
 badgeURL <-  if (!git2r::is_detached()){
 commitSHA <- git2r::sha(git2r::revparse_single(".", "HEAD"))
@@ -91,17 +91,16 @@ commitSHA <- git2r::sha(git2r::revparse_single(".", "HEAD"))
 badgePath <- normalizePath("figures/moduleVersionBadge.png", winslash = "/")
 
 ## make string of markdown code to be executed as-is
-paste0("[![module-version-Badge](", badgePath, ")](", badgeURL,")")
+cat(paste0("[![module-version-Badge](", badgePath, ")](", badgeURL,")"))
 ```
 
-``` {r issuesBadge-Biomass-speciesData, echo = FALSE, eval = TRUE, cache = FALSE, results = "asis"}
+```{r issuesBadge-Biomass-speciesData, echo = FALSE, eval = TRUE, cache = FALSE, results = "asis"}
 badgeURL <- "https://github.com/PredictiveEcology/Biomass_speciesData/issues"
 badgePath <- normalizePath("figures/issuesBadge.png", winslash = "/")
 
 ## make string of markdown code to be executed as-is
-paste0("[![Issues-badge](", badgePath, ")](", badgeURL,")")
+cat(paste0("[![Issues-badge](", badgePath, ")](", badgeURL,")"))
 ```
-
 
 #### Authors:
 
@@ -263,19 +262,21 @@ Of these parameters, the following are particularly important:
 -   `coverThresh` -- integer. Defines a minimum (ref:percent) cover value (from
     0-100) that the species must have in at least one pixel to be considered
     present in the study area, otherwise it is excluded from the final stack of
-    species layers (`speciesLayers`). Note that this will affect what species have data for an
-    eventual simulation and the user will need to adjust simulation parameters accordingly
-    (e.g., species in trait tables will need to match the species in `speciesLayers`).
+    species layers (`speciesLayers`). Note that this will affect what species
+    have data for an eventual simulation and the user will need to adjust
+    simulation parameters accordingly (e.g., species in trait tables will need
+    to match the species in `speciesLayers`).
 
 -   `types` -- character. Which (ref:percent) cover data sources are to be used
-    (see [Detailed description]). Several data sources can be passed, in which
-    case the module will overlay the lower quality layers with higher quality
-    ones **following the order of data sources specified by `types`** -- i.e.,
-    if `types == c("KNN", "CASFRI", "ForestInventory")`, *KNN* is assumed to be
-    the lowest quality data set and *ForestInventory* the highest: values in
-    *KNN* layers are replaced with overlapping values from *CASFRI* layers and
-    values from *KNN* and *CASFRI* layers are replaced with overlapping values
-    of *ForestInventory* layers.
+    (see [General functioning](#bsppdata-general-functioning)). Several data
+    sources can be passed, in which case the module will overlay the lower
+    quality layers with higher quality ones following the order of data sources
+    in `types`. For instance, if
+    `types == c("KNN", "CASFRI", "ForestInventory")`, KNN is assumed to be the
+    lowest quality data set and ForestInventory the highest, hence values in KNN
+    layers are replaced with overlapping values from CASFRI layers and values
+    from KNN and CASFRI layers are replaced with overlapping values of
+    ForestInventory layers.
 
 ```{r moduleParams2-Biomass-speciesData, echo = FALSE, eval = TRUE, message = FALSE}
 df_params <- SpaDES.core::moduleParams("Biomass_speciesData", "..")
@@ -295,8 +296,7 @@ processed species cover layers in the output path defined in
 df_outputs <- SpaDES.core::moduleOutputs("Biomass_speciesData", "..")
 knitr::kable(df_outputs,
              caption = "List of (ref:Biomass-speciesData) output objects and their description.") %>%
-  kableExtra::kable_styling(latex_options = c("scale_down", "repeat_header"), full_width = TRUE) %>%
-  kableExtra::column_spec(column = 2, width = "40em")
+  kableExtra::kable_styling(latex_options = c("scale_down", "repeat_header"), full_width = TRUE)
 ```
 
 ### Simulation flow and module events {#bsppdata-sim-flow}
@@ -327,13 +327,12 @@ final layers.
 
 The general flow of *Biomass_speciesData* processes is:
 
-1.  Download (if necessary) of and spatial processing of species cover layers
-    from the first data source listed in the `types` parameter. Spatial
-    processing consists in sub-setting the data to the area defined by
-    `studyAreaLarge` and ensuring that the spatial projection and resolution
-    match those of `rasterToMatchLarge`. After spatial processing, species
-    layers that have no pixels with values \>= to the `coverThresh` parameter
-    are excluded.
+1.  Download (if necessary) and spatial processing of species cover layers from
+    the first data source listed in the `types` parameter. Spatial processing
+    consists in sub-setting the data to the area defined by `studyAreaLarge` and
+    ensuring that the spatial projection and resolution match those of
+    `rasterToMatchLarge`. After spatial processing, species layers that have no
+    pixels with values $\ge$ `coverThresh` are excluded.
 
 2.  If more than one data source is listed in `types`, the second set of species
     cover layers is downloaded and processed as above.
@@ -347,7 +346,7 @@ The general flow of *Biomass_speciesData* processes is:
 
 5.  Final layers are saved to disk and plotted (`initPlot` event). A summary of
     number of pixels with forest cover are calculated (`treed`and `numTreed`
-    output objects; see [Module outputs]).
+    output objects; see [list of outputs](#bsppdata-outputs-list)).
 
 [^biomass_speciesdata-1]: Raw data layers downloaded by the module are saved in
     \`dataPath(sim)\`, which can be controlled via
@@ -355,8 +354,8 @@ The general flow of *Biomass_speciesData* processes is:
 
 ## Usage example {#bsppdata-example}
 
-This module can be run stand-alone, but it only compiles species percent cover
-datr into layers used by other modules.
+This module can be run stand-alone, but it only compiles species (ref:percent)
+cover data into layers used by other modules.
 
 ### Load `SpaDES` and other packages.
 
