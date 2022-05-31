@@ -50,8 +50,7 @@ if (!require(Require)) {
   library(Require)
 }
 
-Require(c("dplyr", "SpaDES.core", "git2r", "data.table", "PredictiveEcology/LandR"), 
-        install = TRUE)
+Require(c("dplyr", "SpaDES.core", "git2r", "data.table", "PredictiveEcology/LandR@development"))
 ```
 
 ```{r badgeFigs-Biomass-speciesData, include=FALSE, eval = TRUE, cache = FALSE}
