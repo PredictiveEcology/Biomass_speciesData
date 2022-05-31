@@ -38,7 +38,7 @@ defineModule(sim, list(
                           "their % cover in each raster cell.")),
     defineParameter("types", "character", "KNN", NA, NA,
                     paste("The possible data sources. These must correspond to a function named",
-                          "paste0('prepSpeciesLayers_', types). Defaults to 'KNN'",
+                          "`paste0('prepSpeciesLayers_', types)`. Defaults to 'KNN'",
                           "to get the Canadian Forestry Service, National Forest Inventory,",
                           "kNN-derived species cover maps from year 'dataYear', using the",
                           "`LandR::prepSpeciesLayers_KNN` function (see https://open.canada.ca/",
@@ -47,7 +47,7 @@ defineModule(sim, list(
                           "'ForestInventory', which attempt to get proprietary data - the user must be granted",
                           "access first. A custom function can be used to retrieve any data, just as long as",
                           "it is accessible by the module (e.g., in the global environment) and is named as",
-                          "paste0('prepSpeciesLayers_', types).")),
+                          "`paste0('prepSpeciesLayers_', types)`.")),
     defineParameter("vegLeadingProportion", "numeric", 0.8, 0, 1,
                     "a number that defines whether a species is leading for a given pixel. Only used for plotting."),
     defineParameter(".plotInitialTime", "numeric", NA, NA, NA,
@@ -63,7 +63,7 @@ defineModule(sim, list(
     defineParameter(".useCache", "logical", "init", NA, NA,
                     desc = "Controls cache; caches the init event by default"),
     defineParameter(".useParallel", "numeric", parallel::detectCores(), NA, NA,
-                    "Used in reading csv file with fread. Will be passed to data.table::setDTthreads.")
+                    "Used in reading csv file with fread. Will be passed to `data.table::setDTthreads`.")
   ),
   inputObjects = bindrows(
     expectsInput("rasterToMatchLarge", "RasterLayer",
