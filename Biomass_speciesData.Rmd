@@ -34,7 +34,7 @@ always_allow_html: true
 
 (ref:Pice-sp) *Picea spp.*
 
-```{r setup-Biomass-speciesData, include=FALSE}
+```{r setup-Biomass-speciesData, include = FALSE}
 ## set cache.rebuild = TRUE whenever there are changes to the module code/metadata
 knitr::opts_chunk$set(echo = TRUE, eval = FALSE, warning = FALSE, 
                       cache = TRUE, cache.rebuild = FALSE, results = "hold", dpi = 300)
@@ -53,7 +53,7 @@ if (!require(Require)) {
 Require(c("dplyr", "SpaDES.core", "git2r", "data.table", "PredictiveEcology/LandR@development"))
 ```
 
-```{r badgeFigs-Biomass-speciesData, include=FALSE, eval = TRUE, cache = FALSE}
+```{r badgeFigs-Biomass-speciesData, include = FALSE, eval = TRUE, cache = FALSE}
 dir.create("figures", showWarnings = FALSE)
 
 if (!file.exists("figures/markdownBadge.png")) {
@@ -77,9 +77,9 @@ download.file(url = paste0("https://img.shields.io/badge/Biomass_speciesData-", 
 ```{r moduleBadge-Biomass-speciesData, echo = FALSE, eval = TRUE, cache = FALSE, results = "asis"}
 ## try to automatically get the commit URL and the path to the badge image
 badgeURL <-  if (!git2r::is_detached()){
-commitSHA <- git2r::sha(git2r::revparse_single(".", "HEAD"))
+  commitSHA <- git2r::sha(git2r::revparse_single(".", "HEAD"))
   repo <- sub(".*github.com:", "https://github.com/",
-      git2r::branch_remote_url(git2r::branch_get_upstream(git2r::repository_head("."))))
+              git2r::branch_remote_url(git2r::branch_get_upstream(git2r::repository_head("."))))
   repo <- sub(".git$", "/commit/", repo)
   paste0(repo, commitSHA)
 } else {
@@ -87,7 +87,7 @@ commitSHA <- git2r::sha(git2r::revparse_single(".", "HEAD"))
   badgeURL <- git2r::remote_url()[1]
 }
 
-badgePath <- normalizePath("figures/moduleVersionBadge.png", winslash = "/")
+badgePath <- normPath("figures/moduleVersionBadge.png")
 
 ## make string of markdown code to be executed as-is
 cat(paste0("[![module-version-Badge](", badgePath, ")](", badgeURL,")"))
@@ -95,7 +95,7 @@ cat(paste0("[![module-version-Badge](", badgePath, ")](", badgeURL,")"))
 
 ```{r issuesBadge-Biomass-speciesData, echo = FALSE, eval = TRUE, cache = FALSE, results = "asis"}
 badgeURL <- "https://github.com/PredictiveEcology/Biomass_speciesData/issues"
-badgePath <- normalizePath("figures/issuesBadge.png", winslash = "/")
+badgePath <- normPath("figures/issuesBadge.png")
 
 ## make string of markdown code to be executed as-is
 cat(paste0("[![Issues-badge](", badgePath, ")](", badgeURL,")"))
@@ -140,14 +140,14 @@ available modules in the LandR ecosystem and select *Biomass_speciesData* from
 the drop-down menu to see potential linkages.
 
 -   [*Biomass_borealDataPrep*](https://github.com/PredictiveEcology/Biomass_borealDataPrep):
-    prepares all parameters and inputs (including initial landscape conditions)
-    that *Biomass_core* needs to run a realistic simulation. Default
-    values/inputs produced are relevant for boreal forests of Western Canada.
-    Used downstream from *Biomass_speciesData*;
+prepares all parameters and inputs (including initial landscape conditions)
+that *Biomass_core* needs to run a realistic simulation. Default
+values/inputs produced are relevant for boreal forests of Western Canada.
+Used downstream from *Biomass_speciesData*;
 
 -   [*Biomass_core*](https://github.com/PredictiveEcology/Biomass_core): core
-    forest dynamics simulation module. Used downstream from
-    *Biomass_speciesData*.
+forest dynamics simulation module. Used downstream from
+*Biomass_speciesData*.
 
 ## Module manual
 
@@ -203,22 +203,22 @@ Of the inputs in Table \@ref(tab:moduleInputs2-Biomass-speciesData), the
 following are particularly important and deserve special attention:
 
 -   `studyAreaLarge` -- the polygon defining the area for which species cover
-    data are desired. It can be larger (but never smaller) that the study area
-    used in the simulation of forest dynamics (i.e., `studyArea` object in
-    *Biomass_core*), in which case it should fully cover it.
+data are desired. It can be larger (but never smaller) that the study area
+used in the simulation of forest dynamics (i.e., `studyArea` object in
+*Biomass_core*), in which case it should fully cover it.
 
 -   `sppEquiv` -- a table of correspondences between different species naming
-    conventions. This table is used across several LandR modules, including
-    *Biomass_core*. It is particularly important here because it will determine
-    whether and which species (and their cover layers) are merged. For instance,
-    if the user wishes to simulate a generic *Picea spp.* that includes, *Picea
-    glauca*, *Picea mariana* and *Picea engelmannii*, they will need to provide
-    these three species names in the data column (e.g., `KNN` if obtaining
-    forest attribute kNN data layers from the National Forest Inventory), but
-    the same name (e.g., "Pice_Spp") in the column chosen for the naming
-    convention used throughout the simulation (defined by the `sppEquivCol`
-    parameter). See Table \@ref(tab:mergingSpp-Biomass-speciesData) for an
-    example.
+conventions. This table is used across several LandR modules, including
+*Biomass_core*. It is particularly important here because it will determine
+whether and which species (and their cover layers) are merged. For instance,
+if the user wishes to simulate a generic *Picea spp.* that includes, *Picea
+glauca*, *Picea mariana* and *Picea engelmannii*, they will need to provide
+these three species names in the data column (e.g., `KNN` if obtaining
+forest attribute kNN data layers from the National Forest Inventory), but
+the same name (e.g., "Pice_Spp") in the column chosen for the naming
+convention used throughout the simulation (defined by the `sppEquivCol`
+parameter). See Table \@ref(tab:mergingSpp-Biomass-speciesData) for an
+example.
 
 ```{r mergingSpp-Biomass-speciesData, echo = FALSE, eval = TRUE, message = FALSE}
 data("sppEquivalencies_CA", package = "LandR", envir = environment())
@@ -259,23 +259,23 @@ default values specified in the module's metadata.
 Of these parameters, the following are particularly important:
 
 -   `coverThresh` -- integer. Defines a minimum (ref:percent) cover value (from
-    0-100) that the species must have in at least one pixel to be considered
-    present in the study area, otherwise it is excluded from the final stack of
-    species layers (`speciesLayers`). Note that this will affect what species
-    have data for an eventual simulation and the user will need to adjust
-    simulation parameters accordingly (e.g., species in trait tables will need
-    to match the species in `speciesLayers`).
+0-100) that the species must have in at least one pixel to be considered
+present in the study area, otherwise it is excluded from the final stack of
+species layers (`speciesLayers`). Note that this will affect what species
+have data for an eventual simulation and the user will need to adjust
+simulation parameters accordingly (e.g., species in trait tables will need
+to match the species in `speciesLayers`).
 
 -   `types` -- character. Which (ref:percent) cover data sources are to be used
-    (see [General functioning](#bsppdata-general-functioning)). Several data
-    sources can be passed, in which case the module will overlay the lower
-    quality layers with higher quality ones following the order of data sources
-    in `types`. For instance, if
-    `types == c("KNN", "CASFRI", "ForestInventory")`, KNN is assumed to be the
-    lowest quality data set and ForestInventory the highest, hence values in KNN
-    layers are replaced with overlapping values from CASFRI layers and values
-    from KNN and CASFRI layers are replaced with overlapping values of
-    ForestInventory layers.
+(see [General functioning](#bsppdata-general-functioning)). Several data
+sources can be passed, in which case the module will overlay the lower
+quality layers with higher quality ones following the order of data sources
+in `types`. For instance, if
+`types == c("KNN", "CASFRI", "ForestInventory")`, KNN is assumed to be the
+lowest quality data set and ForestInventory the highest, hence values in KNN
+layers are replaced with overlapping values from CASFRI layers and values
+from KNN and CASFRI layers are replaced with overlapping values of
+ForestInventory layers.
 
 ```{r moduleParams2-Biomass-speciesData, echo = FALSE, eval = TRUE, message = FALSE}
 df_params <- SpaDES.core::moduleParams("Biomass_speciesData", "..")
@@ -327,29 +327,29 @@ final layers.
 The general flow of *Biomass_speciesData* processes is:
 
 1.  Download (if necessary) and spatial processing of species cover layers from
-    the first data source listed in the `types` parameter. Spatial processing
-    consists in sub-setting the data to the area defined by `studyAreaLarge` and
-    ensuring that the spatial projection and resolution match those of
-    `rasterToMatchLarge`. After spatial processing, species layers that have no
-    pixels with values $\ge$ `coverThresh` are excluded.
+the first data source listed in the `types` parameter. Spatial processing
+consists in sub-setting the data to the area defined by `studyAreaLarge` and
+ensuring that the spatial projection and resolution match those of
+`rasterToMatchLarge`. After spatial processing, species layers that have no
+pixels with values $\ge$ `coverThresh` are excluded.
 
 2.  If more than one data source is listed in `types`, the second set of species
-    cover layers is downloaded and processed as above.
+cover layers is downloaded and processed as above.
 
 3.  The second set of layers is assumed to be the highest quality dataset and
-    used to replaced overlapping pixel values on the first (including for
-    species whose layers may have been initially excluded after applying the
-    `coverThresh` filter).
+used to replaced overlapping pixel values on the first (including for
+species whose layers may have been initially excluded after applying the
+`coverThresh` filter).
 
 4.  Steps 2 and 3 are repeated for remaining data sources listed in `types`.
 
 5.  Final layers are saved to disk and plotted (`initPlot` event). A summary of
-    number of pixels with forest cover are calculated (`treed`and `numTreed`
-    output objects; see [list of outputs](#bsppdata-outputs-list)).
+number of pixels with forest cover are calculated (`treed`and `numTreed`
+output objects; see [list of outputs](#bsppdata-outputs-list)).
 
 [^biomass_speciesdata-1]: Raw data layers downloaded by the module are saved in
-    \`dataPath(sim)\`, which can be controlled via
-    \`options(reproducible.destinationPath = ...)\`.
+\`dataPath(sim)\`, which can be controlled via
+\`options(reproducible.destinationPath = ...)\`.
 
 ## Usage example {#bsppdata-example}
 
@@ -446,7 +446,7 @@ randomly generated study area within Canada.
 ```{r fig-Biomass-speciesDataOutPlots, eval=TRUE, echo=FALSE, fig.align = 'center', out.width = "70%", fig.cap = "(ref:Biomass-speciesData) automatically generates a plot of species dominance and number of presences in the study area when `.plotInitialTime=1` is passed as an argument."}
 ## make sure all include_graphics have wd attached to figure path
 ## this is necessary to knit to pdf using child Rmds - see https://stackoverflow.com/questions/61065560/cant-compile-rmarkdown-pdf-with-image-in-child-rmd-latex-error-image-file
-knitr::include_graphics(normalizePath(c("figures/testRunFigure.png"), winslash = "/"))
+knitr::include_graphics(normPath(c("figures/testRunFigure.png")))
 ```
 
 ## References {#bsppdata-refs}
