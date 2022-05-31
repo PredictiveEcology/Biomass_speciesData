@@ -76,21 +76,21 @@ download.file(url = paste0("https://img.shields.io/badge/Biomass_speciesData-", 
 
 ```{r moduleBadge-Biomass-speciesData, echo = FALSE, eval = TRUE, cache = FALSE, results = "asis"}
 ## try to automatically get the commit URL and the path to the badge image
-badgeURL <-  if (!git2r::is_detached()){
+badgeURL <- if (!git2r::is_detached()) {
   commitSHA <- git2r::sha(git2r::revparse_single(".", "HEAD"))
-  repo <- sub(".*github.com:", "https://github.com/",
+  repo <- sub("[.]git$", "/commit/",
               git2r::branch_remote_url(git2r::branch_get_upstream(git2r::repository_head("."))))
-  repo <- sub(".git$", "/commit/", repo)
   paste0(repo, commitSHA)
 } else {
   ## if detached point to the first remote
-  badgeURL <- git2r::remote_url()[1]
+  git2r::remote_url()[1]
 }
+badgeURL <- sub(".*github[.]com:", "https://github.com/", badgeURL)
 
 badgePath <- normPath("figures/moduleVersionBadge.png")
 
 ## make string of markdown code to be executed as-is
-cat(paste0("[![module-version-Badge](", badgePath, ")](", badgeURL,")"))
+cat(paste0("[![module-version-Badge](", badgePath, ")](", badgeURL, ")"))
 ```
 
 ```{r issuesBadge-Biomass-speciesData, echo = FALSE, eval = TRUE, cache = FALSE, results = "asis"}
@@ -238,16 +238,24 @@ setnames(sppEquiv2, "Latin_full", "Species")
 sppEquiv2[, `:=`(Species = sub("(.*)", "\\*\\1\\*", Species),
                  `Modelled as` = sub("(.*)", "\\*\\1\\*", `Modelled as`))]  ## for italics
 
-knitr::kable(sppEquiv2, 
-             caption = "Example of species merging for simulation. Here the user wants to model (ref:Abie-bal), (ref:Abie-las) and (ref:Pinu-con) as separate species, but all (ref:Pice-sp) as a genus-level group. For this, all six species are separately identified in the \\'KNN\\' column, so that their (ref:percent) cover layers can be obtained, but in the \\'Boreal\\' column (which defines the naming convention used in the simulation in this example) all (ref:Pice-sp) have the same name. (ref:Biomass-speciesData) will merge their (ref:percent) cover data into a single layer by summing their cover per pixel.") %>%
-  kableExtra::kable_styling(latex_options = c("scale_down", "repeat_header"), full_width = TRUE)
+caption <- paste("Example of species merging for simulation.",
+                 "Here the user wants to model (ref:Abie-bal), (ref:Abie-las) and (ref:Pinu-con)",
+                 "as separate species, but all (ref:Pice-sp) as a genus-level group.",
+                 "For this, all six species are separately identified in the 'KNN' column,",
+                 "so that their (ref:percent) cover layers can be obtained,",
+                 "but in the 'Boreal' column (which defines the naming convention used",
+                 "in the simulation in this example) all (ref:Pice-sp) have the same name.",
+                 "(ref:Biomass-speciesData) will merge their (ref:percent) cover data into",
+                 "a single layer by summing their cover per pixel.")
+knitr::kable(sppEquiv2, caption = caption) %>%
+  kableExtra::kable_styling(latex_options = c("repeat_header"))
 ```
 
 ```{r moduleInputs2-Biomass-speciesData, echo = FALSE, eval = TRUE, message = FALSE}
 df_inputs <- SpaDES.core::moduleInputs("Biomass_speciesData", "..")
-knitr::kable(df_inputs, 
-             caption = "List of (ref:Biomass-speciesData) input objects and their description.") %>%
-  kableExtra::kable_styling(latex_options = c("scale_down", "repeat_header"), full_width = TRUE)
+caption <- "List of (ref:Biomass-speciesData) input objects and their description."
+knitr::kable(df_inputs, caption = caption) %>%
+  kableExtra::kable_styling(latex_options = c("repeat_header"))
 ```
 
 ### List of parameters {#bsppdata-params-list}
@@ -279,9 +287,9 @@ ForestInventory layers.
 
 ```{r moduleParams2-Biomass-speciesData, echo = FALSE, eval = TRUE, message = FALSE}
 df_params <- SpaDES.core::moduleParams("Biomass_speciesData", "..")
-knitr::kable(df_params,
-             caption = "List of (ref:Biomass-speciesData) parameters and their description.") %>%
-  kableExtra::kable_styling(latex_options = c("scale_down", "repeat_header"), full_width = TRUE)
+caption <- "List of (ref:Biomass-speciesData) parameters and their description."
+knitr::kable(df_params, caption = caption) %>%
+  kableExtra::kable_styling(latex_options = c("repeat_header"))
 ```
 
 ### List of outputs {#bsppdata-outputs-list}
@@ -293,9 +301,9 @@ processed species cover layers in the output path defined in
 
 ```{r moduleOutputs-Biomass-speciesData, echo = FALSE, eval = TRUE, message = FALSE}
 df_outputs <- SpaDES.core::moduleOutputs("Biomass_speciesData", "..")
-knitr::kable(df_outputs,
-             caption = "List of (ref:Biomass-speciesData) output objects and their description.") %>%
-  kableExtra::kable_styling(latex_options = c("scale_down", "repeat_header"), full_width = TRUE)
+caption <- "List of (ref:Biomass-speciesData) output objects and their description."
+knitr::kable(df_outputs,caption = caption) %>%
+  kableExtra::kable_styling(latex_options = c("repeat_header"))
 ```
 
 ### Simulation flow and module events {#bsppdata-sim-flow}
@@ -315,9 +323,9 @@ more information):
 sppEquiv2 <- sppEquiv[, .("Species" = Latin_full, "Generic name" = EN_generic_full)]
 sppEquiv2[, Species := sub("(.*)", "\\*\\1\\*", Species)]  ## for italics
 
-knitr::kable(sppEquiv2, 
-             caption = "List of species cover data downloaded by default by  (ref:Biomass-speciesData).") %>%
-  kableExtra::kable_styling(latex_options = c("scale_down", "repeat_header"), full_width = TRUE)
+caption <- "List of species cover data downloaded by default by  (ref:Biomass-speciesData)."
+knitr::kable(sppEquiv2, caption = caption) %>%
+  kableExtra::kable_styling(latex_options = c("repeat_header"))
 ```
 
 *Biomass_speciesData* only runs two events, the `init` event where all species
