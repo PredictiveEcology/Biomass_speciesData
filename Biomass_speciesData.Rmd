@@ -50,7 +50,24 @@ if (!require(Require)) {
   library(Require)
 }
 
-Require(c("dplyr", "SpaDES.core", "git2r", "data.table", "PredictiveEcology/LandR@development"))
+Require(c("SpaDES.core", "git2r", "openxlsx"), require = FALSE)
+Require(c("dplyr", "data.table", "kableExtra", "pander"))
+
+## TODO: move to package
+wrapStrFun <- function(x, size, breakChar = "\n") {
+  sapply(x, function(xx) {
+    if (is.na(xx) | nchar(xx) <= size) {
+      xx
+    } else {
+      paste(stringi::stri_sub(xx, seq(1, nchar(xx), by = size), length = size), collapse = breakChar)
+    }
+  })
+}
+
+## TODO: move to package
+addLabel <- function(caption = "", tag = "tab") {
+ paste0("\\label{", tag, ":", knitr::opts_current$get("label"), "}", caption)
+}
 ```
 
 ```{r badgeFigs-Biomass-speciesData, include = FALSE, eval = TRUE, cache = FALSE}
@@ -251,12 +268,30 @@ knitr::kable(sppEquiv2, caption = caption) %>%
   kableExtra::kable_styling(latex_options = c("repeat_header"))
 ```
 
-```{r moduleInputs2-Biomass-speciesData, echo = FALSE, eval = TRUE, message = FALSE}
+\newpage
+\blandscape
+
+```{r moduleInputs2-Biomass-speciesData, echo = FALSE, eval = TRUE, message = FALSE, results = 'asis'}
 df_inputs <- SpaDES.core::moduleInputs("Biomass_speciesData", "..")
 caption <- "List of (ref:Biomass-speciesData) input objects and their description."
-knitr::kable(df_inputs, caption = caption) %>%
-  kableExtra::kable_styling(latex_options = c("repeat_header"))
+
+# knitr::kable(df_inputs, caption = caption) %>%
+#   kableExtra::kable_styling(latex_options = c("repeat_header"))
+
+## setting the options is necessary to escape special characters (must have chunk opt results = 'asis')
+opts <- panderOptions("knitr.auto.asis", FALSE)  
+## pander's hyphenation doesn't work with URLs and big/strange words (like obj names). split manually
+df_inputs$objectName <- wrapStrFun(df_inputs$objectName, size = 10)
+df_inputs$objectClass <- wrapStrFun(df_inputs$objectClass, size = 10)
+df_inputs$desc <- wrapStrFun(df_inputs$desc, size = 40)
+df_inputs$sourceURL <- wrapStrFun(df_inputs$sourceURL, size = 10)
+
+pander::pander(df_inputs, caption = addLabel(caption), justify = "left",
+               split.tables = Inf, keep.line.breaks = TRUE)
+options(opts)
 ```
+
+\elandscape
 
 ### List of parameters {#bsppdata-params-list}
 
@@ -285,12 +320,23 @@ layers are replaced with overlapping values from CASFRI layers and values
 from KNN and CASFRI layers are replaced with overlapping values of
 ForestInventory layers.
 
-```{r moduleParams2-Biomass-speciesData, echo = FALSE, eval = TRUE, message = FALSE}
+\newpage
+\blandscape
+
+```{r moduleParams2-Biomass-speciesData, echo = FALSE, eval = TRUE, message = FALSE, results = 'asis'}
 df_params <- SpaDES.core::moduleParams("Biomass_speciesData", "..")
 caption <- "List of (ref:Biomass-speciesData) parameters and their description."
-knitr::kable(df_params, caption = caption) %>%
-  kableExtra::kable_styling(latex_options = c("repeat_header"))
+
+# knitr::kable(df_params, caption = caption) %>%
+#   kableExtra::kable_styling(latex_options = c("repeat_header"))
+
+opts <- panderOptions("knitr.auto.asis", FALSE)    
+pander(df_params, caption = addLabel(caption), justify = "left", 
+       digits = 3, split.cells = c(15,15, 5, 5, 5, 40), split.tables = Inf)
+options(opts)
 ```
+
+\elandscape
 
 ### List of outputs {#bsppdata-outputs-list}
 
@@ -302,8 +348,13 @@ processed species cover layers in the output path defined in
 ```{r moduleOutputs-Biomass-speciesData, echo = FALSE, eval = TRUE, message = FALSE}
 df_outputs <- SpaDES.core::moduleOutputs("Biomass_speciesData", "..")
 caption <- "List of (ref:Biomass-speciesData) output objects and their description."
-knitr::kable(df_outputs,caption = caption) %>%
-  kableExtra::kable_styling(latex_options = c("repeat_header"))
+
+# knitr::kable(df_outputs,caption = caption) %>%
+#   kableExtra::kable_styling(latex_options = c("repeat_header"))
+
+## options and results='asis' not necessary when not using landscape
+pander(df_outputs, caption = addLabel(caption), justify = "left", 
+       digits = 3, split.cells = c(15, 15, 40), split.tables = Inf)
 ```
 
 ### Simulation flow and module events {#bsppdata-sim-flow}
@@ -321,11 +372,11 @@ more information):
 
 ```{r defaultSppBiomass-speciesData, echo = FALSE, eval = TRUE, message = FALSE}
 sppEquiv2 <- sppEquiv[, .("Species" = Latin_full, "Generic name" = EN_generic_full)]
-sppEquiv2[, Species := sub("(.*)", "\\*\\1\\*", Species)]  ## for italics
 
-caption <- "List of species cover data downloaded by default by  (ref:Biomass-speciesData)."
+caption <- "List of species cover data downloaded by default by (ref:Biomass-speciesData)."
 knitr::kable(sppEquiv2, caption = caption) %>%
-  kableExtra::kable_styling(latex_options = c("repeat_header"))
+  kableExtra::kable_styling(latex_options = c("repeat_header")) %>%
+  kableExtra::column_spec(column = 1, italic = TRUE)
 ```
 
 *Biomass_speciesData* only runs two events, the `init` event where all species
