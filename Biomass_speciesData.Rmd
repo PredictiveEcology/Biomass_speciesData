@@ -273,7 +273,7 @@ caption <- paste("Example of species merging for simulation.",
 #                           italic = TRUE)
 
 justCols <- sapply(sppEquiv2, function(x) ifelse(is.numeric(x), "right", "left"))
-pander(tab, caption = addLabel(caption), justify = justCols,
+pander(sppEquiv2, caption = addLabel(caption), justify = justCols,
        emphasize.italics.cols = which(names(sppEquiv2) %in% c("Species", "Modelled as")))
 ```
 
@@ -388,7 +388,7 @@ caption <- "List of species cover data downloaded by default by (ref:Biomass-spe
 #   kableExtra::column_spec(column = 1, italic = TRUE)
 
 justCols <- sapply(sppEquiv2, function(x) ifelse(is.numeric(x), "right", "left"))
-pander(tab, caption = addLabel(caption), justify = justCols,
+pander(sppEquiv2, caption = addLabel(caption), justify = justCols,
        emphasize.italics.cols = 1)
 ```
 
