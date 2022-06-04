@@ -261,10 +261,14 @@ caption <- paste("Example of species merging for simulation.",
                  "in the simulation in this example) all (ref:Pice-sp) have the same name.",
                  "(ref:Biomass-speciesData) will merge their (ref:percent) cover data into",
                  "a single layer by summing their cover per pixel.")
-knitr::kable(sppEquiv2, caption = caption) %>%
-  kableExtra::kable_styling(latex_options = c("repeat_header"), full_width = TRUE) %>%
-  kableExtra::column_spec(column = which(names(sppEquiv2) %in% c("Species", "Modelled as")),
-                          italic = TRUE)
+# knitr::kable(sppEquiv2, caption = caption) %>%
+#   kableExtra::kable_styling(latex_options = c("repeat_header"), full_width = TRUE) %>%
+#   kableExtra::column_spec(column = which(names(sppEquiv2) %in% c("Species", "Modelled as")),
+#                           italic = TRUE)
+
+justCols <- sapply(sppEquiv2, function(x) ifelse(is.numeric(x), "right", "left"))
+pander(tab, caption = addLabel(caption), justify = justCols,
+       emphasize.italics.cols = which(names(sppEquiv2) %in% c("Species", "Modelled as")))
 ```
 
 \newpage
@@ -373,9 +377,13 @@ more information):
 sppEquiv2 <- sppEquiv[, .("Species" = Latin_full, "Generic name" = EN_generic_full)]
 
 caption <- "List of species cover data downloaded by default by (ref:Biomass-speciesData)."
-knitr::kable(sppEquiv2, caption = caption) %>%
-  kableExtra::kable_styling(latex_options = c("repeat_header")) %>%
-  kableExtra::column_spec(column = 1, italic = TRUE)
+# knitr::kable(sppEquiv2, caption = caption) %>%
+#   kableExtra::kable_styling(latex_options = c("repeat_header")) %>%
+#   kableExtra::column_spec(column = 1, italic = TRUE)
+
+justCols <- sapply(sppEquiv2, function(x) ifelse(is.numeric(x), "right", "left"))
+pander(tab, caption = addLabel(caption), justify = justCols,
+       emphasize.italics.cols = 1)
 ```
 
 *Biomass_speciesData* only runs two events, the `init` event where all species
