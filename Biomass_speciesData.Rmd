@@ -252,9 +252,6 @@ sppEquiv2[, "Modelled as" := Latin_full]
 sppEquiv2[Boreal == "Pice_Spp", `Modelled as` := "Picea spp."]
 setnames(sppEquiv2, "Latin_full", "Species")
 
-sppEquiv2[, `:=`(Species = sub("(.*)", "\\*\\1\\*", Species),
-                 `Modelled as` = sub("(.*)", "\\*\\1\\*", `Modelled as`))]  ## for italics
-
 caption <- paste("Example of species merging for simulation.",
                  "Here the user wants to model (ref:Abie-bal), (ref:Abie-las) and (ref:Pinu-con)",
                  "as separate species, but all (ref:Pice-sp) as a genus-level group.",
@@ -265,7 +262,9 @@ caption <- paste("Example of species merging for simulation.",
                  "(ref:Biomass-speciesData) will merge their (ref:percent) cover data into",
                  "a single layer by summing their cover per pixel.")
 knitr::kable(sppEquiv2, caption = caption) %>%
-  kableExtra::kable_styling(latex_options = c("repeat_header"))
+  kableExtra::kable_styling(latex_options = c("repeat_header"), full_width = TRUE) %>%
+  kableExtra::column_spec(column = which(names(sppEquiv2) %in% c("Species", "Modelled as")),
+                          italic = TRUE)
 ```
 
 \newpage
