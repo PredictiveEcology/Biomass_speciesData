@@ -51,29 +51,7 @@ if (!require(Require)) {
 }
 
 Require(c("SpaDES.core", "git2r", "openxlsx"), require = FALSE)
-Require(c("dplyr", "data.table", "kableExtra", "pander"))
-
-## TODO: move to package
-wrapStrFun <- function(x, size, breakChar = "\n") {
-  sapply(x, function(xx) {
-    if (is.na(xx) | nchar(xx) <= size) {
-      xx
-    } else {
-      paste(stringi::stri_sub(xx, seq(1, nchar(xx), by = size), length = size), collapse = breakChar)
-    }
-  })
-}
-
-## TODO: move to package
-addLabel <- function(caption = "", tag = "tab") {
-  chunkLabel <- knitr::opts_current$get("label")
-  pretag <- if (knitr::is_latex_output()) {
-    paste0("\\label{", tag, ":",chunkLabel , "}")
-  } else {
-      paste0("(\\#", tag, ":", chunkLabel, ")")
-    }
-  paste0(pretag, caption)
-}
+Require(c("dplyr", "data.table", "kableExtra", "pander", "PredictiveEcology/SpaDES.docs"))
 ```
 
 ```{r badgeFigs-Biomass-speciesData, include = FALSE, eval = TRUE, cache = FALSE}
@@ -243,7 +221,7 @@ convention used throughout the simulation (defined by the `sppEquivCol`
 parameter). See Table \@ref(tab:mergingSpp-Biomass-speciesData) for an
 example.
 
-```{r mergingSpp-Biomass-speciesData, echo = FALSE, eval = TRUE, message = FALSE}
+```{r mergingSpp-Biomass-speciesData, echo = FALSE, eval = TRUE, message = FALSE, results = 'asis'}
 data("sppEquivalencies_CA", package = "LandR", envir = environment())
 sppEquiv <- as.data.table(sppEquivalencies_CA)
 
@@ -273,8 +251,13 @@ caption <- paste("Example of species merging for simulation.",
 #                           italic = TRUE)
 
 justCols <- sapply(sppEquiv2, function(x) ifelse(is.numeric(x), "right", "left"))
-pander(sppEquiv2, caption = addLabel(caption), justify = justCols,
-       emphasize.italics.cols = which(names(sppEquiv2) %in% c("Species", "Modelled as")))
+# pander(sppEquiv2, caption = addLabel(caption), justify = justCols,
+#        emphasize.italics.cols = which(names(sppEquiv2) %in% c("Species", "Modelled as")))
+panble(sppEquiv2, caption, 
+       panderArgs = list("justify" = justCols, 
+                         "emphasize.italics.cols" = which(names(sppEquiv2) %in% c("Species", "Modelled as"))),
+       column_specArgs = list("column" = which(names(sppEquiv2) %in% c("Species", "Modelled as")),
+                              "italic" = TRUE))
 ```
 
 \newpage
@@ -288,16 +271,21 @@ caption <- "List of (ref:Biomass-speciesData) input objects and their descriptio
 #   kableExtra::kable_styling(latex_options = c("repeat_header"))
 
 ## setting the options is necessary to escape special characters (must have chunk opt results = 'asis')
-opts <- panderOptions("knitr.auto.asis", FALSE)  
+# opts <- panderOptions("knitr.auto.asis", FALSE)  
 ## pander's hyphenation doesn't work with URLs and big/strange words (like obj names). split manually
-df_inputs$objectName <- wrapStrFun(df_inputs$objectName, size = 10)
-df_inputs$objectClass <- wrapStrFun(df_inputs$objectClass, size = 10)
-df_inputs$desc <- wrapStrFun(df_inputs$desc, size = 40)
-df_inputs$sourceURL <- wrapStrFun(df_inputs$sourceURL, size = 10)
+if (knitr::is_latex_output()) {
+  df_inputs$objectName <- wrapStrFun(df_inputs$objectName, size = 10)
+  df_inputs$objectClass <- wrapStrFun(df_inputs$objectClass, size = 10)
+  df_inputs$desc <- wrapStrFun(df_inputs$desc, size = 40)
+  df_inputs$sourceURL <- wrapStrFun(df_inputs$sourceURL, size = 10)
+}
 
-pander::pander(df_inputs, caption = addLabel(caption), justify = "left",
-               split.tables = Inf, keep.line.breaks = TRUE)
-options(opts)
+# pander::pander(df_inputs, caption = addLabel(caption), justify = "left",
+#                split.tables = Inf, keep.line.breaks = TRUE)
+# options(opts)
+panble(df_inputs, caption, landscape = TRUE,
+       panderArgs = list("justify" = "left", 
+                         "split.tables" = Inf, "keep.line.breaks" = TRUE))
 ```
 
 \elandscape
@@ -339,10 +327,12 @@ caption <- "List of (ref:Biomass-speciesData) parameters and their description."
 # knitr::kable(df_params, caption = caption) %>%
 #   kableExtra::kable_styling(latex_options = c("repeat_header"))
 
-opts <- panderOptions("knitr.auto.asis", FALSE)    
-pander(df_params, caption = addLabel(caption), justify = "left", 
-       digits = 3, split.cells = c(15,15, 5, 5, 5, 40), split.tables = Inf)
-options(opts)
+# opts <- panderOptions("knitr.auto.asis", FALSE)    
+# pander(df_params, caption = addLabel(caption), justify = "left", 
+#        digits = 3, split.cells = c(15,15, 5, 5, 5, 40), split.tables = Inf)
+# options(opts)
+panble(df_params, caption, landscape = TRUE,
+       panderArgs = list("justify" = "left", "digits" = 3, "split.cells" = c(15,15, 5, 5, 5, 40), "split.tables" = Inf))
 ```
 
 \elandscape
@@ -354,7 +344,7 @@ The module produces the outputs in Table
 processed species cover layers in the output path defined in
 `getPaths(sim)$outputPath`.
 
-```{r moduleOutputs-Biomass-speciesData, echo = FALSE, eval = TRUE, message = FALSE}
+```{r moduleOutputs-Biomass-speciesData, echo = FALSE, eval = TRUE, message = FALSE, results = 'asis'}
 df_outputs <- SpaDES.core::moduleOutputs("Biomass_speciesData", "..")
 caption <- "List of (ref:Biomass-speciesData) output objects and their description."
 
@@ -362,8 +352,10 @@ caption <- "List of (ref:Biomass-speciesData) output objects and their descripti
 #   kableExtra::kable_styling(latex_options = c("repeat_header"))
 
 ## options and results='asis' not necessary when not using landscape
-pander(df_outputs, caption = addLabel(caption), justify = "left", 
-       digits = 3, split.cells = c(15, 15, 40), split.tables = Inf)
+# pander(df_outputs, caption = addLabel(caption), justify = "left", 
+#        digits = 3, split.cells = c(15, 15, 40), split.tables = Inf)
+panble(df_outputs, caption, 
+       panderArgs = list("justify" = "left", "digits" = 3, "split.cells" = c(15, 15, 40), "split.tables" = Inf))
 ```
 
 ### Simulation flow and module events {#bsppdata-sim-flow}
@@ -379,7 +371,7 @@ there are available (ref:percent) cover layers in the kNN dataset (Table
 \@ref(tab:defaultSppBiomass-speciesData); see `?LandR::sppEquivalencies_CA` for
 more information):
 
-```{r defaultSppBiomass-speciesData, echo = FALSE, eval = TRUE, message = FALSE}
+```{r defaultSppBiomass-speciesData, echo = FALSE, eval = TRUE, message = FALSE, results = 'asis'}
 sppEquiv2 <- sppEquiv[, .("Species" = Latin_full, "Generic name" = EN_generic_full)]
 
 caption <- "List of species cover data downloaded by default by (ref:Biomass-speciesData)."
@@ -388,8 +380,11 @@ caption <- "List of species cover data downloaded by default by (ref:Biomass-spe
 #   kableExtra::column_spec(column = 1, italic = TRUE)
 
 justCols <- sapply(sppEquiv2, function(x) ifelse(is.numeric(x), "right", "left"))
-pander(sppEquiv2, caption = addLabel(caption), justify = justCols,
-       emphasize.italics.cols = 1)
+# pander(sppEquiv2, caption = addLabel(caption), justify = justCols,
+#        emphasize.italics.cols = 1)
+panble(sppEquiv2, caption, 
+       panderArgs = list("justify" = justCols, "emphasize.italics.cols" = 1),
+       column_specArgs = list("column" = 1, "italic" = TRUE))
 ```
 
 *Biomass_speciesData* only runs two events, the `init` event where all species
