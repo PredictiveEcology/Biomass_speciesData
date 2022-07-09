@@ -301,11 +301,11 @@ biomassDataInit <- function(sim) {
       }
 
       rawBiomassMap <- prepRawBiomassMap(url = biomassURL,
-                                             studyAreaName = P(sim)$.studyAreaName,
-                                             cacheTags = cacheTags,
-                                             maskWithRTM = if (!needRTM) TRUE else FALSE,
-                                             studyArea = sim$studyAreaLarge,
-                                             destinationPath = dPath)
+                                         studyAreaName = P(sim)$.studyAreaName,
+                                         cacheTags = cacheTags,
+                                         maskWithRTM = FALSE,
+                                         studyArea = sim$studyAreaLarge,
+                                         destinationPath = dPath)
     } else {
       rawBiomassMap <- sim$rawBiomassMap
       if (!compareRaster(sim$rawBiomassMap, sim$rasterToMatchLarge,
