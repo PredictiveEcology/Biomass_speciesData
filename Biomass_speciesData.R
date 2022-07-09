@@ -182,6 +182,9 @@ biomassDataInit <- function(sim) {
     }
 
     fn <- get(fnName)
+
+    opt <- options("reproducible.useTerra" = FALSE)
+    on.exit(options(opt), add = TRUE)
     speciesLayersNew <- Cache(fn,
                               destinationPath = dPath, # this is generic files (preProcess)
                               outputPath = outputPath(sim), # this will be the studyArea-specific files (postProcess)
@@ -194,6 +197,7 @@ biomassDataInit <- function(sim) {
                               year = P(sim)$dataYear,
                               userTags = c(cacheTags, fnName, "prepSpeciesLayers"),
                               omitArgs = c("userTags"))
+    options(opt)
 
     sim$speciesLayers <- if (length(sim$speciesLayers) > 0) {
       Cache(overlayStacks,
