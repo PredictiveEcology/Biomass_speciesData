@@ -287,7 +287,7 @@ biomassDataInit <- function(sim) {
 
   if (needRTML) {
     ## if rawBiomassMap exists, it needs to match SALarge, if it doesn't make it
-    if (!suppliedElsewhere("rawBiomassMap", sim)) {
+    if (is.null(sim$rawBiomassMap)) {
       if (P(sim)$dataYear == 2001) {
         biomassURL <- extractURL("rawBiomassMap")
       } else {
