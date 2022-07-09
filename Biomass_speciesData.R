@@ -322,17 +322,16 @@ biomassDataInit <- function(sim) {
                                          destinationPath = dPath)
     } else {
       rawBiomassMap <- sim$rawBiomassMap
-      if (!compareRaster(sim$rawBiomassMap, sim$rasterToMatchLarge,
-                         orig = TRUE, res = TRUE, stopiffalse = FALSE)) {
+      if (!compareRaster(sim$rawBiomassMap, sim$studyAreaLarge, stopiffalse = FALSE)) {
         ## note that extents may never align if the resolution and projection do not allow for it
         opt <- options("reproducible.useTerra" = FALSE)
         on.exit(options(opt), add = TRUE)
         rawBiomassMap <- Cache(postProcess,
                                rawBiomassMap,
                                method = "bilinear",
-                               rasterToMatch = sim$rasterToMatchLarge,
+                               studyArea = sim$studyAreaLarge,
                                overwrite = TRUE)
-        options(opts)
+        options(opt)
       }
     }
   }
