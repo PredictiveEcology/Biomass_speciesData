@@ -21,7 +21,7 @@ defineModule(sim, list(
   documentation = list("README.txt", "Biomass_speciesData.Rmd"),
   reqdPkgs = list("data.table", "magrittr", "pryr",
                   "raster", "reproducible (>= 1.2.6.9005)", "SpaDES.core", "SpaDES.tools",
-                  "PredictiveEcology/LandR@development (>= 1.0.7.9015)",
+                  "PredictiveEcology/LandR@development (>= 1.0.7.9028)",
                   "PredictiveEcology/pemisc@development"),
   parameters = bindrows(
     #defineParameter("paramName", "paramClass", value, min, max, "parameter description"),
