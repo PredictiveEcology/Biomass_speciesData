@@ -272,10 +272,10 @@ biomassDataInit <- function(sim) {
     sim$studyAreaReporting <- sim$studyAreaLarge
   }
 
-  needRTM <- FALSE
+  needRTML <- FALSE
   if (is.null(sim$rasterToMatchLarge)) {
     if (!suppliedElsewhere("rasterToMatchLarge", sim)) {      ## if one is not provided, re do both (safer?)
-      needRTM <- TRUE
+      needRTML <- TRUE
       message("There is no rasterToMatchLarge supplied; will attempt to use rawBiomassMap")
     } else {
       stop("rasterToMatchLarge is going to be supplied, but ", currentModule(sim), " requires it ",
@@ -285,7 +285,7 @@ biomassDataInit <- function(sim) {
     }
   }
 
-  if (needRTM) {
+  if (needRTML) {
     ## if rawBiomassMap exists, it needs to match SALarge, if it doesn't make it
     if (!suppliedElsewhere("rawBiomassMap", sim)) {
       if (P(sim)$dataYear == 2001) {
