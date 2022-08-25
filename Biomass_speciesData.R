@@ -4,8 +4,9 @@
 # in R packages. If exact location is required, functions will be: sim$<moduleName>$FunctionName
 defineModule(sim, list(
   name = "Biomass_speciesData",
-  description = "Download and pre-process proprietary LandWeb data.",
-  keywords = c("LandWeb", "LandR"),
+  description = paste("Download and pre-process species % cover raster data, overlaying",
+                      "lower quality data with higher quality data."),
+  keywords = c("LandWeb", "LandR", "LandR Biomass", "species percent cover"),
   authors = c(
     person(c("Eliot", "J", "B"), "McIntire", email = "eliot.mcintire@nrcan-rncan.gc.ca", role = c("aut", "cre")),
     person(c("Alex", "M."), "Chubaty", email = "achubaty@for-cast.ca", role = c("aut")),
@@ -20,30 +21,35 @@ defineModule(sim, list(
   documentation = list("README.txt", "Biomass_speciesData.Rmd"),
   reqdPkgs = list("data.table", "magrittr", "pryr",
                   "raster", "reproducible (>= 1.2.6.9005)", "SpaDES.core", "SpaDES.tools",
-                  "PredictiveEcology/LandR@development (>= 1.0.6.9001)",
+                  "PredictiveEcology/LandR@development (>= 1.0.7.9028)",
                   "PredictiveEcology/pemisc@development"),
-  parameters = rbind(
+  parameters = bindrows(
     #defineParameter("paramName", "paramClass", value, min, max, "parameter description"),
     defineParameter("coverThresh", "integer", 10, NA, NA,
                     paste("The minimum % cover a species needs to have (per pixel) in the study",
                           "area to be considered present")),
-    defineParameter("demoMode", "logical", FALSE, NA, NA,
-                    desc = paste("if TRUE, the module can be run with no input objects.",
-                                 "Else, at a minimum, studyAreaLarge must be provided")),
     defineParameter("dataYear", "numeric", 2001, NA, NA,
-                    paste("Passed to 'paste0('prepSpeciesLayers_', types)' function to fetch data",
+                    paste("Passed to `paste0('prepSpeciesLayers_', types)` function to fetch data",
                           "from that year (if applicable). Defaults to 2001 as the default kNN year.")),
     defineParameter("sppEquivCol", "character", "Boreal", NA, NA,
-                    "The column in sim$specieEquivalency data.table to use as a naming convention"),
+                    paste("The column in `sim$sppEquiv` data.table to group species by and use as a",
+                          "naming convention. If different species in, e.g., the kNN data have the same",
+                          "name in the chosen column, their data are merged into one species by summing",
+                          "their % cover in each raster cell.")),
     defineParameter("types", "character", "KNN", NA, NA,
                     paste("The possible data sources. These must correspond to a function named",
                           "paste0('prepSpeciesLayers_', types). Defaults to 'KNN'",
                           "to get the Canadian Forestry Service, National Forest Inventory,",
-                          "kNN-derived species cover maps from year 'dataYear'.",
-                          "See https://open.canada.ca/data/en/dataset/ec9e2659-1c29-4ddb-87a2-6aced147a990",
-                          "for metadata")),
+                          "kNN-derived species cover maps from year 'dataYear', using the",
+                          "`LandR::prepSpeciesLayers_KNN` function (see https://open.canada.ca/",
+                          "data/en/dataset/ec9e2659-1c29-4ddb-87a2-6aced147a990 for details on these data).",
+                          "Other currently available options are 'ONFRI', 'CASFRI', 'Pickell' and",
+                          "'ForestInventory', which attempt to get proprietary data - the user must be granted",
+                          "access first. A custom function can be used to retrieve any data, just as long as",
+                          "it is accessible by the module (e.g., in the global environment) and is named as",
+                          "paste0('prepSpeciesLayers_', types).")),
     defineParameter("vegLeadingProportion", "numeric", 0.8, 0, 1,
-                    "a number that define whether a species is leading for a given pixel"),
+                    "a number that defines whether a species is leading for a given pixel. Only used for plotting."),
     defineParameter(".plotInitialTime", "numeric", NA, NA, NA,
                     "This describes the simulation time at which the first plot event should occur"),
     defineParameter(".plotInterval", "numeric", NA, NA, NA,
@@ -53,7 +59,7 @@ defineModule(sim, list(
     defineParameter(".saveInterval", "numeric", NA, NA, NA,
                     "This describes the simulation time interval between save events"),
     defineParameter(".studyAreaName", "character", NA, NA, NA,
-                    "Human-readable name for the study area used. If NA, a hash of studyArea will be used."),
+                    "Human-readable name for the study area used. If NA, a hash of `studyAreaLarge` will be used."),
     defineParameter(".useCache", "logical", "init", NA, NA,
                     desc = "Controls cache; caches the init event by default"),
     defineParameter(".useParallel", "numeric", parallel::detectCores(), NA, NA,
@@ -61,35 +67,44 @@ defineModule(sim, list(
   ),
   inputObjects = bindrows(
     expectsInput("rasterToMatchLarge", "RasterLayer",
-                 desc = paste("a raster of the studyAreaLarge in the same resolution and projection as biomassMap"),
+                 desc = paste("a raster of `studyAreaLarge` in the same resolution and projection the simulation's.",
+                              "Defaults to the using the Canadian Forestry Service, National Forest Inventory,",
+                              "kNN-derived stand biomass map."),
                  sourceURL = ""),
     expectsInput("sppColorVect", "character",
                  desc = paste("A named vector of colors to use for plotting.",
-                              "The names must be in sim$speciesEquivalency[[sim$sppEquivCol]],",
+                              "The names must be in sim$sppEquiv[[sim$sppEquivCol]],",
                               "and should also contain a color for 'Mixed'"),
                  sourceURL = NA),
     expectsInput("sppEquiv", "data.table",
-                 desc = "table of species equivalencies. See LandR::sppEquivalencies_CA.",
+                 desc = "table of species equivalencies. See `LandR::sppEquivalencies_CA`.",
                  sourceURL = ""),
+    expectsInput("sppNameVector", "character",
+                 desc = paste("an optional vector of species names to be pulled from `sppEquiv`. Species names must match",
+                              "`P(sim)$sppEquivCol` column in `sppEquiv`. If not provided, then species will be taken from",
+                              "the entire `P(sim)$sppEquivCol` column in `sppEquiv`.",
+                              "See `LandR::sppEquivalencies_CA`.")),
     expectsInput("studyAreaLarge", "SpatialPolygonsDataFrame",
-                 desc =  paste("Polygon to use as the parametrisation study area.",
-                               "(studyAreaLarge is only used for parameter estimation, and",
-                               "can be larger than the actual study area used for LandR Biomass simulations).",
-                               "If not provided by the user, it will default to an area in Southwestern Alberta,",
-                               "Canada (which is the same as the default study area used for LandR Biomass simulations)."),
+                 desc =  paste("Polygon to use as the parametrisation study area. Must be provided by the user.",
+                               "Note that `studyAreaLarge` is only used for parameter estimation, and",
+                               "can be larger than the actual study area used for LandR simulations (e.g,",
+                               "larger than `studyArea` in LandR Biomass_core)."),
                  sourceURL = NA),
     expectsInput("studyAreaReporting", "SpatialPolygonsDataFrame",
-                 desc = paste("multipolygon (typically smaller/unbuffered than studyArea) to use for plotting/reporting.",
-                              "Defaults to an area in Southwestern Alberta, Canada."),
+                 desc = paste("multipolygon (typically smaller/unbuffered than `studyAreaLarge` and `studyArea`",
+                              "in LandR Biomass_core) to use for plotting/reporting.",
+                              "If not provided, will default to `studyAreaLarge`."),
                  sourceURL = NA)
   ),
   outputObjects = bindrows(
     createsOutput("speciesLayers", "RasterStack",
                   desc = "biomass percentage raster layers by species in Canada species map"),
     createsOutput("treed", "data.table",
-                  desc = "one logical column for each species, indicating whether there were non-zero values"),
+                  desc = paste("Table with one logical column for each species, indicating whether",
+                               "there were non-zero cover values in each pixel.")),
     createsOutput("numTreed", "numeric",
-                  desc = "a named vector with number of pixels with non-zero cover values"),
+                  desc = paste("a named vector with number of pixels with non-zero cover values for",
+                               "each species")),
     createsOutput("nonZeroCover", "numeric",
                   desc = "A single value indicating how many pixels have non-zero cover")
   )
@@ -108,18 +123,21 @@ doEvent.Biomass_speciesData <- function(sim, eventTime, eventType) {
       sim <- biomassDataInit(sim)
     },
     initPlot = {
-      devCur <- dev.cur()
-      newDev <- if (!is.null(dev.list())) max(dev.list()) + 1 else 1
-      quickPlot::dev(newDev)
-      sppStack <- raster::mask(sim$speciesLayers, sim$studyAreaReporting) %>%
-        raster::stack()
-      plotVTM(speciesStack = sppStack,
+      newDev <- if (!is.null(dev.list())) {
+        devCur <- dev.cur()
+        max(dev.list()) + 1
+      } else {
+        1
+      }
+      dev.set(newDev)
+      plotVTM(speciesStack = raster::mask(sim$speciesLayers, sim$studyAreaReporting) %>%
+                raster::stack(),
               vegLeadingProportion = P(sim)$vegLeadingProportion,
               sppEquiv = sim$sppEquiv,
               sppEquivCol = P(sim)$sppEquivCol,
               colors = sim$sppColorVect,
               title = "Initial Types")
-      quickPlot::dev(devCur)
+      if (exists("devCur")) dev.set(devCur)
     },
     warning(paste("Undefined event type: '", current(sim)[1, "eventType", with = FALSE],
                   "' in module '", current(sim)[1, "moduleName", with = FALSE], "'", sep = ""))
@@ -313,10 +331,11 @@ biomassDataInit <- function(sim) {
                      "If this is wrong, provide raster"))
 
     sim$rasterToMatchLarge <- rawBiomassMap
-    RTMvals <- getValues(sim$rasterToMatchLarge)
+    RTMvals <- sim$rasterToMatchLarge[]
     sim$rasterToMatchLarge[!is.na(RTMvals)] <- 1
     sim$rasterToMatchLarge <- Cache(writeOutputs, sim$rasterToMatchLarge,
-                                    filename2 = file.path(cachePath(sim), "rasters", "rasterToMatchLarge.tif"),
+                                    filename2 = .suffix(file.path(dPath, "rasterToMatchLarge.tif"),
+                                                        paste0("_", P(sim)$.studyAreaName)),
                                     datatype = "INT2U", overwrite = TRUE,
                                     userTags = c(cacheTags, "rasterToMatchLarge"),
                                     omitArgs = c("userTags"))
@@ -329,41 +348,23 @@ biomassDataInit <- function(sim) {
     sim$studyAreaLarge <- fixErrors(sim$studyAreaLarge)
   }
 
-  if (!suppliedElsewhere("sppEquiv", sim)) {
-    if (!is.null(sim$sppColorVect))
-      stop("If you provide sppColorVect, you MUST also provide sppEquiv")
+  ## Species equivalencies table and associated columns ----------------------------
+  ## make sppEquiv table and associated columns, vectors
+  ## do not use suppliedElsewhere here as we need the tables to exist (or not)
+  ## already (rather than potentially being supplied by a downstream module)
+  ## the function checks whether the tables exist internally.
+  ## check parameter consistency across modules
+  paramCheckOtherMods(sim, "sppEquivCol", ifSetButDifferent = "error")
+  paramCheckOtherMods(sim, "vegLeadingProportion", ifSetButDifferent = "error")
 
-    data("sppEquivalencies_CA", package = "LandR", envir = environment())
-    sim$sppEquiv <- as.data.table(sppEquivalencies_CA)
+  sppOuts <- sppHarmonize(sim$sppEquiv, sim$sppNameVector, P(sim)$sppEquivCol,
+                          sim$sppColorVect, P(sim)$vegLeadingProportion, sim$studyAreaLarge)
+  ## the following may, or may not change inputs
+  sim$sppEquiv <- sppOuts$sppEquiv
+  sim$sppNameVector <- sppOuts$sppNameVector
+  P(sim, module = currentModule(sim))$sppEquivCol <- sppOuts$sppEquivCol
+  sim$sppColorVect <- sppOuts$sppColorVect
 
-    ## check spp column to use
-    if (P(sim)$sppEquivCol == "Boreal") {
-      message(paste("There is no 'sppEquiv' table supplied;",
-                    "will attempt to use species listed under 'Boreal'",
-                    "in the 'LandR::sppEquivalencies_CA' table"))
-    } else {
-      if (grepl(P(sim)$sppEquivCol, names(sim$sppEquiv))) {
-        message(paste("There is no 'sppEquiv' table supplied,",
-                      "will attempt to use species listed under", P(sim)$sppEquivCol,
-                      "in the 'LandR::sppEquivalencies_CA' table"))
-      } else {
-        stop("You changed 'sppEquivCol' without providing 'sppEquiv',",
-             "and the column name can't be found in the default table ('LandR::sppEquivalencies_CA').",
-             "Please provide conforming 'sppEquivCol', 'sppEquiv' and 'sppColorVect'")
-      }
-    }
-
-    ## remove empty lines/NAs
-    sim$sppEquiv <- sim$sppEquiv[!"", on = P(sim)$sppEquivCol]
-    sim$sppEquiv <- na.omit(sim$sppEquiv, P(sim)$sppEquivCol)
-
-    ## add default colors for species used in model
-    sim$sppColorVect <- sppColors(sim$sppEquiv, P(sim)$sppEquivCol,
-                                  newVals = "Mixed", palette = "Accent")
-  } else {
-    if (is.null(sim$sppColorVect))
-      stop("If you provide 'sppEquiv' you MUST also provide 'sppColorVect'")
-  }
 
   return(invisible(sim))
 }
