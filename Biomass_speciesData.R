@@ -21,6 +21,8 @@ defineModule(sim, list(
   documentation = list("README.txt", "Biomass_speciesData.Rmd"),
   reqdPkgs = list("data.table", "magrittr", "pryr",
                   "raster", "reproducible (>= 1.2.6.9005)", "SpaDES.core", "SpaDES.tools",
+                  # "curl", "httr", ## called directly by this module, but pulled in by LandR (Sep 6th 2022).
+                  ## Excluded because loading is not necessary (just installation)
                   "PredictiveEcology/LandR@development (>= 1.0.6.9001)",
                   "PredictiveEcology/pemisc@development"),
   parameters = bindrows(
@@ -58,6 +60,10 @@ defineModule(sim, list(
                     "This describes the simulation time at which the first save event should occur"),
     defineParameter(".saveInterval", "numeric", NA, NA, NA,
                     "This describes the simulation time interval between save events"),
+    defineParameter(".sslVerify", "integer", curl::curl_options("^ssl_verifypeer$"), NA , NA,
+                    paste("Passed to `httr::config(ssl_verifypeer = P(sim)$.sslVerify)` when downloading KNN",
+                          "(NFI) datasets. Set to 0L if necessary to bypass checking the SSL certificate (this",
+                          "may be necessary when NFI's FTP website SSL certificate is down/out-of-date).")),
     defineParameter(".studyAreaName", "character", NA, NA, NA,
                     "Human-readable name for the study area used. If NA, a hash of `studyAreaLarge` will be used."),
     defineParameter(".useCache", "logical", "init", NA, NA,
@@ -166,6 +172,7 @@ biomassDataInit <- function(sim) {
     }
 
     fn <- get(fnName)
+    httr::with_config(config = httr::config(ssl_verifypeer = P(sim)$.sslVerify), {
     speciesLayersNew <- Cache(fn,
                               destinationPath = dPath, # this is generic files (preProcess)
                               outputPath = outputPath(sim), # this will be the studyArea-specific files (postProcess)
@@ -178,6 +185,7 @@ biomassDataInit <- function(sim) {
                               year = P(sim)$dataYear,
                               userTags = c(cacheTags, fnName, "prepSpeciesLayers"),
                               omitArgs = c("userTags"))
+    })
 
     sim$speciesLayers <- if (length(sim$speciesLayers) > 0) {
       Cache(overlayStacks,
@@ -288,7 +296,8 @@ biomassDataInit <- function(sim) {
                                  "canada-forests-attributes_attributs-forests-canada/",
                                  "2001-attributes_attributs-2001/",
                                  "NFI_MODIS250m_2001_kNN_Structure_Biomass_TotalLiveAboveGround_v1.tif")
-      # httr::with_config(config = httr::config(ssl_verifypeer = 0L), { ## TODO: re-enable verify
+
+      httr::with_config(config = httr::config(ssl_verifypeer = P(sim)$.sslVerify), {
       #necessary for KNN
       rawBiomassMapFilename <- basename(rawBiomassMapURL)
       rawBiomassMap <- Cache(prepInputs,
@@ -304,7 +313,7 @@ biomassDataInit <- function(sim) {
                              filename2 = NULL,
                              userTags = c(cacheTags, "rawBiomassMap"),
                              omitArgs = c("destinationPath", "targetFile", "userTags", "stable"))
-      # })
+      })
     } else {
       rawBiomassMap <- Cache(postProcess,
                              x = sim$rawBiomassMap,
