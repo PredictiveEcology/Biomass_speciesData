@@ -22,7 +22,7 @@ defineModule(sim, list(
   reqdPkgs = list("data.table",
                   # "curl", "httr", ## called directly by this module, but pulled in by LandR (Sep 6th 2022).
                                     ## Excluded because loading is not necessary (just installation)
-                  "PredictiveEcology/LandR@development (>= 1.0.6.9001)", "magrittr",
+                  "PredictiveEcology/LandR@development (>= 1.0.9.9000)", "magrittr",
                   "PredictiveEcology/pemisc@development",
                   "pryr", "raster", "reproducible (>= 1.2.6.9005)", "SpaDES.core", "SpaDES.tools"),
   parameters = bindrows(
