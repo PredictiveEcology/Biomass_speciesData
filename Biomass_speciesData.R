@@ -13,16 +13,18 @@ defineModule(sim, list(
     person("Ceres", "Barros", email = "cbarros@mail.ubc.ca", role = c("aut"))
   ),
   childModules = character(0),
-  version = list(Biomass_speciesData = "1.0.0"),
+  version = list(Biomass_speciesData = "1.0.1"),
   spatialExtent = raster::extent(rep(NA_real_, 4)),
   timeframe = as.POSIXlt(c(NA, NA)),
   timeunit = "year",
   citation = list("citation.bib"),
   documentation = list("README.txt", "Biomass_speciesData.Rmd"),
-  reqdPkgs = list("data.table", "magrittr", "pryr",
-                  "raster", "reproducible (>= 1.2.6.9005)", "SpaDES.core", "SpaDES.tools",
-                  "PredictiveEcology/LandR@development (>= 1.0.7.9030)",
-                  "PredictiveEcology/pemisc@development"),
+  reqdPkgs = list("data.table", "gdalUtilities", ## LandR needs gdalUtilities to overlay rasters
+                  # "curl", "httr", ## called directly by this module, but pulled in by LandR (Sep 6th 2022).
+                                    ## Excluded because loading is not necessary (just installation)
+                  "PredictiveEcology/LandR@development (>= 1.0.9.9000)", "magrittr",
+                  "PredictiveEcology/pemisc@development",
+                  "pryr", "raster", "reproducible (>= 1.2.6.9005)", "SpaDES.core", "SpaDES.tools"),
   parameters = bindrows(
     #defineParameter("paramName", "paramClass", value, min, max, "parameter description"),
     defineParameter("coverThresh", "integer", 10, NA, NA,
@@ -58,6 +60,10 @@ defineModule(sim, list(
                     "This describes the simulation time at which the first save event should occur"),
     defineParameter(".saveInterval", "numeric", NA, NA, NA,
                     "This describes the simulation time interval between save events"),
+    defineParameter(".sslVerify", "integer", unname(curl::curl_options("^ssl_verifypeer$")), NA , NA,
+                    paste("Passed to `httr::config(ssl_verifypeer = P(sim)$sslVerify)` when downloading KNN",
+                          "(NFI) datasets. Set to 0L if necessary to bypass checking the SSL certificate (this",
+                          "may be necessary when NFI's website SSL certificate is not correctly configured).")),
     defineParameter(".studyAreaName", "character", NA, NA, NA,
                     "Human-readable name for the study area used. If NA, a hash of `studyAreaLarge` will be used."),
     defineParameter(".useCache", "logical", "init", NA, NA,
@@ -182,9 +188,7 @@ biomassDataInit <- function(sim) {
     }
 
     fn <- get(fnName)
-
-    opt <- options("reproducible.useTerra" = FALSE)
-    on.exit(options(opt), add = TRUE)
+    httr::with_config(config = httr::config(ssl_verifypeer = P(sim)$.sslVerify), {
     speciesLayersNew <- Cache(fn,
                               destinationPath = dPath, # this is generic files (preProcess)
                               outputPath = outputPath(sim), # this will be the studyArea-specific files (postProcess)
@@ -197,7 +201,7 @@ biomassDataInit <- function(sim) {
                               year = P(sim)$dataYear,
                               userTags = c(cacheTags, fnName, "prepSpeciesLayers"),
                               omitArgs = c("userTags"))
-    options(opt)
+    })
 
     sim$speciesLayers <- if (length(sim$speciesLayers) > 0) {
       Cache(overlayStacks,
@@ -318,6 +322,7 @@ biomassDataInit <- function(sim) {
         }
       }
 
+      httr::with_config(config = httr::config(ssl_verifypeer = P(sim)$.sslVerify), {
       rawBiomassMap <- prepRawBiomassMap(url = biomassURL,
                                          studyAreaName = P(sim)$.studyAreaName,
                                          cacheTags = cacheTags,
@@ -328,14 +333,11 @@ biomassDataInit <- function(sim) {
       rawBiomassMap <- sim$rawBiomassMap
       if (!compareRaster(sim$rawBiomassMap, sim$studyAreaLarge, stopiffalse = FALSE)) {
         ## note that extents may never align if the resolution and projection do not allow for it
-        opt <- options("reproducible.useTerra" = FALSE)
-        on.exit(options(opt), add = TRUE)
         rawBiomassMap <- Cache(postProcess,
                                rawBiomassMap,
                                method = "bilinear",
                                studyArea = sim$studyAreaLarge,
                                overwrite = TRUE)
-        options(opt)
       }
     }
   }
@@ -375,7 +377,6 @@ biomassDataInit <- function(sim) {
   sim$sppNameVector <- sppOuts$sppNameVector
   P(sim, module = currentModule(sim))$sppEquivCol <- sppOuts$sppEquivCol
   sim$sppColorVect <- sppOuts$sppColorVect
-
 
   return(invisible(sim))
 }
