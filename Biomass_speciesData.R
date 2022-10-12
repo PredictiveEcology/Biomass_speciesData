@@ -27,7 +27,7 @@ defineModule(sim, list(
                   "pryr", "raster", "reproducible (>= 1.2.6.9005)", "SpaDES.core", "SpaDES.tools"),
   parameters = bindrows(
     #defineParameter("paramName", "paramClass", value, min, max, "parameter description"),
-    defineParameter("coverThresh", "integer", 10, NA, NA,
+    defineParameter("coverThresh", "integer", 10L, NA, NA,
                     paste("The minimum % cover a species needs to have (per pixel) in the study",
                           "area to be considered present")),
     defineParameter("dataYear", "numeric", 2001, NA, NA,
@@ -60,7 +60,7 @@ defineModule(sim, list(
                     "This describes the simulation time at which the first save event should occur"),
     defineParameter(".saveInterval", "numeric", NA, NA, NA,
                     "This describes the simulation time interval between save events"),
-    defineParameter(".sslVerify", "integer", unname(curl::curl_options("^ssl_verifypeer$")), NA , NA,
+    defineParameter(".sslVerify", "integer", as.integer(unname(curl::curl_options("^ssl_verifypeer$"))), NA , NA,
                     paste("Passed to `httr::config(ssl_verifypeer = P(sim)$sslVerify)` when downloading KNN",
                           "(NFI) datasets. Set to 0L if necessary to bypass checking the SSL certificate (this",
                           "may be necessary when NFI's website SSL certificate is not correctly configured).")),
