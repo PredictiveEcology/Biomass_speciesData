@@ -1,7 +1,7 @@
 ---
 title: "LandR _Biomass_speciesData_ Manual"
-subtitle: "v.1.0.0"
-date: "Last updated: 2022-03-26"
+subtitle: "v.1.0.1"
+date: "Last updated: 2022-10-11"
 output:
   bookdown::html_document2:
     toc: true
@@ -28,13 +28,21 @@ always_allow_html: true
 
 (ref:percent) %
 
+(ref:Abie-bal) *Abies balsamea*
+
+(ref:Abie-las) *A. lasiocarpa*
+
+(ref:Pinu-con) *Pinus contorta*
+
+(ref:Pice-sp) *Picea spp.*
+
 
 
 
 
 [![made-with-Markdown](figures/markdownBadge.png)](http://commonmark.org)
-[![Generic
-badge](figures/genericBadge.png)](https://github.com/PredictiveEcology/Biomass_speciesData/issues)
+
+[![Generic badge](figures/genericBadge.png)](https://github.com/PredictiveEcology/Biomass_speciesData/issues)
 
 <!-- if knitting to pdf remember to add the pandoc_args: ["--extract-media", "."] option to yml in order to get the badge images -->
 
@@ -77,23 +85,27 @@ be controlled via `options(reproducible.destinationPath = ...)`.
 <tbody>
   <tr>
    <td style="text-align:left;"> rasterToMatchLarge </td>
-   <td style="text-align:left;"> a raster of `studyAreaLarge` in the same resolution and projection the simulation's. Defaults to the using the Canadian Forestry Service, National Forest Inventory, kNN-derived stand biomass map. </td>
+   <td style="text-align:left;width: 40em; "> a raster of `studyAreaLarge` in the same resolution and projection the simulation's. Defaults to the using the Canadian Forestry Service, National Forest Inventory, kNN-derived stand biomass map. </td>
   </tr>
   <tr>
    <td style="text-align:left;"> sppColorVect </td>
-   <td style="text-align:left;"> A named vector of colors to use for plotting. The names must be in sim$sppEquiv[[sim$sppEquivCol]], and should also contain a color for 'Mixed' </td>
+   <td style="text-align:left;width: 40em; "> A named vector of colors to use for plotting. The names must be in sim$sppEquiv[[sim$sppEquivCol]], and should also contain a color for 'Mixed' </td>
   </tr>
   <tr>
    <td style="text-align:left;"> sppEquiv </td>
-   <td style="text-align:left;"> table of species equivalencies. See `LandR::sppEquivalencies_CA`. </td>
+   <td style="text-align:left;width: 40em; "> table of species equivalencies. See `LandR::sppEquivalencies_CA`. </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> sppNameVector </td>
+   <td style="text-align:left;width: 40em; "> an optional vector of species names to be pulled from `sppEquiv`. Species names must match `P(sim)$sppEquivCol` column in `sppEquiv`. If not provided, then species will be taken from the entire `P(sim)$sppEquivCol` column in `sppEquiv`. See `LandR::sppEquivalencies_CA`. </td>
   </tr>
   <tr>
    <td style="text-align:left;"> studyAreaLarge </td>
-   <td style="text-align:left;"> Polygon to use as the parametrisation study area. Must be provided by the user. Note that `studyAreaLarge` is only used for parameter estimation, and can be larger than the actual study area used for LandR simulations (e.g, larger than `studyArea` in LandR Biomass_core). </td>
+   <td style="text-align:left;width: 40em; "> Polygon to use as the parametrisation study area. Must be provided by the user. Note that `studyAreaLarge` is only used for parameter estimation, and can be larger than the actual study area used for LandR simulations (e.g, larger than `studyArea` in LandR Biomass_core). </td>
   </tr>
   <tr>
    <td style="text-align:left;"> studyAreaReporting </td>
-   <td style="text-align:left;"> multipolygon (typically smaller/unbuffered than `studyAreaLarge` and `studyArea` in LandR Biomass_core) to use for plotting/reporting. If not provided, will default to `studyAreaLarge`. </td>
+   <td style="text-align:left;width: 40em; "> multipolygon (typically smaller/unbuffered than `studyAreaLarge` and `studyArea` in LandR Biomass_core) to use for plotting/reporting. If not provided, will default to `studyAreaLarge`. </td>
   </tr>
 </tbody>
 </table>
@@ -109,51 +121,55 @@ be controlled via `options(reproducible.destinationPath = ...)`.
 <tbody>
   <tr>
    <td style="text-align:left;"> coverThresh </td>
-   <td style="text-align:left;"> The minimum % cover a species needs to have (per pixel) in the study area to be considered present </td>
+   <td style="text-align:left;width: 40em; "> The minimum % cover a species needs to have (per pixel) in the study area to be considered present </td>
   </tr>
   <tr>
    <td style="text-align:left;"> dataYear </td>
-   <td style="text-align:left;"> Passed to `paste0('prepSpeciesLayers_', types)` function to fetch data from that year (if applicable). Defaults to 2001 as the default kNN year. </td>
+   <td style="text-align:left;width: 40em; "> Passed to `paste0('prepSpeciesLayers_', types)` function to fetch data from that year (if applicable). Defaults to 2001 as the default kNN year. </td>
   </tr>
   <tr>
    <td style="text-align:left;"> sppEquivCol </td>
-   <td style="text-align:left;"> The column in `sim$sppEquiv` data.table to group species by and use as a naming convention. If different species in, e.g., the kNN data have the same name in the chosen column, their data are merged into one species by summing their % cover in each raster cell. </td>
+   <td style="text-align:left;width: 40em; "> The column in `sim$sppEquiv` data.table to group species by and use as a naming convention. If different species in, e.g., the kNN data have the same name in the chosen column, their data are merged into one species by summing their % cover in each raster cell. </td>
   </tr>
   <tr>
    <td style="text-align:left;"> types </td>
-   <td style="text-align:left;"> The possible data sources. These must correspond to a function named paste0('prepSpeciesLayers_', types). Defaults to 'KNN' to get the Canadian Forestry Service, National Forest Inventory, kNN-derived species cover maps from year 'dataYear', using the `LandR::prepSpeciesLayers_KNN` function (see https://open.canada.ca/ data/en/dataset/ec9e2659-1c29-4ddb-87a2-6aced147a990 for details on these data). Other currently available options are 'ONFRI', 'CASFRI', 'Pickell' and 'ForestInventory', which attempt to get proprietary data - the user must be granted access first. A custom function can be used to retrieve any data, just as long as it is accessible by the module (e.g., in the global environment) and is named as paste0('prepSpeciesLayers_', types). </td>
+   <td style="text-align:left;width: 40em; "> The possible data sources. These must correspond to a function named paste0('prepSpeciesLayers_', types). Defaults to 'KNN' to get the Canadian Forestry Service, National Forest Inventory, kNN-derived species cover maps from year 'dataYear', using the `LandR::prepSpeciesLayers_KNN` function (see https://open.canada.ca/ data/en/dataset/ec9e2659-1c29-4ddb-87a2-6aced147a990 for details on these data). Other currently available options are 'ONFRI', 'CASFRI', 'Pickell' and 'ForestInventory', which attempt to get proprietary data - the user must be granted access first. A custom function can be used to retrieve any data, just as long as it is accessible by the module (e.g., in the global environment) and is named as paste0('prepSpeciesLayers_', types). </td>
   </tr>
   <tr>
    <td style="text-align:left;"> vegLeadingProportion </td>
-   <td style="text-align:left;"> a number that defines whether a species is leading for a given pixel. Only used for plotting. </td>
+   <td style="text-align:left;width: 40em; "> a number that defines whether a species is leading for a given pixel. Only used for plotting. </td>
   </tr>
   <tr>
    <td style="text-align:left;"> .plotInitialTime </td>
-   <td style="text-align:left;"> This describes the simulation time at which the first plot event should occur </td>
+   <td style="text-align:left;width: 40em; "> This describes the simulation time at which the first plot event should occur </td>
   </tr>
   <tr>
    <td style="text-align:left;"> .plotInterval </td>
-   <td style="text-align:left;"> This describes the simulation time interval between plot events </td>
+   <td style="text-align:left;width: 40em; "> This describes the simulation time interval between plot events </td>
   </tr>
   <tr>
    <td style="text-align:left;"> .saveInitialTime </td>
-   <td style="text-align:left;"> This describes the simulation time at which the first save event should occur </td>
+   <td style="text-align:left;width: 40em; "> This describes the simulation time at which the first save event should occur </td>
   </tr>
   <tr>
    <td style="text-align:left;"> .saveInterval </td>
-   <td style="text-align:left;"> This describes the simulation time interval between save events </td>
+   <td style="text-align:left;width: 40em; "> This describes the simulation time interval between save events </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> .sslVerify </td>
+   <td style="text-align:left;width: 40em; "> Passed to `httr::config(ssl_verifypeer = P(sim)$sslVerify)` when downloading KNN (NFI) datasets. Set to 0L if necessary to bypass checking the SSL certificate (this may be necessary when NFI's website SSL certificate is not correctly configured). </td>
   </tr>
   <tr>
    <td style="text-align:left;"> .studyAreaName </td>
-   <td style="text-align:left;"> Human-readable name for the study area used. If NA, a hash of `studyAreaLarge` will be used. </td>
+   <td style="text-align:left;width: 40em; "> Human-readable name for the study area used. If NA, a hash of `studyAreaLarge` will be used. </td>
   </tr>
   <tr>
    <td style="text-align:left;"> .useCache </td>
-   <td style="text-align:left;"> Controls cache; caches the init event by default </td>
+   <td style="text-align:left;width: 40em; "> Controls cache; caches the init event by default </td>
   </tr>
   <tr>
    <td style="text-align:left;"> .useParallel </td>
-   <td style="text-align:left;"> Used in reading csv file with fread. Will be passed to data.table::setDTthreads. </td>
+   <td style="text-align:left;width: 40em; "> Used in reading csv file with fread. Will be passed to data.table::setDTthreads. </td>
   </tr>
 </tbody>
 </table>
@@ -182,19 +198,19 @@ The module produces the following outputs (Table
 <tbody>
   <tr>
    <td style="text-align:left;"> speciesLayers </td>
-   <td style="text-align:left;"> biomass percentage raster layers by species in Canada species map </td>
+   <td style="text-align:left;width: 40em; "> biomass percentage raster layers by species in Canada species map </td>
   </tr>
   <tr>
    <td style="text-align:left;"> treed </td>
-   <td style="text-align:left;"> Table with one logical column for each species, indicating whether there were non-zero cover values in each pixel. </td>
+   <td style="text-align:left;width: 40em; "> Table with one logical column for each species, indicating whether there were non-zero cover values in each pixel. </td>
   </tr>
   <tr>
    <td style="text-align:left;"> numTreed </td>
-   <td style="text-align:left;"> a named vector with number of pixels with non-zero cover values for each species </td>
+   <td style="text-align:left;width: 40em; "> a named vector with number of pixels with non-zero cover values for each species </td>
   </tr>
   <tr>
    <td style="text-align:left;"> nonZeroCover </td>
-   <td style="text-align:left;"> A single value indicating how many pixels have non-zero cover </td>
+   <td style="text-align:left;width: 40em; "> A single value indicating how many pixels have non-zero cover </td>
   </tr>
 </tbody>
 </table>
@@ -339,6 +355,10 @@ more information):
    <td style="text-align:left;"> Black ash </td>
   </tr>
   <tr>
+   <td style="text-align:left;"> *Fraxinus spp.* </td>
+   <td style="text-align:left;"> Ash </td>
+  </tr>
+  <tr>
    <td style="text-align:left;"> *Larix laricina* </td>
    <td style="text-align:left;"> Tamarack </td>
   </tr>
@@ -353,6 +373,14 @@ more information):
   <tr>
    <td style="text-align:left;"> *Larix spp.* </td>
    <td style="text-align:left;"> Larch </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> *Picea engelmannii x glauca* </td>
+   <td style="text-align:left;"> Engelmann's spruce </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> *Picea engelmannii x glauca* </td>
+   <td style="text-align:left;"> Engelmann's spruce </td>
   </tr>
   <tr>
    <td style="text-align:left;"> *Picea engelmannii* </td>
@@ -459,6 +487,12 @@ more information):
    <td style="text-align:left;">  </td>
   </tr>
   <tr>
+   <td style="text-align:left;"> sppNameVector </td>
+   <td style="text-align:left;"> character </td>
+   <td style="text-align:left;"> an optional vector of species names to be pulled from `sppEquiv`. Species names must match `P(sim)$sppEquivCol` column in `sppEquiv`. If not provided, then species will be taken from the entire `P(sim)$sppEquivCol` column in `sppEquiv`. See `LandR::sppEquivalencies_CA`. </td>
+   <td style="text-align:left;"> NA </td>
+  </tr>
+  <tr>
    <td style="text-align:left;"> studyAreaLarge </td>
    <td style="text-align:left;"> SpatialPolygonsDataFrame </td>
    <td style="text-align:left;"> Polygon to use as the parametrisation study area. Must be provided by the user. Note that `studyAreaLarge` is only used for parameter estimation, and can be larger than the actual study area used for LandR simulations (e.g, larger than `studyArea` in LandR Biomass_core). </td>
@@ -495,7 +529,7 @@ following are particularly important and deserve special attention:
     \@ref(tab:mergingSpp-Biomass-speciesData) for an example).
 
 <table class="table" style="margin-left: auto; margin-right: auto;">
-<caption>(\#tab:mergingSpp-Biomass-speciesData)Example of species merging for simulation. Here the user wants to model _Abies balsamea_, _A. lasiocarpa_ and _Pinus contorta_ as separate species, but all _Picea_ species as a generic _Picea spp._. For this, all six species are identified in the 'KNN' column, so that their (ref:percent) cover layers can be obtained, but in the 'Boreal' column (which defines the naming convention used in the simulation in this example) all _Picea_ species have the same name. (ref:Biomass-speciesData) will merge their (ref:percent) cover data into a single layer by summing their cover per pixel.</caption>
+<caption>(\#tab:mergingSpp-Biomass-speciesData)Example of species merging for simulation. Here the user wants to model (ref:Abie-bal), (ref:Abie-las) and (ref:Pinu-con) as separate species, but all (ref:Pice-sp) as a genus-level group. For this, all six species are identified in the \'KNN\' column, so that their (ref:percent) cover layers can be obtained, but in the \'Boreal\' column (which defines the naming convention used in the simulation in this example) all (ref:Pice-sp) have the same name. (ref:Biomass-speciesData) will merge their (ref:percent) cover data into a single layer by summing their cover per pixel.</caption>
  <thead>
   <tr>
    <th style="text-align:left;"> Species </th>
@@ -516,6 +550,18 @@ following are particularly important and deserve special attention:
    <td style="text-align:left;"> Abie_Las </td>
    <td style="text-align:left;"> Abie_Las </td>
    <td style="text-align:left;"> *Abies lasiocarpa* </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> *Picea engelmannii x glauca* </td>
+   <td style="text-align:left;"> Pice_Eng_Gla </td>
+   <td style="text-align:left;"> Pice_Spp </td>
+   <td style="text-align:left;"> *Picea spp.* </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> *Picea engelmannii x glauca* </td>
+   <td style="text-align:left;"> Pice_Eng_Gla </td>
+   <td style="text-align:left;"> Pice_Spp </td>
+   <td style="text-align:left;"> *Picea spp.* </td>
   </tr>
   <tr>
    <td style="text-align:left;"> *Picea engelmannii* </td>
@@ -635,6 +681,14 @@ Table \@ref(tab:moduleParams2-Biomass-speciesData) lists all parameters used in
    <td style="text-align:left;"> This describes the simulation time interval between save events </td>
   </tr>
   <tr>
+   <td style="text-align:left;"> .sslVerify </td>
+   <td style="text-align:left;"> integer </td>
+   <td style="text-align:left;"> 64 </td>
+   <td style="text-align:left;"> NA </td>
+   <td style="text-align:left;"> NA </td>
+   <td style="text-align:left;"> Passed to `httr::config(ssl_verifypeer = P(sim)$sslVerify)` when downloading KNN (NFI) datasets. Set to 0L if necessary to bypass checking the SSL certificate (this may be necessary when NFI's website SSL certificate is not correctly configured). </td>
+  </tr>
+  <tr>
    <td style="text-align:left;"> .studyAreaName </td>
    <td style="text-align:left;"> character </td>
    <td style="text-align:left;"> NA </td>
@@ -730,18 +784,16 @@ Require(c("PredictiveEcology/SpaDES.install",
 
 ```r
 tempDir <- tempdir()
-spadesModulesDirectory <- file.path(tempDir, "modules")
-
 paths <- list(inputPath = normPath(file.path(tempDir, "inputs")), 
               cachePath = normPath(file.path(tempDir, "cache")), 
-              modulePath = normPath(spadesModulesDirectory), 
+              modulePath = normPath(file.path(tempDir, "modules")), 
               outputPath = normPath(file.path(tempDir, "outputs")))
 
 getModule("PredictiveEcology/Biomass_speciesData", 
-                       modulePath = spadesModulesDirectory, overwrite = TRUE)
+          modulePath = paths$modulePath, overwrite = TRUE)
 
 ## make sure all necessary packages are installed:
-makeSureAllPackagesInstalled(spadesModulesDirectory)
+makeSureAllPackagesInstalled(paths$modulePath)
 ```
 
 ### Setup simulation
@@ -804,7 +856,7 @@ Here are some of outputs of *Biomass_speciesData* (dominant species) in a
 randomly generated study area within Canada.
 
 <div class="figure" style="text-align: center">
-<img src="D:/GitHub/Biomass_speciesData/figures/testRunFigure.png" alt="(ref:Biomass-speciesData) automatically generates a plot of species dominance and number of presences in the study area when `.plotInitialTime=1` is passed as an argument." width="396" />
+<img src="figures/testRunFigure.png" alt="(ref:Biomass-speciesData) automatically generates a plot of species dominance and number of presences in the study area when `.plotInitialTime=1` is passed as an argument." width="70%" />
 <p class="caption">(\#fig:fig-Biomass-speciesDataOutPlots)(ref:Biomass-speciesData) automatically generates a plot of species dominance and number of presences in the study area when `.plotInitialTime=1` is passed as an argument.</p>
 </div>
 
