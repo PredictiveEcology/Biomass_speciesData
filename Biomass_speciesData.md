@@ -1,7 +1,7 @@
 ---
 title: "LandR _Biomass_speciesData_ Manual"
 subtitle: "v.1.0.1"
-date: "Last updated: 2022-10-11"
+date: "Last updated: 2022-10-13"
 output:
   bookdown::html_document2:
     toc: true
@@ -86,6 +86,10 @@ be controlled via `options(reproducible.destinationPath = ...)`.
   <tr>
    <td style="text-align:left;"> rasterToMatchLarge </td>
    <td style="text-align:left;width: 40em; "> a raster of `studyAreaLarge` in the same resolution and projection the simulation's. Defaults to the using the Canadian Forestry Service, National Forest Inventory, kNN-derived stand biomass map. </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> rawBiomassMap </td>
+   <td style="text-align:left;width: 40em; "> total biomass raster layer in study area. Only used to create `rasterToMatchLarge` if necessary. Defaults to the Canadian Forestry Service, National Forest Inventory, kNN-derived total aboveground biomass map from 2001 (in tonnes/ha), unless 'dataYear' != 2001. See https://open.canada.ca/data/en/dataset/ec9e2659-1c29-4ddb-87a2-6aced147a990 for metadata. </td>
   </tr>
   <tr>
    <td style="text-align:left;"> sppColorVect </td>
@@ -355,10 +359,6 @@ more information):
    <td style="text-align:left;"> Black ash </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> *Fraxinus spp.* </td>
-   <td style="text-align:left;"> Ash </td>
-  </tr>
-  <tr>
    <td style="text-align:left;"> *Larix laricina* </td>
    <td style="text-align:left;"> Tamarack </td>
   </tr>
@@ -373,14 +373,6 @@ more information):
   <tr>
    <td style="text-align:left;"> *Larix spp.* </td>
    <td style="text-align:left;"> Larch </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> *Picea engelmannii x glauca* </td>
-   <td style="text-align:left;"> Engelmann's spruce </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> *Picea engelmannii x glauca* </td>
-   <td style="text-align:left;"> Engelmann's spruce </td>
   </tr>
   <tr>
    <td style="text-align:left;"> *Picea engelmannii* </td>
@@ -475,6 +467,12 @@ more information):
    <td style="text-align:left;">  </td>
   </tr>
   <tr>
+   <td style="text-align:left;"> rawBiomassMap </td>
+   <td style="text-align:left;"> RasterLayer </td>
+   <td style="text-align:left;"> total biomass raster layer in study area. Only used to create `rasterToMatchLarge` if necessary. Defaults to the Canadian Forestry Service, National Forest Inventory, kNN-derived total aboveground biomass map from 2001 (in tonnes/ha), unless 'dataYear' != 2001. See https://open.canada.ca/data/en/dataset/ec9e2659-1c29-4ddb-87a2-6aced147a990 for metadata. </td>
+   <td style="text-align:left;"> http://ftp.maps.canada.ca/pub/nrcan_rncan/Forests_Foret/canada-forests-attributes_attributs-forests-canada/2001-attributes_attributs-2001/NFI_MODIS250m_2001_kNN_Structure_Biomass_TotalLiveAboveGround_v1.tif </td>
+  </tr>
+  <tr>
    <td style="text-align:left;"> sppColorVect </td>
    <td style="text-align:left;"> character </td>
    <td style="text-align:left;"> A named vector of colors to use for plotting. The names must be in sim$sppEquiv[[sim$sppEquivCol]], and should also contain a color for 'Mixed' </td>
@@ -550,18 +548,6 @@ following are particularly important and deserve special attention:
    <td style="text-align:left;"> Abie_Las </td>
    <td style="text-align:left;"> Abie_Las </td>
    <td style="text-align:left;"> *Abies lasiocarpa* </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> *Picea engelmannii x glauca* </td>
-   <td style="text-align:left;"> Pice_Eng_Gla </td>
-   <td style="text-align:left;"> Pice_Spp </td>
-   <td style="text-align:left;"> *Picea spp.* </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> *Picea engelmannii x glauca* </td>
-   <td style="text-align:left;"> Pice_Eng_Gla </td>
-   <td style="text-align:left;"> Pice_Spp </td>
-   <td style="text-align:left;"> *Picea spp.* </td>
   </tr>
   <tr>
    <td style="text-align:left;"> *Picea engelmannii* </td>
