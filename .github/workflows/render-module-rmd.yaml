@@ -57,6 +57,11 @@ jobs:
           install.packages("SpaDES", dependencies = TRUE)
         shell: Rscript {0}
 
+      - name: Install SpaDES.docs
+        run: |
+          remotes::install_github("PredictiveEcology/SpaDES.docs@development")
+        shell: Rscript {0}
+
       - name: Install module package dependencies
         run: |
           pkgs <- SpaDES.core::packages(modules = "Biomass_speciesData", paths = "..")
