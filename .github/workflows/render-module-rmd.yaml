@@ -34,13 +34,16 @@ jobs:
         with:
           use-public-rspm: true
 
+      - name: Install additional system dependencies
+        run: |
+          apt-get install -y libglpk-dev
+
       - name: Install remotes, knitr, rmarkdown, bookdown
         run: |
           install.packages("remotes")
           remotes::install_cran("rmarkdown")
           remotes::install_cran("knitr")
           remotes::install_cran("bookdown")
-          remotes::install_cran("igraph")
         shell: Rscript {0}
 
       - name: Install SpaDES packages
