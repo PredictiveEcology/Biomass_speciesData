@@ -66,7 +66,7 @@ defineModule(sim, list(
                           "may be necessary when NFI's website SSL certificate is not correctly configured).")),
     defineParameter(".studyAreaName", "character", NA, NA, NA,
                     "Human-readable name for the study area used. If NA, a hash of `studyAreaLarge` will be used."),
-    defineParameter(".useCache", "logical", "init", NA, NA,
+    defineParameter(".useCache", "character", "init", NA, NA,
                     desc = "Controls cache; caches the init event by default"),
     defineParameter(".useParallel", "numeric", parallel::detectCores(), NA, NA,
                     "Used in reading csv file with fread. Will be passed to data.table::setDTthreads.")
