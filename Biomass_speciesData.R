@@ -56,6 +56,11 @@ defineModule(sim, list(
                     "This describes the simulation time at which the first plot event should occur"),
     defineParameter(".plotInterval", "numeric", NA, NA, NA,
                     "This describes the simulation time interval between plot events"),
+    defineParameter(".plots", "character", c("screen"), NA, NA,
+                    paste("Passed to `types` in `Plots` (see `?Plots`).",
+                          "There are a few plots that are made within this module, if set.",
+                          "Note that plots (or their data) saving will ONLY occur at `end(sim)`.",
+                          "If `NA`, plotting is turned off completely (this includes plot saving).")),
     defineParameter(".saveInitialTime", "numeric", NA, NA, NA,
                     "This describes the simulation time at which the first save event should occur"),
     defineParameter(".saveInterval", "numeric", NA, NA, NA,
@@ -67,7 +72,7 @@ defineModule(sim, list(
     defineParameter(".studyAreaName", "character", NA, NA, NA,
                     "Human-readable name for the study area used. If NA, a hash of `studyAreaLarge` will be used."),
     defineParameter(".useCache", "character", "init", NA, NA,
-                    desc = "Controls cache; caches the init event by default"),
+                    "Controls cache; caches the init event by default"),
     defineParameter(".useParallel", "numeric", parallel::detectCores(), NA, NA,
                     "Used in reading csv file with fread. Will be passed to data.table::setDTthreads.")
   ),
@@ -129,21 +134,24 @@ doEvent.Biomass_speciesData <- function(sim, eventTime, eventType) {
       sim <- biomassDataInit(sim)
     },
     initPlot = {
-      newDev <- if (!is.null(dev.list())) {
-        devCur <- dev.cur()
-        max(dev.list()) + 1
-      } else {
-        1
+      ## TODO: use Plots() here to allow saving of the maps to png etc.
+      if (anyPlotting(P(sim)$.plots) && any(P(sim)$.plots == "screen")) {
+        newDev <- if (!is.null(dev.list())) {
+          devCur <- dev.cur()
+          max(dev.list()) + 1
+        } else {
+          1
+        }
+        dev.set(newDev)
+        plotVTM(speciesStack = raster::mask(sim$speciesLayers, sim$studyAreaReporting) %>%
+                  raster::stack(),
+                vegLeadingProportion = P(sim)$vegLeadingProportion,
+                sppEquiv = sim$sppEquiv,
+                sppEquivCol = P(sim)$sppEquivCol,
+                colors = sim$sppColorVect,
+                title = "Initial Types")
+        if (exists("devCur")) dev.set(devCur)
       }
-      dev.set(newDev)
-      plotVTM(speciesStack = raster::mask(sim$speciesLayers, sim$studyAreaReporting) %>%
-                raster::stack(),
-              vegLeadingProportion = P(sim)$vegLeadingProportion,
-              sppEquiv = sim$sppEquiv,
-              sppEquivCol = P(sim)$sppEquivCol,
-              colors = sim$sppColorVect,
-              title = "Initial Types")
-      if (exists("devCur")) dev.set(devCur)
     },
     warning(paste("Undefined event type: '", current(sim)[1, "eventType", with = FALSE],
                   "' in module '", current(sim)[1, "moduleName", with = FALSE], "'", sep = ""))
