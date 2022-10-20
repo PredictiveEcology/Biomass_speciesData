@@ -263,7 +263,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">LandR <em>Biomass_speciesData</em> Manual</h1>
 <h3 class="subtitle">v.1.0.1</h3>
-<h4 class="date">Last updated: 2022-10-18</h4>
+<h4 class="date">Last updated: 2022-10-20</h4>
 
 </div>
 
@@ -439,6 +439,14 @@ This describes the simulation time at which the first plot event should occur
 </td>
 <td style="text-align:left;width: 40em; ">
 This describes the simulation time interval between plot events
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+.plots
+</td>
+<td style="text-align:left;width: 40em; ">
+Passed to <code>types</code> in <code>Plots</code> (see <code>?Plots</code>). There are a few plots that are made within this module, if set. Note that plots (or their data) saving will ONLY occur at <code>end(sim)</code>. If <code>NA</code>, plotting is turned off completely (this includes plot saving).
 </td>
 </tr>
 <tr>
@@ -1383,6 +1391,26 @@ NA
 </td>
 <td style="text-align:left;">
 This describes the simulation time interval between plot events
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+.plots
+</td>
+<td style="text-align:left;">
+character
+</td>
+<td style="text-align:left;">
+screen
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+Passed to <code>types</code> in <code>Plots</code> (see <code>?Plots</code>). There are a few plots that are made within this module, if set. Note that plots (or their data) saving will ONLY occur at <code>end(sim)</code>. If <code>NA</code>, plotting is turned off completely (this includes plot saving).
 </td>
 </tr>
 <tr>
