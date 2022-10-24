@@ -47,8 +47,7 @@ if (!file.exists("citations/ecology-letters.csl")) {
 
 library(Require)
 
-Require(c("SpaDES.core", "git2r", "openxlsx"), require = FALSE, install = FALSE)
-Require(c("dplyr", "data.table", "kableExtra",
+Require(c("SpaDES.core", "git2r", "dplyr", "data.table", "kableExtra",
           "pander", "PredictiveEcology/SpaDES.docs"),
         upgrade = FALSE, install = FALSE)
 ```
@@ -67,7 +66,7 @@ if (!file.exists("figures/issuesBadge.png")) {
                 mode = 'wb')
 }
 
-modversion <- paste(unlist(SpaDES.core::moduleMetadata(module = 'Biomass_speciesData', path = '..')$version), collapse = ".")
+modversion <- paste(unlist(moduleMetadata(module = 'Biomass_speciesData', path = '..')$version), collapse = ".")
 download.file(url = paste0("https://img.shields.io/badge/Biomass_speciesData-", paste0("v.%20", modversion),
                            "-%3CCOLOR%3E.png"),
               destfile = "figures/moduleVersionBadge.png",
@@ -86,14 +85,14 @@ modulePath <- if (grepl("Biomass_speciesData$", normPath("."))) {
     normPath(modulePath)
   }
 
-badgeURL <- if (!git2r::is_detached(modulePath)) {
-  commitSHA <- git2r::sha(git2r::revparse_single(modulePath, "HEAD"))
+badgeURL <- if (!is_detached(modulePath)) {
+  commitSHA <- sha(revparse_single(modulePath, "HEAD"))
   repo <- sub("[.]git$", "/commit/",
-              git2r::branch_remote_url(git2r::branch_get_upstream(git2r::repository_head(modulePath))))
+              branch_remote_url(branch_get_upstream(repository_head(modulePath))))
   paste0(repo, commitSHA)
 } else {
   ## if detached point to the first remote
-  git2r::remote_url(modulePath)[1]
+  remote_url(modulePath)[1]
 }
 badgeURL <- sub(".*github[.]com:", "https://github.com/", badgeURL)
 
@@ -113,7 +112,7 @@ cat(paste0("[![Issues-badge](", badgePath, ")](", badgeURL,")"))
 
 #### Authors:
 
-`r paste(as.character(SpaDES.core::moduleMetadata(module = 'Biomass_speciesData', path = '..')$authors), sep = ', ')`
+`r paste(as.character(moduleMetadata(module = 'Biomass_speciesData', path = '..')$authors), sep = ', ')`
 <!-- ideally separate authors with new lines, '\n' not working -->
 
 **This documentation is work in progress. Potential discrepancies and omissions
@@ -273,7 +272,7 @@ panble(sppEquiv2, caption,
 \blandscape
 
 ```{r moduleInputs2-Biomass-speciesData, echo = FALSE, eval = TRUE, message = FALSE, results = 'asis'}
-df_inputs <- SpaDES.core::moduleInputs("Biomass_speciesData", "..")
+df_inputs <- moduleInputs("Biomass_speciesData", "..")
 caption <- "List of (ref:Biomass-speciesData) input objects and their description."
 
 # knitr::kable(df_inputs, caption = caption) %>%
@@ -330,7 +329,7 @@ ForestInventory layers.
 \blandscape
 
 ```{r moduleParams2-Biomass-speciesData, echo = FALSE, eval = TRUE, message = FALSE, results = 'asis'}
-df_params <- SpaDES.core::moduleParams("Biomass_speciesData", "..")
+df_params <- moduleParams("Biomass_speciesData", "..")
 caption <- "List of (ref:Biomass-speciesData) parameters and their description."
 
 # knitr::kable(df_params, caption = caption) %>%
@@ -354,7 +353,7 @@ processed species cover layers in the output path defined in
 `getPaths(sim)$outputPath`.
 
 ```{r moduleOutputs-Biomass-speciesData, echo = FALSE, eval = TRUE, message = FALSE, results = 'asis'}
-df_outputs <- SpaDES.core::moduleOutputs("Biomass_speciesData", "..")
+df_outputs <- moduleOutputs("Biomass_speciesData", "..")
 caption <- "List of (ref:Biomass-speciesData) output objects and their description."
 
 # knitr::kable(df_outputs,caption = caption) %>%
