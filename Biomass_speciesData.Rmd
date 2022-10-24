@@ -521,7 +521,7 @@ set to `1` here.
 
 ```{r module usage example2-Biomass-speciesData}
 opts <- options(reproducible.useCache = TRUE,
-                reproducible.inputPaths = paths$inputPath)
+                spades.inputPath = paths$inputPath)
 
 mySimOut <- simInitAndSpades(times = list(start = 1, end = 1),
                              modules = modules, 
