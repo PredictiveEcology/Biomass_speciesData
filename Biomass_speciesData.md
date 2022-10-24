@@ -38,7 +38,7 @@ always_allow_html: true
 
 
 
-[![module-version-Badge](D:/GitHub/LandR-Manual/modules/Biomass_speciesData/figures/moduleVersionBadge.png)](https://github.com/PredictiveEcology/Biomass_speciesData/commit/48c20226689f4b7c4ed10032153e96f52e42e860)
+[![module-version-Badge](D:/GitHub/LandR-Manual/modules/Biomass_speciesData/figures/moduleVersionBadge.png)](https://github.com/PredictiveEcology/Biomass_speciesData/commit/505fa065399da93e817424373ee1160e46703ce3)
 
 [![Issues-badge](D:/GitHub/LandR-Manual/modules/Biomass_speciesData/figures/issuesBadge.png)](https://github.com/PredictiveEcology/Biomass_speciesData/issues)
 
