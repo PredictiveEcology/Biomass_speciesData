@@ -1,6 +1,6 @@
 ---
 title: "LandR _Biomass_speciesData_ Manual"
-date: "Last updated: 2022-10-20"
+date: "Last updated: 2022-10-24"
 output:
   bookdown::html_document2:
     toc: true
@@ -38,7 +38,7 @@ always_allow_html: true
 
 
 
-[![module-version-Badge](D:/GitHub/LandR-Manual/modules/Biomass_speciesData/figures/moduleVersionBadge.png)](https://github.com/PredictiveEcology/Biomass_speciesData/commit/0716822e1bfd2261d0959730f0e4a57f247792cb)
+[![module-version-Badge](D:/GitHub/LandR-Manual/modules/Biomass_speciesData/figures/moduleVersionBadge.png)](https://github.com/PredictiveEcology/Biomass_speciesData/commit/48c20226689f4b7c4ed10032153e96f52e42e860)
 
 [![Issues-badge](D:/GitHub/LandR-Manual/modules/Biomass_speciesData/figures/issuesBadge.png)](https://github.com/PredictiveEcology/Biomass_speciesData/issues)
 
@@ -659,34 +659,50 @@ cover data into layers used by other modules.
 
 ### Load `SpaDES` and other packages.
 
+### Set up R libraries {#bsppdata-example-libs}
+
 
 ```r
-if (!require(Require)) {
+options(repos = c(CRAN = "https://cloud.r-project.org"))
+# tempDir <- tempdir()
+tempDir <- "C:/Users/cbarros/AppData/Local/Temp/Biomass_sppData-example"
+
+pkgPath <- file.path(tempDir, "packages", version$platform,
+                     paste0(version$major, ".", strsplit(version$minor, "[.]")[[1]][1]))
+dir.create(pkgPath, recursive = TRUE)
+.libPaths(pkgPath, include.site = FALSE)
+
+if (!require(Require, lib.loc = pkgPath)) {
   install.packages("Require")
-  library(Require)
+  library(Require, lib.loc = pkgPath)
 }
 
-Require(c("PredictiveEcology/SpaDES.install",
-          "SpaDES", "PredictiveEcology/SpaDES.core@development",
-          "PredictiveEcology/LandR"), 
-        install_githubArgs = list(dependencies = TRUE))
+setLinuxBinaryRepo()
 ```
 
-### Get module, necessary packages and set up folder directories
+### Get the module and module dependencies {#bsppdataexample-pkg-mods}
 
 
 ```r
-tempDir <- tempdir()
+Require("PredictiveEcology/SpaDES.project@6d7de6ee12fc967c7c60de44f1aa3b04e6eeb5db", 
+        require = FALSE, upgrade = FALSE, standAlone = TRUE)
+
 paths <- list(inputPath = normPath(file.path(tempDir, "inputs")), 
               cachePath = normPath(file.path(tempDir, "cache")), 
               modulePath = normPath(file.path(tempDir, "modules")), 
               outputPath = normPath(file.path(tempDir, "outputs")))
 
-getModule("PredictiveEcology/Biomass_speciesData", 
-          modulePath = paths$modulePath, overwrite = TRUE)
+SpaDES.project::getModule(modulePath = paths$modulePath,
+                          c("PredictiveEcology/Biomass_speciesData@master"),
+                          overwrite = TRUE)
 
 ## make sure all necessary packages are installed:
-makeSureAllPackagesInstalled(paths$modulePath)
+outs <- SpaDES.project::packagesInModules(modulePath = paths$modulePath)
+Require(c(unname(unlist(outs)), "SpaDES"),
+        require = FALSE, standAlone = TRUE)
+
+## load necessary packages
+Require(c("SpaDES", "LandR", "reproducible"), upgrade = FALSE, install = FALSE)
 ```
 
 ### Setup simulation
@@ -734,7 +750,7 @@ set to `1` here.
 
 ```r
 opts <- options(reproducible.useCache = TRUE,
-                reproducible.inputPaths = paths$inputPath)
+                spades.inputPath = paths$inputPath)
 
 mySimOut <- simInitAndSpades(times = list(start = 1, end = 1),
                              modules = modules, 
