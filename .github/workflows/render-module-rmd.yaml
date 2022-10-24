@@ -67,7 +67,8 @@ jobs:
 
       - name: Install SpaDES packages
         run: |
-          Require::Require("SpaDES", "PredictiveEcology/SpaDES.docs@development")
+          Require::Require(c("SpaDES", "PredictiveEcology/SpaDES.docs@development"),
+                           require = FALSE)
         shell: Rscript {0}
 
       - name: Install module package dependencies
