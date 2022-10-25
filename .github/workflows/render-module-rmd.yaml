@@ -74,7 +74,7 @@ jobs:
       - name: Install module package dependencies
         run: |
           pkgs <- SpaDES.core::packages(modules = "Biomass_speciesData", paths = "..")
-
+          Require::Require("achubaty/amc@development", require = FALSE)
           Require::Require(pkgs[[1]], require = FALSE)
         shell: Rscript {0}
 
