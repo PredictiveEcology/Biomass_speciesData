@@ -48,35 +48,13 @@ jobs:
             libxml2-dev \
             python3-gdal
 
-      - name: Install remotes, knitr, rmarkdown, bookdown, git2r, openxlsx, kableExtra, pander
-        run: |
-          install.packages("remotes")
-          remotes::install_cran("rmarkdown")
-          remotes::install_cran("knitr")
-          remotes::install_cran("bookdown")
-          remotes::install_cran("git2r")
-          remotes::install_cran("openxlsx")
-          remotes::install_cran("kableExtra")
-          remotes::install_cran("pander")
-        shell: Rscript {0}
+      - uses: PredictiveEcology/actions/install-Require@v0
+        with:
+          GitTag: '8ac756d66bc145f226f39e703e3787d3aed159f2'
 
-      - name: Install Require
-        run: |
-          remotes::install_github("PredictiveEcology/Require@f2c791eb05fb0ad99b278619198ef925f85cbb9d")
-        shell: Rscript {0}
+      - uses: PredictiveEcology/actions/install-SpaDES@v0
 
-      - name: Install SpaDES packages
-        run: |
-          Require::Require(c("SpaDES", "PredictiveEcology/SpaDES.docs@development"),
-                           require = FALSE)
-        shell: Rscript {0}
-
-      - name: Install module package dependencies
-        run: |
-          pkgs <- SpaDES.core::packages(modules = "Biomass_speciesData", paths = "..")
-          # Require::Require("achubaty/amc@development", require = FALSE)
-          Require::Require(pkgs[[1]], require = FALSE, standAlone = TRUE)
-        shell: Rscript {0}
+      - uses: PredictiveEcology/actions/install-Rmd-pkgs@v0
 
       - name: Render module Rmd
         run: |
