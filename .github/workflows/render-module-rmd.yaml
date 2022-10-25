@@ -74,8 +74,8 @@ jobs:
       - name: Install module package dependencies
         run: |
           pkgs <- SpaDES.core::packages(modules = "Biomass_speciesData", paths = "..")
-          Require::Require("achubaty/amc@development", require = FALSE)
-          Require::Require(pkgs[[1]], require = FALSE)
+          # Require::Require("achubaty/amc@development", require = FALSE)
+          Require::Require(pkgs[[1]], require = FALSE, standAlone = TRUE)
         shell: Rscript {0}
 
       - name: Render module Rmd
