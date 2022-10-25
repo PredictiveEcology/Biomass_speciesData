@@ -67,14 +67,15 @@ jobs:
 
       - name: Install SpaDES packages
         run: |
-          Require::Require(c("SpaDES", "PredictiveEcology/SpaDES.docs@development"),
+          Require::Require(c("PredictiveEcology/SpaDES.project@6d7de6ee12fc967c7c60de44f1aa3b04e6eeb5db",
+                             "SpaDES", "PredictiveEcology/SpaDES.docs@development"),
                            require = FALSE)
         shell: Rscript {0}
 
       - name: Install module package dependencies
         run: |
-          pkgs <- SpaDES.core::packages(modules = "Biomass_speciesData", paths = "..")
-          Require::Require(pkgs[[1]], upgrade = TRUE, require = FALSE)
+          pkgs <- SpaDES.project::packagesInModules(modulePath = "..")
+          Require::Require(unname(unlist(pkgs)), require = FALSE, standAlone = TRUE)
         shell: Rscript {0}
 
       - name: Render module Rmd
