@@ -50,7 +50,7 @@ jobs:
 
       - uses: PredictiveEcology/actions/install-Require@v0
         with:
-          GitTag: '8ac756d66bc145f226f39e703e3787d3aed159f2'
+          GitTag: '3358e0fb153e8b2c51f872e6b6d1565a0cce0152'
 
       - uses: PredictiveEcology/actions/install-SpaDES@v0
 
