@@ -330,6 +330,14 @@ a raster of <code>studyAreaLarge</code> in the same resolution and projection th
 </tr>
 <tr>
 <td style="text-align:left;">
+rawBiomassMap
+</td>
+<td style="text-align:left;width: 40em; ">
+total biomass raster layer in study area. Only used to create <code>rasterToMatchLarge</code> if necessary. Defaults to the Canadian Forestry Service, National Forest Inventory, kNN-derived total aboveground biomass map from 2001 (in tonnes/ha), unless ‘dataYear’ != 2001. See <a href="https://open.canada.ca/data/en/dataset/ec9e2659-1c29-4ddb-87a2-6aced147a990" class="uri">https://open.canada.ca/data/en/dataset/ec9e2659-1c29-4ddb-87a2-6aced147a990</a> for metadata.
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
 sppColorVect
 </td>
 <td style="text-align:left;width: 40em; ">
@@ -766,14 +774,6 @@ Black ash
 </tr>
 <tr>
 <td style="text-align:left;">
-<em>Fraxinus spp.</em>
-</td>
-<td style="text-align:left;">
-Ash
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
 <em>Larix laricina</em>
 </td>
 <td style="text-align:left;">
@@ -802,22 +802,6 @@ Western larch
 </td>
 <td style="text-align:left;">
 Larch
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-<em>Picea engelmannii x glauca</em>
-</td>
-<td style="text-align:left;">
-Engelmann’s spruce
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-<em>Picea engelmannii x glauca</em>
-</td>
-<td style="text-align:left;">
-Engelmann’s spruce
 </td>
 </tr>
 <tr>
@@ -997,6 +981,20 @@ a raster of <code>studyAreaLarge</code> in the same resolution and projection th
 </tr>
 <tr>
 <td style="text-align:left;">
+rawBiomassMap
+</td>
+<td style="text-align:left;">
+RasterLayer
+</td>
+<td style="text-align:left;">
+total biomass raster layer in study area. Only used to create <code>rasterToMatchLarge</code> if necessary. Defaults to the Canadian Forestry Service, National Forest Inventory, kNN-derived total aboveground biomass map from 2001 (in tonnes/ha), unless ‘dataYear’ != 2001. See <a href="https://open.canada.ca/data/en/dataset/ec9e2659-1c29-4ddb-87a2-6aced147a990" class="uri">https://open.canada.ca/data/en/dataset/ec9e2659-1c29-4ddb-87a2-6aced147a990</a> for metadata.
+</td>
+<td style="text-align:left;">
+<a href="http://ftp.maps.canada.ca/pub/nrcan_rncan/Forests_Foret/canada-forests-attributes_attributs-forests-canada/2001-attributes_attributs-2001/NFI_MODIS250m_2001_kNN_Structure_Biomass_TotalLiveAboveGround_v1.tif" class="uri">http://ftp.maps.canada.ca/pub/nrcan_rncan/Forests_Foret/canada-forests-attributes_attributs-forests-canada/2001-attributes_attributs-2001/NFI_MODIS250m_2001_kNN_Structure_Biomass_TotalLiveAboveGround_v1.tif</a>
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
 sppColorVect
 </td>
 <td style="text-align:left;">
@@ -1133,34 +1131,6 @@ Abie_Las
 </td>
 <td style="text-align:left;">
 <em>Abies lasiocarpa</em>
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-<em>Picea engelmannii x glauca</em>
-</td>
-<td style="text-align:left;">
-Pice_Eng_Gla
-</td>
-<td style="text-align:left;">
-Pice_Spp
-</td>
-<td style="text-align:left;">
-<em>Picea spp.</em>
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-<em>Picea engelmannii x glauca</em>
-</td>
-<td style="text-align:left;">
-Pice_Eng_Gla
-</td>
-<td style="text-align:left;">
-Pice_Spp
-</td>
-<td style="text-align:left;">
-<em>Picea spp.</em>
 </td>
 </tr>
 <tr>
