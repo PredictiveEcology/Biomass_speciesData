@@ -84,10 +84,7 @@ defineModule(sim, list(
                               "'dataYear' != 2001. See ",
                               "https://open.canada.ca/data/en/dataset/ec9e2659-1c29-4ddb-87a2-6aced147a990",
                               "for metadata."),
-                 sourceURL = paste0("http://ftp.maps.canada.ca/pub/nrcan_rncan/Forests_Foret/",
-                                    "canada-forests-attributes_attributs-forests-canada/",
-                                    "2001-attributes_attributs-2001/",
-                                    "NFI_MODIS250m_2001_kNN_Structure_Biomass_TotalLiveAboveGround_v1.tif")),
+                 sourceURL = ""), ## sourceURL varies by `dataYear`
     expectsInput("sppColorVect", "character",
                  desc = paste("A named vector of colors to use for plotting.",
                               "The names must be in sim$sppEquiv[[sim$sppEquivCol]],",
