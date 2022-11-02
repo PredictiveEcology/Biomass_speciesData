@@ -21,7 +21,7 @@ defineModule(sim, list(
   documentation = list("README.txt", "Biomass_speciesData.Rmd"),
   reqdPkgs = list("data.table", "gdalUtilities", ## LandR needs gdalUtilities to overlay rasters
                   # "curl", "httr", ## called directly by this module, but pulled in by LandR (Sep 6th 2022).
-                                    ## Excluded because loading is not necessary (just installation)
+                  ## Excluded because loading is not necessary (just installation)
                   "PredictiveEcology/LandR@development (>= 1.0.9.9000)", "magrittr",
                   "PredictiveEcology/pemisc@development",
                   "pryr", "raster", "reproducible (>= 1.2.6.9005)", "SpaDES.core", "SpaDES.tools"),
@@ -82,6 +82,14 @@ defineModule(sim, list(
                               "Defaults to the using the Canadian Forestry Service, National Forest Inventory,",
                               "kNN-derived stand biomass map."),
                  sourceURL = ""),
+    expectsInput("rawBiomassMap", "RasterLayer",
+                 desc = paste("total biomass raster layer in study area. Only used to create `rasterToMatchLarge`",
+                              "if necessary. Defaults to the Canadian Forestry Service, National Forest Inventory,",
+                              "kNN-derived total aboveground biomass map from 2001 (in tonnes/ha), unless",
+                              "'dataYear' != 2001. See ",
+                              "https://open.canada.ca/data/en/dataset/ec9e2659-1c29-4ddb-87a2-6aced147a990",
+                              "for metadata."),
+                 sourceURL = ""), ## sourceURL varies by `dataYear`
     expectsInput("sppColorVect", "character",
                  desc = paste("A named vector of colors to use for plotting.",
                               "The names must be in sim$sppEquiv[[sim$sppEquivCol]],",
@@ -186,18 +194,18 @@ biomassDataInit <- function(sim) {
 
     fn <- get(fnName)
     httr::with_config(config = httr::config(ssl_verifypeer = P(sim)$.sslVerify), {
-    speciesLayersNew <- Cache(fn,
-                              destinationPath = dPath, # this is generic files (preProcess)
-                              outputPath = outputPath(sim), # this will be the studyArea-specific files (postProcess)
-                              studyArea = sim$studyAreaLarge,
-                              studyAreaName = P(sim)$.studyAreaName,
-                              rasterToMatch = sim$rasterToMatchLarge,
-                              sppEquiv = sim$sppEquiv,
-                              sppEquivCol = P(sim)$sppEquivCol,
-                              thresh = P(sim)$coverThresh,
-                              year = P(sim)$dataYear,
-                              userTags = c(cacheTags, fnName, "prepSpeciesLayers"),
-                              omitArgs = c("userTags"))
+      speciesLayersNew <- Cache(fn,
+                                destinationPath = dPath, # this is generic files (preProcess)
+                                outputPath = outputPath(sim), # this will be the studyArea-specific files (postProcess)
+                                studyArea = sim$studyAreaLarge,
+                                studyAreaName = P(sim)$.studyAreaName,
+                                rasterToMatch = sim$rasterToMatchLarge,
+                                sppEquiv = sim$sppEquiv,
+                                sppEquivCol = P(sim)$sppEquivCol,
+                                thresh = P(sim)$coverThresh,
+                                year = P(sim)$dataYear,
+                                userTags = c(cacheTags, fnName, "prepSpeciesLayers"),
+                                omitArgs = c("userTags"))
     })
 
     sim$speciesLayers <- if (length(sim$speciesLayers) > 0) {
@@ -288,10 +296,10 @@ biomassDataInit <- function(sim) {
     sim$studyAreaReporting <- sim$studyAreaLarge
   }
 
-  needRTM <- FALSE
+  needRTML <- FALSE
   if (is.null(sim$rasterToMatchLarge)) {
     if (!suppliedElsewhere("rasterToMatchLarge", sim)) {      ## if one is not provided, re do both (safer?)
-      needRTM <- TRUE
+      needRTML <- TRUE
       message("There is no rasterToMatchLarge supplied; will attempt to use rawBiomassMap")
     } else {
       stop("rasterToMatchLarge is going to be supplied, but ", currentModule(sim), " requires it ",
@@ -301,62 +309,56 @@ biomassDataInit <- function(sim) {
     }
   }
 
-  if (needRTM) {
+  if (needRTML) {
     ## if rawBiomassMap exists, it needs to match SALarge, if it doesn't make it
-    if (!suppliedElsewhere("rawBiomassMap", sim) ||
-        !compareRaster(sim$rawBiomassMap, sim$studyAreaLarge, stopiffalse = FALSE)) {
-      rawBiomassMapURL <- paste0("http://ftp.maps.canada.ca/pub/nrcan_rncan/Forests_Foret/",
-                                 "canada-forests-attributes_attributs-forests-canada/",
-                                 "2001-attributes_attributs-2001/",
-                                 "NFI_MODIS250m_2001_kNN_Structure_Biomass_TotalLiveAboveGround_v1.tif")
+    if (is.null(sim$rawBiomassMap)) {
+      if (P(sim)$dataYear == 2001) {
+        biomassURL <- paste0("http://ftp.maps.canada.ca/pub/nrcan_rncan/Forests_Foret/",
+                             "canada-forests-attributes_attributs-forests-canada/",
+                             "2001-attributes_attributs-2001/",
+                             "NFI_MODIS250m_2001_kNN_Structure_Biomass_TotalLiveAboveGround_v1.tif")
+      } else {
+        if (P(sim)$dataYear == 2011) {
+          biomassURL <- paste0("http://ftp.maps.canada.ca/pub/nrcan_rncan/Forests_Foret/",
+                               "canada-forests-attributes_attributs-forests-canada/2011-attributes_attributs-2011/",
+                               "NFI_MODIS250m_2011_kNN_Structure_Biomass_TotalLiveAboveGround_v1.tif")
+        } else {
+          stop("'P(sim)$dataYear' must be 2001 OR 2011")
+        }
+      }
 
       httr::with_config(config = httr::config(ssl_verifypeer = P(sim)$.sslVerify), {
-      #necessary for KNN
-      rawBiomassMapFilename <- basename(rawBiomassMapURL)
-      rawBiomassMap <- Cache(prepInputs,
-                             targetFile = rawBiomassMapFilename,
-                             url = rawBiomassMapURL,
-                             destinationPath = dPath,
-                             studyArea = sim$studyAreaLarge,
-                             rasterToMatch = NULL,
-                             maskWithRTM = FALSE,
-                             useSAcrs = FALSE,     ## never use SA CRS
-                             method = "bilinear",
-                             datatype = "INT2U",
-                             filename2 = NULL,
-                             userTags = c(cacheTags, "rawBiomassMap"),
-                             omitArgs = c("destinationPath", "targetFile", "userTags", "stable"))
+        rawBiomassMap <- prepRawBiomassMap(url = biomassURL,
+                                           studyAreaName = P(sim)$.studyAreaName,
+                                           cacheTags = cacheTags,
+                                           maskWithRTM = FALSE,
+                                           studyArea = sim$studyAreaLarge,
+                                           destinationPath = dPath)
       })
     } else {
-      rawBiomassMap <- Cache(postProcess,
-                             x = sim$rawBiomassMap,
-                             studyArea = sim$studyAreaLarge,
-                             useSAcrs = FALSE,
-                             maskWithRTM = FALSE,   ## mask with SA
-                             method = "bilinear",
-                             datatype = "INT2U",
-                             filename2 = NULL,
-                             overwrite = TRUE,
-                             userTags = cacheTags,
-                             omitArgs = c("destinationPath", "targetFile", "userTags", "stable"))
+      rawBiomassMap <- sim$rawBiomassMap
+      if (!compareRaster(sim$rawBiomassMap, sim$studyAreaLarge, stopiffalse = FALSE)) {
+        ## note that extents may never align if the resolution and projection do not allow for it
+        rawBiomassMap <- Cache(postProcess,
+                               rawBiomassMap,
+                               method = "bilinear",
+                               studyArea = sim$studyAreaLarge,
+                               overwrite = TRUE)
+      }
     }
-
-    ## if we need rasterToMatchLarge, that means a) we don't have it, but b) we will have rawBiomassMap
-    if (is.null(sim$rasterToMatchLarge))
-      warning(paste0("rasterToMatchLarge is missing and will be created \n",
-                     "from rawBiomassMap and studyAreaLarge.\n",
-                     "If this is wrong, provide raster"))
-
-    sim$rasterToMatchLarge <- rawBiomassMap
-    RTMvals <- sim$rasterToMatchLarge[]
-    sim$rasterToMatchLarge[!is.na(RTMvals)] <- 1
-    sim$rasterToMatchLarge <- Cache(writeOutputs, sim$rasterToMatchLarge,
-                                    filename2 = .suffix(file.path(dPath, "rasterToMatchLarge.tif"),
-                                                        paste0("_", P(sim)$.studyAreaName)),
-                                    datatype = "INT2U", overwrite = TRUE,
-                                    userTags = c(cacheTags, "rasterToMatchLarge"),
-                                    omitArgs = c("userTags"))
   }
+
+  RTMs <- prepRasterToMatch(studyArea = sim$studyAreaLarge,
+                            studyAreaLarge = sim$studyAreaLarge,
+                            rasterToMatch = NULL,
+                            rasterToMatchLarge = if (needRTML) NULL else sim$rasterToMatchLarge,
+                            destinationPath = dPath,
+                            templateRas = rawBiomassMap,
+                            studyAreaName = P(sim)$.studyAreaName,
+                            cacheTags = cacheTags)
+  sim$rasterToMatchLarge <- RTMs$rasterToMatchLarge
+  rm(RTMs)
+
 
   if (!compareCRS(sim$studyAreaLarge, sim$rasterToMatchLarge)) {
     warning(paste0("studyAreaLarge and rasterToMatchLarge projections differ.\n",
