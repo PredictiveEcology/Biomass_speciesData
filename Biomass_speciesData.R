@@ -13,7 +13,7 @@ defineModule(sim, list(
     person(c("Alex", "M."), "Chubaty", email = "achubaty@for-cast.ca", role = c("aut"))
   ),
   childModules = character(0),
-  version = list(Biomass_speciesData = "1.0.1"),
+  version = list(Biomass_speciesData = "1.0.2"),
   spatialExtent = raster::extent(rep(NA_real_, 4)),
   timeframe = as.POSIXlt(c(NA, NA)),
   timeunit = "year",
@@ -194,18 +194,18 @@ biomassDataInit <- function(sim) {
 
     fn <- get(fnName)
     httr::with_config(config = httr::config(ssl_verifypeer = P(sim)$.sslVerify), {
-      speciesLayersNew <- Cache(fn,
-                                destinationPath = dPath, # this is generic files (preProcess)
-                                outputPath = outputPath(sim), # this will be the studyArea-specific files (postProcess)
-                                studyArea = sim$studyAreaLarge,
-                                studyAreaName = P(sim)$.studyAreaName,
-                                rasterToMatch = sim$rasterToMatchLarge,
-                                sppEquiv = sim$sppEquiv,
-                                sppEquivCol = P(sim)$sppEquivCol,
-                                thresh = P(sim)$coverThresh,
-                                year = P(sim)$dataYear,
-                                userTags = c(cacheTags, fnName, "prepSpeciesLayers"),
-                                omitArgs = c("userTags"))
+    speciesLayersNew <- Cache(fn,
+                              destinationPath = dPath, # this is generic files (preProcess)
+                              outputPath = outputPath(sim), # this will be the studyArea-specific files (postProcess)
+                              studyArea = sim$studyAreaLarge,
+                              studyAreaName = P(sim)$.studyAreaName,
+                              rasterToMatch = sim$rasterToMatchLarge,
+                              sppEquiv = sim$sppEquiv,
+                              sppEquivCol = P(sim)$sppEquivCol,
+                              thresh = P(sim)$coverThresh,
+                              year = P(sim)$dataYear,
+                              userTags = c(cacheTags, fnName, "prepSpeciesLayers"),
+                              omitArgs = c("userTags"))
     })
 
     sim$speciesLayers <- if (length(sim$speciesLayers) > 0) {
