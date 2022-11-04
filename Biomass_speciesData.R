@@ -8,9 +8,9 @@ defineModule(sim, list(
                       "lower quality data with higher quality data."),
   keywords = c("LandWeb", "LandR", "LandR Biomass", "species percent cover"),
   authors = c(
-    person(c("Eliot", "J", "B"), "McIntire", email = "eliot.mcintire@nrcan-rncan.gc.ca", role = c("aut", "cre")),
-    person(c("Alex", "M."), "Chubaty", email = "achubaty@for-cast.ca", role = c("aut")),
-    person("Ceres", "Barros", email = "cbarros@mail.ubc.ca", role = c("aut"))
+    person("Ceres", "Barros", email = "ceres.barros@ubc.ca", role = c("aut", "cre")),
+    person(c("Eliot", "J", "B"), "McIntire", email = "eliot.mcintire@nrcan-rncan.gc.ca", role = c("aut")),
+    person(c("Alex", "M."), "Chubaty", email = "achubaty@for-cast.ca", role = c("aut"))
   ),
   childModules = character(0),
   version = list(Biomass_speciesData = "1.0.1"),
