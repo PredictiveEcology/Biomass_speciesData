@@ -510,7 +510,7 @@ options(opts)
 Here are some of outputs of *Biomass_speciesData* (dominant species) in a
 randomly generated study area within Canada.
 
-```{r fig-Biomass-speciesDataOutPlots, eval=TRUE, echo=FALSE, fig.align = 'center', out.width = ifelse(is_latex_output(), "100%", "70%"), fig.cap = "(ref:Biomass-speciesData) automatically generates a plot of species dominance and number of presences in the study area when `.plotInitialTime=1` is passed as an argument."}
+```{r fig-Biomass-speciesDataOutPlots, eval=TRUE, echo=FALSE, fig.align = 'center', out.width = ifelse(knitr::is_latex_output(), "100%", "70%"), fig.cap = "(ref:Biomass-speciesData) automatically generates a plot of species dominance and number of presences in the study area when `.plotInitialTime=1` is passed as an argument."}
 ## make sure all include_graphics have wd attached to figure path
 ## this is necessary to knit to pdf using child Rmds - see https://stackoverflow.com/questions/61065560/cant-compile-rmarkdown-pdf-with-image-in-child-rmd-latex-error-image-file
 knitr::include_graphics(normPath(c("figures/testRunFigure.png")))
