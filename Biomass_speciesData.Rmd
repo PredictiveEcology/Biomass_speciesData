@@ -417,8 +417,10 @@ dir.create(pkgPath, recursive = TRUE)
 .libPaths(pkgPath, include.site = FALSE)
 
 if (!require(Require, lib.loc = pkgPath)) {
-  remotes::install_github("PredictiveEcology/Require@5c44205bf407f613f53546be652a438ef1248147",
-                          upgrade = FALSE, force = TRUE)
+  remotes::install_github(
+    paste0("PredictiveEcology/",
+           "Require@5c44205bf407f613f53546be652a438ef1248147"),
+    upgrade = FALSE, force = TRUE)
   library(Require, lib.loc = pkgPath)
 }
 
@@ -428,7 +430,8 @@ setLinuxBinaryRepo()
 ### Get the module and module dependencies {#bsppdata-example-pkg-mods}
 
 ```{r module usage example setup-Biomass-speciesData, eval = FALSE}
-Require("PredictiveEcology/SpaDES.project@6d7de6ee12fc967c7c60de44f1aa3b04e6eeb5db", 
+Require(paste0("PredictiveEcology/",
+               "SpaDES.project@6d7de6ee12fc967c7c60de44f1aa3b04e6eeb5db"), 
         require = FALSE, upgrade = FALSE, standAlone = TRUE)
 
 paths <- list(inputPath = normPath(file.path(tempDir, "inputs")), 
@@ -507,7 +510,7 @@ options(opts)
 Here are some of outputs of *Biomass_speciesData* (dominant species) in a
 randomly generated study area within Canada.
 
-```{r fig-Biomass-speciesDataOutPlots, eval=TRUE, echo=FALSE, fig.align = 'center', out.width = "70%", fig.cap = "(ref:Biomass-speciesData) automatically generates a plot of species dominance and number of presences in the study area when `.plotInitialTime=1` is passed as an argument."}
+```{r fig-Biomass-speciesDataOutPlots, eval=TRUE, echo=FALSE, fig.align = 'center', out.width = ifelse(is_latex_output(), "100%", "70%"), fig.cap = "(ref:Biomass-speciesData) automatically generates a plot of species dominance and number of presences in the study area when `.plotInitialTime=1` is passed as an argument."}
 ## make sure all include_graphics have wd attached to figure path
 ## this is necessary to knit to pdf using child Rmds - see https://stackoverflow.com/questions/61065560/cant-compile-rmarkdown-pdf-with-image-in-child-rmd-latex-error-image-file
 knitr::include_graphics(normPath(c("figures/testRunFigure.png")))
