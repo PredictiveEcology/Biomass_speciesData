@@ -425,7 +425,7 @@ if (!require(Require, lib.loc = pkgPath)) {
 setLinuxBinaryRepo()
 ```
 
-### Get the module and module dependencies {#bsppdataexample-pkg-mods}
+### Get the module and module dependencies {#bsppdata-example-pkg-mods}
 
 ```{r module usage example setup-Biomass-speciesData, eval = FALSE}
 Require("PredictiveEcology/SpaDES.project@6d7de6ee12fc967c7c60de44f1aa3b04e6eeb5db", 
