@@ -253,14 +253,7 @@ caption <- paste("Example of species merging for simulation.",
                  "in the simulation in this example) all (ref:Pice-sp) have the same name.",
                  "(ref:Biomass-speciesData) will merge their (ref:percent) cover data into",
                  "a single layer by summing their cover per pixel.")
-# knitr::kable(sppEquiv2, caption = caption) %>%
-#   kableExtra::kable_styling(latex_options = c("repeat_header"), full_width = TRUE) %>%
-#   kableExtra::column_spec(column = which(names(sppEquiv2) %in% c("Species", "Modelled as")),
-#                           italic = TRUE)
-
 justCols <- sapply(sppEquiv2, function(x) ifelse(is.numeric(x), "right", "left"))
-# pander(sppEquiv2, caption = addLabel(caption), justify = justCols,
-#        emphasize.italics.cols = which(names(sppEquiv2) %in% c("Species", "Modelled as")))
 panble(sppEquiv2, caption, 
        panderArgs = list("justify" = justCols, 
                          "emphasize.italics.cols" = which(names(sppEquiv2) %in% c("Species", "Modelled as"))),
@@ -275,11 +268,6 @@ panble(sppEquiv2, caption,
 df_inputs <- moduleInputs("Biomass_speciesData", "..")
 caption <- "List of (ref:Biomass-speciesData) input objects and their description."
 
-# knitr::kable(df_inputs, caption = caption) %>%
-#   kableExtra::kable_styling(latex_options = c("repeat_header"))
-
-## setting the options is necessary to escape special characters (must have chunk opt results = 'asis')
-# opts <- panderOptions("knitr.auto.asis", FALSE)  
 ## pander's hyphenation doesn't work with URLs and big/strange words (like obj names). split manually
 if (knitr::is_latex_output()) {
   df_inputs$objectName <- wrapStrFun(df_inputs$objectName, size = 10)
@@ -288,9 +276,6 @@ if (knitr::is_latex_output()) {
   df_inputs$sourceURL <- wrapStrFun(df_inputs$sourceURL, size = 10)
 }
 
-# pander::pander(df_inputs, caption = addLabel(caption), justify = "left",
-#                split.tables = Inf, keep.line.breaks = TRUE)
-# options(opts)
 panble(df_inputs, caption, landscape = TRUE,
        panderArgs = list("justify" = "left", 
                          "split.tables" = Inf, "keep.line.breaks" = TRUE))
@@ -332,13 +317,6 @@ ForestInventory layers.
 df_params <- moduleParams("Biomass_speciesData", "..")
 caption <- "List of (ref:Biomass-speciesData) parameters and their description."
 
-# knitr::kable(df_params, caption = caption) %>%
-#   kableExtra::kable_styling(latex_options = c("repeat_header"))
-
-# opts <- panderOptions("knitr.auto.asis", FALSE)    
-# pander(df_params, caption = addLabel(caption), justify = "left", 
-#        digits = 3, split.cells = c(15,15, 5, 5, 5, 40), split.tables = Inf)
-# options(opts)
 panble(df_params, caption, landscape = TRUE,
        panderArgs = list("justify" = "left", "digits" = 3, "split.cells" = c(15,15, 5, 5, 5, 40), "split.tables" = Inf))
 ```
@@ -356,12 +334,6 @@ processed species cover layers in the output path defined in
 df_outputs <- moduleOutputs("Biomass_speciesData", "..")
 caption <- "List of (ref:Biomass-speciesData) output objects and their description."
 
-# knitr::kable(df_outputs,caption = caption) %>%
-#   kableExtra::kable_styling(latex_options = c("repeat_header"))
-
-## options and results='asis' not necessary when not using landscape
-# pander(df_outputs, caption = addLabel(caption), justify = "left", 
-#        digits = 3, split.cells = c(15, 15, 40), split.tables = Inf)
 panble(df_outputs, caption, 
        panderArgs = list("justify" = "left", "digits" = 3, "split.cells" = c(15, 15, 40), "split.tables" = Inf))
 ```
@@ -383,13 +355,8 @@ more information):
 sppEquiv2 <- sppEquiv[, .("Species" = Latin_full, "Generic name" = EN_generic_full)]
 
 caption <- "List of species cover data downloaded by default by (ref:Biomass-speciesData)."
-# knitr::kable(sppEquiv2, caption = caption) %>%
-#   kableExtra::kable_styling(latex_options = c("repeat_header")) %>%
-#   kableExtra::column_spec(column = 1, italic = TRUE)
 
 justCols <- sapply(sppEquiv2, function(x) ifelse(is.numeric(x), "right", "left"))
-# pander(sppEquiv2, caption = addLabel(caption), justify = justCols,
-#        emphasize.italics.cols = 1)
 panble(sppEquiv2, caption, 
        panderArgs = list("justify" = justCols, "emphasize.italics.cols" = 1),
        column_specArgs = list("column" = 1, "italic" = TRUE))
