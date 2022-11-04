@@ -409,8 +409,7 @@ cover data into layers used by other modules.
 
 ```{r load-Rlibs-Biomass-speciesData, eval=FALSE}
 options(repos = c(CRAN = "https://cloud.r-project.org"))
-# tempDir <- tempdir()
-tempDir <- "C:/Users/cbarros/AppData/Local/Temp/Biomass_sppData-example"
+tempDir <- tempdir()
 
 pkgPath <- file.path(tempDir, "packages", version$platform,
                      paste0(version$major, ".", strsplit(version$minor, "[.]")[[1]][1]))
