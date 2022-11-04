@@ -258,7 +258,8 @@ panble(sppEquiv2, caption,
        panderArgs = list("justify" = justCols, 
                          "emphasize.italics.cols" = which(names(sppEquiv2) %in% c("Species", "Modelled as"))),
        column_specArgs = list("column" = which(names(sppEquiv2) %in% c("Species", "Modelled as")),
-                              "italic" = TRUE))
+                              "italic" = TRUE),
+       kable_stylingArgs = list(full_width = TRUE))
 ```
 
 \newpage
@@ -278,7 +279,8 @@ if (knitr::is_latex_output()) {
 
 panble(df_inputs, caption, landscape = TRUE,
        panderArgs = list("justify" = "left", 
-                         "split.tables" = Inf, "keep.line.breaks" = TRUE))
+                         "split.tables" = Inf, "keep.line.breaks" = TRUE),
+       kable_stylingArgs = list(full_width = TRUE))
 ```
 
 \elandscape
@@ -318,7 +320,8 @@ df_params <- moduleParams("Biomass_speciesData", "..")
 caption <- "List of (ref:Biomass-speciesData) parameters and their description."
 
 panble(df_params, caption, landscape = TRUE,
-       panderArgs = list("justify" = "left", "digits" = 3, "split.cells" = c(15,15, 5, 5, 5, 40), "split.tables" = Inf))
+       panderArgs = list("justify" = "left", "digits" = 3, "split.cells" = c(15,15, 5, 5, 5, 40), "split.tables" = Inf),
+       kable_stylingArgs = list(full_width = TRUE))
 ```
 
 \elandscape
@@ -335,7 +338,8 @@ df_outputs <- moduleOutputs("Biomass_speciesData", "..")
 caption <- "List of (ref:Biomass-speciesData) output objects and their description."
 
 panble(df_outputs, caption, 
-       panderArgs = list("justify" = "left", "digits" = 3, "split.cells" = c(15, 15, 40), "split.tables" = Inf))
+       panderArgs = list("justify" = "left", "digits" = 3, "split.cells" = c(15, 15, 40), "split.tables" = Inf),
+       kable_stylingArgs = list(full_width = TRUE))
 ```
 
 ### Simulation flow and module events {#bsppdata-sim-flow}
@@ -359,7 +363,8 @@ caption <- "List of species cover data downloaded by default by (ref:Biomass-spe
 justCols <- sapply(sppEquiv2, function(x) ifelse(is.numeric(x), "right", "left"))
 panble(sppEquiv2, caption, 
        panderArgs = list("justify" = justCols, "emphasize.italics.cols" = 1),
-       column_specArgs = list("column" = 1, "italic" = TRUE))
+       column_specArgs = list("column" = 1, "italic" = TRUE),
+       kable_stylingArgs = list(full_width = TRUE))
 ```
 
 *Biomass_speciesData* only runs two events, the `init` event where all species
