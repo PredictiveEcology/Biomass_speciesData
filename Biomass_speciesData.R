@@ -31,7 +31,7 @@ defineModule(sim, list(
                     desc = paste("The minimum % cover a species needs to have (per pixel) in the study",
                           "area to be considered present")),
     defineParameter("dataYear", "numeric", 2001, NA, NA,
-                    vpaste("Passed to `paste0('prepSpeciesLayers_', types)` function to fetch data",
+                    paste("Passed to `paste0('prepSpeciesLayers_', types)` function to fetch data",
                           "from that year (if applicable). Defaults to 2001 as the default kNN year.")),
     defineParameter("sppEquivCol", "character", "Boreal", NA, NA,
                     desc = paste("The column in `sim$sppEquiv` data.table to group species by and use as a",
