@@ -23,7 +23,7 @@ defineModule(sim, list(
                   "magrittr", "pryr", "raster", "reproducible (>= 1.2.6.9005)", "SpaDES.core", "SpaDES.tools",
                   # "curl", "httr", ## called directly by this module, but pulled in by LandR (Sep 6th 2022).
                   ## Excluded because loading is not necessary (just installation)
-                  "PredictiveEcology/LandR@development (>= 1.0.9.9000)",
+                  "PredictiveEcology/LandR@development (>= 1.1.0.9007)",
                   "PredictiveEcology/pemisc@development"),
   parameters = bindrows(
     #defineParameter("paramName", "paramClass", value, min, max, "parameter description"),
@@ -191,7 +191,6 @@ biomassDataInit <- function(sim) {
       stop(fnName, " does not exist. Please make it accessible in a package, as an object, ",
            " or in the .GlobalEnv")
     }
-
     fn <- get(fnName)
     httr::with_config(config = httr::config(ssl_verifypeer = P(sim)$.sslVerify), {
     speciesLayersNew <- Cache(fn,
