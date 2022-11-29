@@ -239,6 +239,11 @@ biomassDataInit <- function(sim) {
   sim$speciesLayers <- raster::cover(sim$speciesLayers, tempRas)
   rm(tempRas)
 
+  ## speciesLayers brick/stack may have filename but layers do not...
+  if (nzchar(filename(sim$speciesLayers)) && !all(nzchar(origFilenames))) {
+    sim$speciesLayers[] <- sim$speciesLayers[] ## bring to memory
+  }
+
   sim$speciesLayers <- if (inMemory(sim$speciesLayers)) {
     sim$speciesLayers
   } else {
