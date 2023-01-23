@@ -24,7 +24,7 @@ defineModule(sim, list(
                   ## Excluded because loading is not necessary (just installation)
                   "PredictiveEcology/LandR@development (>= 1.0.9.9000)", "magrittr",
                   "PredictiveEcology/pemisc@development",
-                  "pryr", "raster", "reproducible (>= 1.2.6.9005)", "SpaDES.core", "SpaDES.tools"),
+                  "pryr", "raster", "RCurl", "reproducible (>= 1.2.6.9005)", "SpaDES.core", "SpaDES.tools", "XML"),
   parameters = bindrows(
     #defineParameter("paramName", "paramClass", value, min, max, "parameter description"),
     defineParameter("coverThresh", "integer", 10L, NA, NA,
