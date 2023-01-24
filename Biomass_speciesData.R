@@ -22,7 +22,7 @@ defineModule(sim, list(
   reqdPkgs = list("data.table", "gdalUtilities", ## LandR needs gdalUtilities to overlay rasters
                   # "curl", "httr", ## called directly by this module, but pulled in by LandR (Sep 6th 2022).
                   ## Excluded because loading is not necessary (just installation)
-                  "PredictiveEcology/LandR@development (>= 1.1.0.9017)", "magrittr",
+                  "PredictiveEcology/LandR@development (>= 1.1.0.9018)", "magrittr",
                   "PredictiveEcology/pemisc@development",
                   "pryr", "raster", "RCurl", "reproducible (>= 1.2.6.9005)", "SpaDES.core", "SpaDES.tools", "XML"),
   parameters = bindrows(
