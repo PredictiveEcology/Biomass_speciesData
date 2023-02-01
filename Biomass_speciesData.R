@@ -204,7 +204,7 @@ biomassDataInit <- function(sim) {
                                 sppEquivCol = P(sim)$sppEquivCol,
                                 thresh = P(sim)$coverThresh,
                                 year = P(sim)$dataYear,
-                                userTags = c(cacheTags, fnName, "prepSpeciesLayers"),
+                                userTags = c(cacheTags, fnName, "prepSpeciesLayers", P(sim)$.studyAreaName),
                                 omitArgs = c("userTags"))
     })
 
@@ -213,7 +213,7 @@ biomassDataInit <- function(sim) {
             highQualityStack = speciesLayersNew,
             lowQualityStack = sim$speciesLayers,
             destinationPath = outputPath(sim),
-            userTags = c(cacheTags, "overlayStacks"),
+            userTags = c(cacheTags, "overlayStacks", P(sim)$.studyAreaName),
             omitArgs = c("userTags"))
     } else {
       speciesLayersNew
