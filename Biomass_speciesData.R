@@ -82,14 +82,14 @@ defineModule(sim, list(
                               "Defaults to the using the Canadian Forestry Service, National Forest Inventory,",
                               "kNN-derived stand biomass map."),
                  sourceURL = ""),
-    expectsInput("rawBiomassMap", "RasterLayer",
-                 desc = paste("total biomass raster layer in study area. Only used to create `rasterToMatchLarge`",
-                              "if necessary. Defaults to the Canadian Forestry Service, National Forest Inventory,",
-                              "kNN-derived total aboveground biomass map from 2001 (in tonnes/ha), unless",
-                              "'dataYear' != 2001. See ",
-                              "https://open.canada.ca/data/en/dataset/ec9e2659-1c29-4ddb-87a2-6aced147a990",
-                              "for metadata."),
-                 sourceURL = ""), ## sourceURL varies by `dataYear`
+    # expectsInput("rawBiomassMap", "RasterLayer",
+    #              desc = paste("total biomass raster layer in study area. Only used to create `rasterToMatchLarge`",
+    #                           "if necessary. Defaults to the Canadian Forestry Service, National Forest Inventory,",
+    #                           "kNN-derived total aboveground biomass map from 2001 (in tonnes/ha), unless",
+    #                           "'dataYear' != 2001. See ",
+    #                           "https://open.canada.ca/data/en/dataset/ec9e2659-1c29-4ddb-87a2-6aced147a990",
+    #                           "for metadata."),
+    #              sourceURL = ""), ## sourceURL varies by `dataYear`
     expectsInput("sppColorVect", "character",
                  desc = paste("A named vector of colors to use for plotting.",
                               "The names must be in sim$sppEquiv[[sim$sppEquivCol]],",
@@ -305,7 +305,7 @@ biomassDataInit <- function(sim) {
   if (is.null(sim$rasterToMatchLarge)) {
     if (!suppliedElsewhere("rasterToMatchLarge", sim)) {      ## if one is not provided, re do both (safer?)
       needRTML <- TRUE
-      message("There is no rasterToMatchLarge supplied; will attempt to use rawBiomassMap")
+      message("There is no rasterToMatchLarge supplied; will attempt to use rawBiomassMap, if it is there; otherwise will try KNN")
     } else {
       stop("rasterToMatchLarge is going to be supplied, but ", currentModule(sim), " requires it ",
            "as part of its .inputObjects. Please make it accessible to ", currentModule(sim),
