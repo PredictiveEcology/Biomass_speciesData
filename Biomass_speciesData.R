@@ -22,9 +22,9 @@ defineModule(sim, list(
   reqdPkgs = list("data.table", "gdalUtilities", ## LandR needs gdalUtilities to overlay rasters
                   # "curl", "httr", ## called directly by this module, but pulled in by LandR (Sep 6th 2022).
                   ## Excluded because loading is not necessary (just installation)
-                  "PredictiveEcology/LandR@development (>= 1.0.9.9000)", "magrittr",
+                  "PredictiveEcology/LandR@development (>= 1.1.0.9018)", "magrittr",
                   "PredictiveEcology/pemisc@development",
-                  "pryr", "raster", "reproducible (>= 1.2.6.9005)", "SpaDES.core", "SpaDES.tools"),
+                  "pryr", "raster", "RCurl", "reproducible (>= 1.2.6.9005)", "SpaDES.core", "SpaDES.tools", "XML"),
   parameters = bindrows(
     #defineParameter("paramName", "paramClass", value, min, max, "parameter description"),
     defineParameter("coverThresh", "integer", 10L, NA, NA,
@@ -204,7 +204,7 @@ biomassDataInit <- function(sim) {
                                 sppEquivCol = P(sim)$sppEquivCol,
                                 thresh = P(sim)$coverThresh,
                                 year = P(sim)$dataYear,
-                                userTags = c(cacheTags, fnName, "prepSpeciesLayers"),
+                                userTags = c(cacheTags, fnName, "prepSpeciesLayers", P(sim)$.studyAreaName),
                                 omitArgs = c("userTags"))
     })
 
@@ -213,7 +213,7 @@ biomassDataInit <- function(sim) {
             highQualityStack = speciesLayersNew,
             lowQualityStack = sim$speciesLayers,
             destinationPath = outputPath(sim),
-            userTags = c(cacheTags, "overlayStacks"),
+            userTags = c(cacheTags, "overlayStacks", P(sim)$.studyAreaName),
             omitArgs = c("userTags"))
     } else {
       speciesLayersNew
