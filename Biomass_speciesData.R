@@ -20,7 +20,8 @@ defineModule(sim, list(
   citation = list("citation.bib"),
   documentation = list("README.txt", "Biomass_speciesData.Rmd"),
   reqdPkgs = list("data.table", "gdalUtilities", ## LandR needs gdalUtilities to overlay rasters
-                  "magrittr", "pryr", "raster", "reproducible (>= 1.2.6.9005)", "SpaDES.core", "SpaDES.tools",
+                  "magrittr", "pryr", "raster", "RCurl", "reproducible (>= 1.2.6.9005)", 
+                  "SpaDES.core", "SpaDES.tools", "XML",
                   # "curl", "httr", ## called directly by this module, but pulled in by LandR (Sep 6th 2022).
                   ## Excluded because loading is not necessary (just installation)
                   "PredictiveEcology/LandR@development (>= 1.1.0.9007)",
@@ -193,18 +194,18 @@ biomassDataInit <- function(sim) {
     }
     fn <- get(fnName)
     httr::with_config(config = httr::config(ssl_verifypeer = P(sim)$.sslVerify), {
-    speciesLayersNew <- Cache(fn,
-                              destinationPath = dPath, # this is generic files (preProcess)
-                              outputPath = outputPath(sim), # this will be the studyArea-specific files (postProcess)
-                              studyArea = sim$studyAreaLarge,
-                              studyAreaName = P(sim)$.studyAreaName,
-                              rasterToMatch = sim$rasterToMatchLarge,
-                              sppEquiv = sim$sppEquiv,
-                              sppEquivCol = P(sim)$sppEquivCol,
-                              thresh = P(sim)$coverThresh,
-                              year = P(sim)$dataYear,
-                              userTags = c(cacheTags, fnName, "prepSpeciesLayers"),
-                              omitArgs = c("userTags"))
+      speciesLayersNew <- Cache(fn,
+                                destinationPath = dPath, # this is generic files (preProcess)
+                                outputPath = outputPath(sim), # this will be the studyArea-specific files (postProcess)
+                                studyArea = sim$studyAreaLarge,
+                                studyAreaName = P(sim)$.studyAreaName,
+                                rasterToMatch = sim$rasterToMatchLarge,
+                                sppEquiv = sim$sppEquiv,
+                                sppEquivCol = P(sim)$sppEquivCol,
+                                thresh = P(sim)$coverThresh,
+                                year = P(sim)$dataYear,
+                                userTags = c(cacheTags, fnName, "prepSpeciesLayers", P(sim)$.studyAreaName),
+                                omitArgs = c("userTags"))
     })
 
     sim$speciesLayers <- if (length(sim$speciesLayers) > 0) {
@@ -212,7 +213,7 @@ biomassDataInit <- function(sim) {
             highQualityStack = speciesLayersNew,
             lowQualityStack = sim$speciesLayers,
             destinationPath = outputPath(sim),
-            userTags = c(cacheTags, "overlayStacks"),
+            userTags = c(cacheTags, "overlayStacks", P(sim)$.studyAreaName),
             omitArgs = c("userTags"))
     } else {
       speciesLayersNew
