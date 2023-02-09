@@ -24,7 +24,7 @@ defineModule(sim, list(
                   "SpaDES.core", "SpaDES.tools", "XML",
                   # "curl", "httr", ## called directly by this module, but pulled in by LandR (Sep 6th 2022).
                   ## Excluded because loading is not necessary (just installation)
-                  "PredictiveEcology/LandR@development (>= 1.1.0.9007)",
+                  "PredictiveEcology/LandR@terra-migration (>= 1.1.0.9023)",
                   "PredictiveEcology/pemisc@development"),
   parameters = bindrows(
     #defineParameter("paramName", "paramClass", value, min, max, "parameter description"),
