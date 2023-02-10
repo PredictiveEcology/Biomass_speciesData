@@ -153,8 +153,8 @@ doEvent.Biomass_speciesData <- function(sim, eventTime, eventType) {
           1
         }
         dev.set(newDev)
-        plotVTM(speciesStack = raster::mask(sim$speciesLayers, sim$studyAreaReporting) %>%
-                  raster::stack(),
+
+        plotVTM(speciesStack = mask(sim$speciesLayers, sim$studyAreaReporting),
                 vegLeadingProportion = P(sim)$vegLeadingProportion,
                 sppEquiv = sim$sppEquiv,
                 sppEquivCol = P(sim)$sppEquivCol,
