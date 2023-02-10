@@ -21,11 +21,12 @@ defineModule(sim, list(
   documentation = list("README.txt", "Biomass_speciesData.Rmd"),
   reqdPkgs = list("data.table", "gdalUtilities", ## LandR needs gdalUtilities to overlay rasters
                   "sf", "magrittr", "pryr", "RCurl", "reproducible (>= 1.2.6.9005)", "terra",
-                  "SpaDES.core", "SpaDES.tools", "XML",
+                  "SpaDES.core", "XML",
                   # "curl", "httr", ## called directly by this module, but pulled in by LandR (Sep 6th 2022).
                   ## Excluded because loading is not necessary (just installation)
-                  "PredictiveEcology/LandR@terra-migration (>= 1.1.0.9023)",
-                  "PredictiveEcology/pemisc@development"),
+                  "PredictiveEcology/LandR@terra-migration (>= 1.1.0.9025)",
+                  "PredictiveEcology/pemisc@development",
+                  "CeresBarros/SpaDES.tools@terra-migration (>= 1.0.2)"),
   parameters = bindrows(
     #defineParameter("paramName", "paramClass", value, min, max, "parameter description"),
     defineParameter("coverThresh", "integer", 10L, NA, NA,
