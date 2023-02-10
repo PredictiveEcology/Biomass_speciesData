@@ -239,6 +239,25 @@ biomassDataInit <- function(sim) {
   sim$speciesLayers <- raster::cover(sim$speciesLayers, tempRas)
   rm(tempRas)
 
+  ## filter out species with no data, or too little cover (some prepSpeciesLayers_*/overlay are not doing this)
+  layersWdata <- sapply(sim$speciesLayers, function(xx) if (maxFn(xx) < P(sim)$coverThresh) FALSE else TRUE)
+  if (sum(!layersWdata) > 0) {
+    sppKeep <- names(sim$speciesLayers)[layersWdata]
+    if (length(sppKeep)) {
+      message("removing ", sum(!layersWdata), " species because they had <", P(sim)$coverThreshresh,
+              " % cover in the study area\n",
+              "  These species are retained (and could be further culled manually, if desired):\n",
+              paste(sppKeep, collapse = " "))
+    } else {
+      message("no pixels for ", paste(names(layersWdata), collapse = " "),
+              " were found with >=", thresh, " % cover in the study area.",
+              "\n  No species layers were retained. Try lowering the threshold",
+              " to retain species with low % cover")
+    }
+  }
+  sim$speciesLayers <- sim$speciesLayers[[sppKeep]]
+  species <- sppKeep
+
   ## speciesLayers brick/stack may have filename but layers do not...
   if (nzchar(filename(sim$speciesLayers)) && !all(nzchar(origFilenames))) {
     sim$speciesLayers[] <- sim$speciesLayers[] ## bring to memory
