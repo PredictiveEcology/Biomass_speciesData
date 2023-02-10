@@ -353,19 +353,21 @@ biomassDataInit <- function(sim) {
     }
   }
 
-  RTMs <- prepRasterToMatch(studyArea = sim$studyAreaLarge,
-                            studyAreaLarge = sim$studyAreaLarge,
-                            rasterToMatch = NULL,
-                            rasterToMatchLarge = if (needRTML) NULL else sim$rasterToMatchLarge,
-                            destinationPath = dPath,
-                            templateRas = rawBiomassMap,
-                            studyAreaName = P(sim)$.studyAreaName,
-                            cacheTags = cacheTags)
-  sim$rasterToMatchLarge <- RTMs$rasterToMatchLarge
-  rm(RTMs)
+  if (is.null(sim$rasterToMatchLarge)) {
+    RTMs <- prepRasterToMatch(studyArea = sim$studyAreaLarge,
+                              studyAreaLarge = sim$studyAreaLarge,
+                              rasterToMatch = NULL,
+                              rasterToMatchLarge = if (needRTML) NULL else sim$rasterToMatchLarge,
+                              destinationPath = dPath,
+                              templateRas = rawBiomassMap,
+                              studyAreaName = P(sim)$.studyAreaName,
+                              cacheTags = cacheTags)
+    sim$rasterToMatchLarge <- RTMs$rasterToMatchLarge
+    rm(RTMs)
+  }
 
 
-  if (!compareCRS(sim$studyAreaLarge, sim$rasterToMatchLarge)) {
+  if (!.compareCRS(sim$studyAreaLarge, sim$rasterToMatchLarge)) {
     warning(paste0("studyAreaLarge and rasterToMatchLarge projections differ.\n",
                    "studyAreaLarge will be projected to match rasterToMatchLarge"))
     sim$studyAreaLarge <- spTransform(sim$studyAreaLarge, raster::crs(sim$rasterToMatchLarge))
