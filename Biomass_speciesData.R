@@ -381,8 +381,7 @@ biomassDataInit <- function(sim) {
   if (st_crs(sim$studyAreaLarge) != st_crs(sim$rasterToMatchLarge)) {
     warning(paste0("studyAreaLarge and rasterToMatchLarge projections differ.\n",
                    "studyAreaLarge will be projected to match rasterToMatchLarge"))
-    sim$studyAreaLarge <- project(sim$studyAreaLarge, y = crs(sim$rasterToMatchLarge))
-    sim$studyAreaLarge <- fixErrors(sim$studyAreaLarge)
+    sim$studyAreaLarge <- projectTo(sim$studyAreaLarge, sim$rasterToMatchLarge)
   }
 
   ## Species equivalencies table and associated columns ----------------------------
