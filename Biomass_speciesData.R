@@ -227,11 +227,11 @@ biomassDataInit <- function(sim) {
   species <- names(sim$speciesLayers)
 
   origFilenames <- vapply(names(sim$speciesLayers),
-                          function(r) Filenames(sim$speciesLayers[[r]]),
+                          function(r) Filenames(sim$speciesLayers[[r]], allowMultiple = FALSE),
                           character(1))
 
   ## re-enforce study area mask (merged/summed layers are losing the mask)
-  sim$speciesLayers <- mask(sim$speciesLayers, sim$rasterToMatchLarge)
+  sim$speciesLayers <- maskTo(sim$speciesLayers, sim$rasterToMatchLarge)
 
   ## make sure empty pixels inside study area have 0 cover, instead of NAs.
   ## this can happen when data has NAs instead of 0s and is not merged/overlayed (e.g. CASFRI)
@@ -260,7 +260,7 @@ biomassDataInit <- function(sim) {
   species <- sppKeep
 
   ## speciesLayers brick/stack may have filename but layers do not...
-  if (nzchar(Filenames(sim$speciesLayers)) && !all(nzchar(origFilenames))) {
+  if (nzchar(Filenames(sim$speciesLayers, allowMultiple = FALSE)) && !all(nzchar(origFilenames))) {
     sim$speciesLayers[] <- sim$speciesLayers[] ## bring to memory
   }
 
