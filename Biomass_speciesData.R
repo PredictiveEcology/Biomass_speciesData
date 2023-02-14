@@ -225,22 +225,22 @@ biomassDataInit <- function(sim) {
 
   species <- names(sim$speciesLayers)
 
-  origFilenames <- vapply(layerNames(sim$speciesLayers),
-                          function(r) filename(sim$speciesLayers[[r]]),
+  origFilenames <- vapply(names(sim$speciesLayers),
+                          function(r) Filenames(sim$speciesLayers[[r]], allowMultiple = FALSE),
                           character(1))
 
   ## re-enforce study area mask (merged/summed layers are losing the mask)
-  sim$speciesLayers <- raster::mask(sim$speciesLayers, sim$rasterToMatchLarge)
+  sim$speciesLayers <- maskTo(sim$speciesLayers, sim$rasterToMatchLarge)
 
   ## make sure empty pixels inside study area have 0 cover, instead of NAs.
   ## this can happen when data has NAs instead of 0s and is not merged/overlayed (e.g. CASFRI)
   tempRas <- sim$rasterToMatchLarge
   tempRas[!is.na(tempRas[])] <- 0
-  sim$speciesLayers <- raster::cover(sim$speciesLayers, tempRas)
+  sim$speciesLayers <- cover(sim$speciesLayers, tempRas)
   rm(tempRas)
 
   ## speciesLayers brick/stack may have filename but layers do not...
-  if (nzchar(filename(sim$speciesLayers)) && !all(nzchar(origFilenames))) {
+  if (nzchar(Filenames(sim$speciesLayers, allowMultiple = FALSE)) && !all(nzchar(origFilenames))) {
     sim$speciesLayers[] <- sim$speciesLayers[] ## bring to memory
   }
 
@@ -251,7 +251,9 @@ biomassDataInit <- function(sim) {
       writeRaster(sim$speciesLayers[[r]], filename = origFilenames[r], overwrite = TRUE)
     })
   }
-  sim$speciesLayers <- raster::stack(sim$speciesLayers) %>% setNames(species)
+
+  if (is(sim$speciesLayers, "Raster")) # don't need to stack it if SpatRaster
+    sim$speciesLayers <- raster::stack(sim$speciesLayers) %>% setNames(species)
 
   singular <- length(P(sim)$types) == 1
   message("sim$speciesLayers is from ", paste(P(sim)$types, collapse = ", "),
@@ -270,7 +272,7 @@ biomassDataInit <- function(sim) {
     list(total = NROW(sim$treed))), .SDcols = colNames]
 
   # How many have zero cover
-  bb <- speciesLayersDT[, apply(.SD, 1, any), .SDcols = 1:nlayers(sim$speciesLayers)]
+  bb <- speciesLayersDT[, apply(.SD, 1, any), .SDcols = 1:length(names(sim$speciesLayers))]
   sim$nonZeroCover <- sum(na.omit(bb))
   message("There are ", sim$nonZeroCover, " pixels with non-zero tree cover in them.")
 
