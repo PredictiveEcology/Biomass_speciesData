@@ -240,9 +240,12 @@ biomassDataInit <- function(sim) {
   rm(tempRas)
 
   ## filter out species with no data, or too little cover (some prepSpeciesLayers_*/overlay are not doing this)
-  layersWdata <- sapply(sim$speciesLayers, function(xx) if (maxFn(xx) < P(sim)$coverThresh) FALSE else TRUE)
+  layersWdata <- vapply(names(sim$speciesLayers), function(nn) {
+    xx <- sim$speciesLayers[[nn]]
+    if (maxFn(xx) < P(sim)$coverThresh) FALSE else TRUE
+  }, logical(1))
+  sppKeep <- names(sim$speciesLayers)[layersWdata]
   if (sum(!layersWdata) > 0) {
-    sppKeep <- names(sim$speciesLayers)[layersWdata]
     if (length(sppKeep)) {
       message("removing ", sum(!layersWdata), " species because they had <", P(sim)$coverThreshresh,
               " % cover in the study area\n",
