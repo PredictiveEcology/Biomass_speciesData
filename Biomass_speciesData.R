@@ -237,6 +237,7 @@ biomassDataInit <- function(sim) {
   tempRas <- sim$rasterToMatchLarge
   tempRas[!is.na(tempRas[])] <- 0
   sim$speciesLayers <- raster::cover(sim$speciesLayers, tempRas)
+  names(sim$speciesLayers) <- species
   rm(tempRas)
 
   ## speciesLayers brick/stack may have filename but layers do not...
