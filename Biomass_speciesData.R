@@ -363,7 +363,8 @@ biomassDataInit <- function(sim) {
         rawBiomassMap <- Cache(postProcess,
                                rawBiomassMap,
                                method = "bilinear",
-                               studyArea = sim$studyAreaLarge,
+                               to = sim$studyAreaLarge,
+                               projectTo = NA,  ## don't project to SA
                                overwrite = TRUE)
       }
     }
