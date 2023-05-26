@@ -352,8 +352,8 @@ biomassDataInit <- function(sim) {
         rawBiomassMap <- prepRawBiomassMap(url = biomassURL,
                                            studyAreaName = P(sim)$.studyAreaName,
                                            cacheTags = cacheTags,
-                                           maskWithRTM = FALSE,
-                                           studyArea = sim$studyAreaLarge,
+                                           to = sim$studyAreaLarge,
+                                           projectTo = NA,  ## don't project to SA
                                            destinationPath = dPath)
       })
     } else {
