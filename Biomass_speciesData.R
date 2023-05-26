@@ -24,7 +24,7 @@ defineModule(sim, list(
                   "SpaDES.core", "XML",
                   # "curl", "httr", ## called directly by this module, but pulled in by LandR (Sep 6th 2022).
                   ## Excluded because loading is not necessary (just installation)
-                  "PredictiveEcology/LandR@terra-migration (>= 1.1.0.9025)",
+                  "CeresBarros/LandR@deprecatedArgs (HEAD)",
                   "PredictiveEcology/pemisc@development",
                   "CeresBarros/SpaDES.tools@terra-migration (>= 1.0.2)"),
   parameters = bindrows(
