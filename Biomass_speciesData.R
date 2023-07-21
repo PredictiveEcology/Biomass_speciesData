@@ -26,7 +26,7 @@ defineModule(sim, list(
                   ## Excluded because loading is not necessary (just installation)
                   "CeresBarros/LandR@deprecatedArgs (HEAD)",
                   "PredictiveEcology/pemisc@development",
-                  "CeresBarros/SpaDES.tools@terra-migration (>= 1.0.2)"),
+                  "PredictiveEcology/SpaDES.tools@development (>= 1.0.2)"),
   parameters = bindrows(
     #defineParameter("paramName", "paramClass", value, min, max, "parameter description"),
     defineParameter("coverThresh", "integer", 10L, NA, NA,
