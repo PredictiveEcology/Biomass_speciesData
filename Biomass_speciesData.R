@@ -350,21 +350,23 @@ biomassDataInit <- function(sim) {
 
       httr::with_config(config = httr::config(ssl_verifypeer = P(sim)$.sslVerify), {
         rawBiomassMap <- prepRawBiomassMap(url = biomassURL,
-                                           studyAreaName = P(sim)$.studyAreaName,
-                                           cacheTags = cacheTags,
-                                           to = sim$studyAreaLarge,
-                                           projectTo = NA,  ## don't project to SA
-                                           destinationPath = dPath)
-      })
-    } else {
-      rawBiomassMap <- sim$rawBiomassMap
-      if (!compareRaster(sim$rawBiomassMap, sim$studyAreaLarge, stopiffalse = FALSE)) {
-        ## note that extents may never align if the resolution and projection do not allow for it
-        rawBiomassMap <- Cache(postProcess,
-                               rawBiomassMap,
-                               method = "bilinear",
-                               to = sim$studyAreaLarge,
-                               projectTo = NA,  ## don't project to SA
+                                         studyAreaName = P(sim)$.studyAreaName,
+                                         cacheTags = cacheTags,
+                                         cropTo = sim$studyAreaLarge,
+                                         maskTo = sim$studyAreaLarge,
+                                         projectTo = NA,  ## don't project to SA
+                                         destinationPath = dPath)
+    })
+  } else {
+    rawBiomassMap <- sim$rawBiomassMap
+    if (!.compareCRS(sim$rawBiomassMap, sim$studyAreaLarge)) {
+      ## note that extents may never align if the resolution and projection do not allow for it
+      rawBiomassMap <- Cache(postProcess,
+                             rawBiomassMap,
+                             method = "bilinear",
+                             cropTo = sim$studyAreaLarge,
+                             maskTo = sim$studyAreaLarge,
+                             projectTo = NA,  ## don't project to SA
                                overwrite = TRUE)
       }
     }
