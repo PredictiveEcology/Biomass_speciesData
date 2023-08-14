@@ -20,8 +20,8 @@ defineModule(sim, list(
   citation = list("citation.bib"),
   documentation = list("README.txt", "Biomass_speciesData.Rmd"),
   reqdPkgs = list("data.table", "gdalUtilities", ## LandR needs gdalUtilities to overlay rasters
-                  "sf", "magrittr", "pryr", "RCurl", "reproducible (>= 1.2.6.9005)", "terra",
-                  "SpaDES.core", "XML",
+                  "sf", "magrittr", "pryr", "RCurl", "reproducible (>= 2.0.2)", "terra",
+                  "SpaDES.core (>= 2.0.2)", "XML",
                   # "curl", "httr", ## called directly by this module, but pulled in by LandR (Sep 6th 2022).
                   ## Excluded because loading is not necessary (just installation)
                   "CeresBarros/LandR@deprecatedArgs (HEAD)",
