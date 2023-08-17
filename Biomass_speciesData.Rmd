@@ -52,7 +52,7 @@ if (!require(Require)) {
   library(Require)
 }
 
-Require(c("dplyr", "data.table", "PredictiveEcology/LandR"), install = TRUE)
+Require(c("dplyr", "data.table", "PredictiveEcology/LandR"), upgrade = FALSE, install = FALSE)
 ```
 
 ```{r badgeFigs-Biomass-speciesData, include=FALSE, eval = TRUE, cache = FALSE}
