@@ -370,8 +370,7 @@ biomassDataInit <- function(sim) {
                                overwrite = TRUE)
       }
     }
-  }
-
+  
   RTMs <- prepRasterToMatch(studyArea = sim$studyAreaLarge,
                             studyAreaLarge = sim$studyAreaLarge,
                             rasterToMatch = NULL,
@@ -382,7 +381,7 @@ biomassDataInit <- function(sim) {
                             cacheTags = cacheTags)
   sim$rasterToMatchLarge <- RTMs$rasterToMatchLarge
   rm(RTMs)
-
+  }
 
   if (st_crs(sim$studyAreaLarge) != st_crs(sim$rasterToMatchLarge)) {
     warning(paste0("studyAreaLarge and rasterToMatchLarge projections differ.\n",
