@@ -237,6 +237,7 @@ biomassDataInit <- function(sim) {
   tempRas <- sim$rasterToMatchLarge
   tempRas[!is.na(tempRas[])] <- 0
   sim$speciesLayers <- raster::cover(sim$speciesLayers, tempRas)
+  names(sim$speciesLayers) <- species
   rm(tempRas)
 
   ## filter out species with no data, or too little cover (some prepSpeciesLayers_*/overlay are not doing this)
