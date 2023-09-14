@@ -283,7 +283,7 @@ biomassDataInit <- function(sim) {
   message("------------------")
   message("There are ", sum(!is.na(sim$speciesLayers[[1]][])), " pixels with trees in them")
 
-  # Calculate number of pixels with species cover
+  ## Calculate number of pixels with species cover
   speciesLayersDT <- as.data.table(sim$speciesLayers[] > 0)
   speciesLayersDT[, pixelId := seq(NROW(speciesLayersDT))]
   sim$treed <- na.omit(speciesLayersDT)
@@ -292,7 +292,7 @@ biomassDataInit <- function(sim) {
     lapply(.SD, sum),
     list(total = NROW(sim$treed))), .SDcols = colNames]
 
-  # How many have zero cover
+  ## How many have zero cover
   bb <- speciesLayersDT[, apply(.SD, 1, any), .SDcols = 1:nlayers(sim$speciesLayers)]
   sim$nonZeroCover <- sum(na.omit(bb))
   message("There are ", sim$nonZeroCover, " pixels with non-zero tree cover in them.")
