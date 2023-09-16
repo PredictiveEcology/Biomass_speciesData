@@ -19,6 +19,7 @@ defineModule(sim, list(
   timeunit = "year",
   citation = list("citation.bib"),
   documentation = list("README.txt", "Biomass_speciesData.Rmd"),
+  loadOrder = list(before = c("Biomass_borealDataPrep", "Biomass_core")),
   reqdPkgs = list("data.table", "gdalUtilities", ## LandR needs gdalUtilities to overlay rasters
                   "sf", "magrittr", "pryr", "RCurl", "reproducible (>= 2.0.2)", "terra",
                   "SpaDES.core (>= 2.0.2)", "XML",
