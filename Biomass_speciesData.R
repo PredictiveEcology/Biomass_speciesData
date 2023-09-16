@@ -120,15 +120,7 @@ defineModule(sim, list(
   ),
   outputObjects = bindrows(
     createsOutput("speciesLayers", "SpatRaster",
-                  desc = "biomass percentage raster layers by species in Canada species map"),
-    createsOutput("treed", "data.table",
-                  desc = paste("Table with one logical column for each species, indicating whether",
-                               "there were non-zero cover values in each pixel.")),
-    createsOutput("numTreed", "numeric",
-                  desc = paste("a named vector with number of pixels with non-zero cover values for",
-                               "each species")),
-    createsOutput("nonZeroCover", "numeric",
-                  desc = "A single value indicating how many pixels have non-zero cover")
+                  desc = "biomass percentage raster layers by species in Canada species map")
   )
 ))
 
@@ -371,7 +363,7 @@ biomassDataInit <- function(sim) {
                                overwrite = TRUE)
       }
     }
-  
+
   RTMs <- prepRasterToMatch(studyArea = sim$studyAreaLarge,
                             studyAreaLarge = sim$studyAreaLarge,
                             rasterToMatch = NULL,
