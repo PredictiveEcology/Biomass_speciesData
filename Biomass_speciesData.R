@@ -25,7 +25,7 @@ defineModule(sim, list(
                   "XML",
                   # "curl", "httr", ## called directly by this module, but pulled in by LandR (Sep 6th 2022).
                   ## Excluded because loading is not necessary (just installation)
-                  "CeresBarros/LandR@deprecatedArgs (HEAD)",
+                  "PredictiveEcology/LandR@development (>= 1.1.0.9054)",
                   "PredictiveEcology/pemisc@development",
                   "PredictiveEcology/SpaDES.tools@development (>= 1.0.2)",
                   "PredictiveEcology/SpaDES.core@development (>= 2.0.2.9004)"),
