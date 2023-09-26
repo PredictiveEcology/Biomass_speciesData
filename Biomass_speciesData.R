@@ -22,12 +22,13 @@ defineModule(sim, list(
   loadOrder = list(before = c("Biomass_borealDataPrep", "Biomass_core")),
   reqdPkgs = list("data.table", "gdalUtilities", ## LandR needs gdalUtilities to overlay rasters
                   "sf", "magrittr", "pryr", "RCurl", "reproducible (>= 2.0.2)", "terra",
-                  "SpaDES.core (>= 2.0.2)", "XML",
+                  "XML",
                   # "curl", "httr", ## called directly by this module, but pulled in by LandR (Sep 6th 2022).
                   ## Excluded because loading is not necessary (just installation)
                   "CeresBarros/LandR@deprecatedArgs (HEAD)",
                   "PredictiveEcology/pemisc@development",
-                  "PredictiveEcology/SpaDES.tools@development (>= 1.0.2)"),
+                  "PredictiveEcology/SpaDES.tools@development (>= 1.0.2)",
+                  "PredictiveEcology/SpaDES.core@development (>= 2.0.2.9004)"),
   parameters = bindrows(
     #defineParameter("paramName", "paramClass", value, min, max, "parameter description"),
     defineParameter("coverThresh", "integer", 10L, NA, NA,
