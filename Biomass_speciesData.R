@@ -400,3 +400,11 @@ biomassDataInit <- function(sim) {
 
   return(invisible(sim))
 }
+
+## older versions of SpaDES.core don't have this function
+if (packageVersion("SpaDES.core") < "2.0.2.9001") {
+  figurePath <- function(sim) {
+    file.path(outputPath(sim), "figures", current(sim)[["moduleName"]]) |>
+      checkPath(create = TRUE)
+  }
+}
