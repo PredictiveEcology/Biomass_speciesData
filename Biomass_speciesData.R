@@ -197,7 +197,8 @@ biomassDataInit <- function(sim) {
                                 sppEquivCol = P(sim)$sppEquivCol,
                                 thresh = P(sim)$coverThresh,
                                 year = P(sim)$dataYear,
-                                userTags = c(cacheTags, fnName, "prepSpeciesLayers", P(sim)$.studyAreaName),
+                                userTags = c(cacheTags, fnName, "prepSpeciesLayers", 
+                                             P(sim)$.studyAreaName, P(sim)$dataYear),
                                 omitArgs = c("userTags"))
     })
 
