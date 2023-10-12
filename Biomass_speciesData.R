@@ -163,7 +163,7 @@ doEvent.Biomass_speciesData <- function(sim, eventTime, eventType) {
 
 ### template initialization
 biomassDataInit <- function(sim) {
-  cacheTags <- c(currentModule(sim), "function:biomassDataInit")
+  cacheTags <- c(currentModule(sim), "function:biomassDataInit", P(sim)$.studyAreaName, P(sim)$dataYear)
   dPath <- asPath(getOption("reproducible.destinationPath", dataPath(sim)), 1)
   message(currentModule(sim), ": biomassInit() using dataPath '", dPath, "'.")
 
@@ -197,8 +197,7 @@ biomassDataInit <- function(sim) {
                                 sppEquivCol = P(sim)$sppEquivCol,
                                 thresh = P(sim)$coverThresh,
                                 year = P(sim)$dataYear,
-                                userTags = c(cacheTags, fnName, "prepSpeciesLayers", 
-                                             P(sim)$.studyAreaName, P(sim)$dataYear),
+                                userTags = c(cacheTags, fnName, "prepSpeciesLayers"),
                                 omitArgs = c("userTags"))
     })
 
@@ -207,7 +206,7 @@ biomassDataInit <- function(sim) {
             highQualityStack = speciesLayersNew,
             lowQualityStack = sim$speciesLayers,
             destinationPath = outputPath(sim),
-            userTags = c(cacheTags, "overlayStacks", P(sim)$.studyAreaName),
+            userTags = c(cacheTags, "overlayStacks"),
             omitArgs = c("userTags"))
     } else {
       speciesLayersNew
