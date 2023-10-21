@@ -20,11 +20,13 @@ defineModule(sim, list(
   citation = list("citation.bib"),
   documentation = list("README.txt", "Biomass_speciesData.Rmd"),
   loadOrder = list(before = c("Biomass_borealDataPrep", "Biomass_core")),
-  reqdPkgs = list("data.table", "pryr", "RCurl", "reproducible (>= 2.0.2)", "sf", "terra", "XML",
+  reqdPkgs = list("data.table", "pryr", "RCurl",
+                  "sf", "terra", "XML",
                   # "curl", "httr", ## called directly by this module, but pulled in by LandR (Sep 6th 2022).
                   ## Excluded because loading is not necessary (just installation)
-                  "PredictiveEcology/LandR@development (>= 1.1.0.9063)",
+                  "PredictiveEcology/LandR@development (>= 1.1.0.9074)",
                   "PredictiveEcology/pemisc@development",
+                  "PredictiveEcology/reproducible@reproducibleTempCacheDir (>= 2.0.8.9012)"
                   "PredictiveEcology/SpaDES.tools@development (>= 1.0.2)",
                   "PredictiveEcology/SpaDES.core@development (>= 2.0.2.9004)"),
   parameters = bindrows(
@@ -262,9 +264,12 @@ biomassDataInit <- function(sim) {
   sim$speciesLayers <- if (inMemory(sim$speciesLayers)) {
     sim$speciesLayers
   } else {
-    lapply(seq_along(names(sim$speciesLayers)), function(r) {
+    message("Writing speciesLayers to disk...")
+    out <- lapply(seq_along(names(sim$speciesLayers)), function(r) {
       writeRaster(sim$speciesLayers[[r]], filename = origFilenames[r], overwrite = TRUE)
     })
+    message("      ... Done")
+    out
   }
 
   if (is(sim$speciesLayers, "list")) {
@@ -391,7 +396,8 @@ biomassDataInit <- function(sim) {
   paramCheckOtherMods(sim, "vegLeadingProportion", ifSetButDifferent = "error")
 
   sppOuts <- sppHarmonize(sim$sppEquiv, sim$sppNameVector, P(sim)$sppEquivCol,
-                          sim$sppColorVect, P(sim)$vegLeadingProportion, sim$studyAreaLarge)
+                          sim$sppColorVect, P(sim)$vegLeadingProportion, sim$studyAreaLarge,
+                          dPath = dPath)
   ## the following may, or may not change inputs
   sim$sppEquiv <- sppOuts$sppEquiv
   sim$sppNameVector <- sppOuts$sppNameVector
