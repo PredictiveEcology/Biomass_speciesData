@@ -26,7 +26,7 @@ defineModule(sim, list(
                   ## Excluded because loading is not necessary (just installation)
                   "PredictiveEcology/LandR@development (>= 1.1.0.9074)",
                   "PredictiveEcology/pemisc@development",
-                  "PredictiveEcology/reproducible@reproducibleTempCacheDir (>= 2.0.8.9012)"
+                  "PredictiveEcology/reproducible@reproducibleTempCacheDir (>= 2.0.8.9012)",
                   "PredictiveEcology/SpaDES.tools@development (>= 1.0.2)",
                   "PredictiveEcology/SpaDES.core@development (>= 2.0.2.9004)"),
   parameters = bindrows(
