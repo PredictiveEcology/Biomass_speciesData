@@ -348,12 +348,12 @@ biomassDataInit <- function(sim) {
 
       httr::with_config(config = httr::config(ssl_verifypeer = P(sim)$.sslVerify), {
         rawBiomassMap <- prepRawBiomassMap(url = biomassURL,
-                                         studyAreaName = P(sim)$.studyAreaName,
-                                         cacheTags = cacheTags,
-                                         cropTo = sim$studyAreaLarge,
-                                         maskTo = sim$studyAreaLarge,
-                                         projectTo = NA,  ## don't project to SA
-                                         destinationPath = dPath)
+                                           studyAreaName = P(sim)$.studyAreaName,
+                                           cacheTags = cacheTags,
+                                           cropTo = sim$studyAreaLarge,
+                                           maskTo = sim$studyAreaLarge,
+                                           projectTo = NA,  ## don't project to SA
+                                           destinationPath = dPath)
     })
   } else {
     rawBiomassMap <- sim$rawBiomassMap
