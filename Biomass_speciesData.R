@@ -8,39 +8,43 @@ defineModule(sim, list(
                       "lower quality data with higher quality data."),
   keywords = c("LandWeb", "LandR", "LandR Biomass", "species percent cover"),
   authors = c(
-    person(c("Eliot", "J", "B"), "McIntire", email = "eliot.mcintire@nrcan-rncan.gc.ca", role = c("aut", "cre")),
-    person(c("Alex", "M."), "Chubaty", email = "achubaty@for-cast.ca", role = c("aut")),
-    person("Ceres", "Barros", email = "cbarros@mail.ubc.ca", role = c("aut"))
+    person("Ceres", "Barros", email = "ceres.barros@ubc.ca", role = c("aut", "cre")),
+    person(c("Eliot", "J", "B"), "McIntire", email = "eliot.mcintire@nrcan-rncan.gc.ca", role = c("aut")),
+    person(c("Alex", "M."), "Chubaty", email = "achubaty@for-cast.ca", role = c("aut"))
   ),
   childModules = character(0),
-  version = list(Biomass_speciesData = "1.0.1"),
+  version = list(Biomass_speciesData = "1.0.2"),
   spatialExtent = raster::extent(rep(NA_real_, 4)),
   timeframe = as.POSIXlt(c(NA, NA)),
   timeunit = "year",
   citation = list("citation.bib"),
   documentation = list("README.txt", "Biomass_speciesData.Rmd"),
-  reqdPkgs = list("data.table", "gdalUtilities", ## LandR needs gdalUtilities to overlay rasters
+  loadOrder = list(before = c("Biomass_borealDataPrep", "Biomass_core")),
+  reqdPkgs = list("data.table", "pryr", "RCurl",
+                  "sf", "terra", "XML",
                   # "curl", "httr", ## called directly by this module, but pulled in by LandR (Sep 6th 2022).
                   ## Excluded because loading is not necessary (just installation)
-                  "PredictiveEcology/LandR@development (>= 1.1.0.9018)", "magrittr",
+                  "PredictiveEcology/LandR@development (>= 1.1.0.9076)",
                   "PredictiveEcology/pemisc@development",
-                  "pryr", "raster", "RCurl", "reproducible (>= 1.2.6.9005)", "SpaDES.core", "SpaDES.tools", "XML"),
+                  "PredictiveEcology/reproducible@reproducibleTempCacheDir (>= 2.0.8.9012)",
+                  "PredictiveEcology/SpaDES.tools@development (>= 1.0.2)",
+                  "PredictiveEcology/SpaDES.core@development (>= 2.0.2.9004)"),
   parameters = bindrows(
     #defineParameter("paramName", "paramClass", value, min, max, "parameter description"),
     defineParameter("coverThresh", "integer", 10L, NA, NA,
-                    paste("The minimum % cover a species needs to have (per pixel) in the study",
+                    desc = paste("The minimum % cover a species needs to have (per pixel) in the study",
                           "area to be considered present")),
     defineParameter("dataYear", "numeric", 2001, NA, NA,
                     paste("Passed to `paste0('prepSpeciesLayers_', types)` function to fetch data",
                           "from that year (if applicable). Defaults to 2001 as the default kNN year.")),
     defineParameter("sppEquivCol", "character", "Boreal", NA, NA,
-                    paste("The column in `sim$sppEquiv` data.table to group species by and use as a",
+                    desc = paste("The column in `sim$sppEquiv` data.table to group species by and use as a",
                           "naming convention. If different species in, e.g., the kNN data have the same",
                           "name in the chosen column, their data are merged into one species by summing",
                           "their % cover in each raster cell.")),
     defineParameter("types", "character", "KNN", NA, NA,
-                    paste("The possible data sources. These must correspond to a function named",
-                          "paste0('prepSpeciesLayers_', types). Defaults to 'KNN'",
+                    desc = paste("The possible data sources. These must correspond to a function named",
+                          "`paste0('prepSpeciesLayers_', types)`. Defaults to 'KNN'",
                           "to get the Canadian Forestry Service, National Forest Inventory,",
                           "kNN-derived species cover maps from year 'dataYear', using the",
                           "`LandR::prepSpeciesLayers_KNN` function (see https://open.canada.ca/",
@@ -49,50 +53,50 @@ defineModule(sim, list(
                           "'ForestInventory', which attempt to get proprietary data - the user must be granted",
                           "access first. A custom function can be used to retrieve any data, just as long as",
                           "it is accessible by the module (e.g., in the global environment) and is named as",
-                          "paste0('prepSpeciesLayers_', types).")),
+                          "`paste0('prepSpeciesLayers_', types)`.")),
     defineParameter("vegLeadingProportion", "numeric", 0.8, 0, 1,
-                    "a number that defines whether a species is leading for a given pixel. Only used for plotting."),
+                    desc = "a number that defines whether a species is leading for a given pixel. Only used for plotting."),
     defineParameter(".plotInitialTime", "numeric", NA, NA, NA,
-                    "This describes the simulation time at which the first plot event should occur"),
+                    desc = "This describes the simulation time at which the first plot event should occur"),
     defineParameter(".plotInterval", "numeric", NA, NA, NA,
-                    "This describes the simulation time interval between plot events"),
+                    desc = "This describes the simulation time interval between plot events"),
     defineParameter(".plots", "character", c("screen"), NA, NA,
-                    paste("Passed to `types` in `Plots` (see `?Plots`).",
+                    desc = paste("Passed to `types` in `Plots` (see `?Plots`).",
                           "There are a few plots that are made within this module, if set.",
                           "Note that plots (or their data) saving will ONLY occur at `end(sim)`.",
                           "If `NA`, plotting is turned off completely (this includes plot saving).")),
     defineParameter(".saveInitialTime", "numeric", NA, NA, NA,
-                    "This describes the simulation time at which the first save event should occur"),
+                    desc = "This describes the simulation time at which the first save event should occur"),
     defineParameter(".saveInterval", "numeric", NA, NA, NA,
                     "This describes the simulation time interval between save events"),
-    defineParameter(".sslVerify", "integer", as.integer(unname(curl::curl_options("^ssl_verifypeer$"))), NA , NA,
-                    paste("Passed to `httr::config(ssl_verifypeer = P(sim)$sslVerify)` when downloading KNN",
+    defineParameter(".sslVerify", "integer", as.integer(unname(curl::curl_options("^ssl_verifypeer$"))), NA_integer_, NA_integer_,
+                    desc = paste("Passed to `httr::config(ssl_verifypeer = P(sim)$.sslVerify)` when downloading KNN",
                           "(NFI) datasets. Set to 0L if necessary to bypass checking the SSL certificate (this",
                           "may be necessary when NFI's website SSL certificate is not correctly configured).")),
     defineParameter(".studyAreaName", "character", NA, NA, NA,
                     "Human-readable name for the study area used. If NA, a hash of `studyAreaLarge` will be used."),
     defineParameter(".useCache", "character", "init", NA, NA,
-                    "Controls cache; caches the init event by default"),
+                    desc = "Controls cache; caches the init event by default"),
     defineParameter(".useParallel", "numeric", parallel::detectCores(), NA, NA,
-                    "Used in reading csv file with fread. Will be passed to data.table::setDTthreads.")
+                    desc = "Used in reading csv file with fread. Will be passed to `data.table::setDTthreads`.")
   ),
   inputObjects = bindrows(
-    expectsInput("rasterToMatchLarge", "RasterLayer",
+    expectsInput("rasterToMatchLarge", "SpatRaster",
                  desc = paste("a raster of `studyAreaLarge` in the same resolution and projection the simulation's.",
                               "Defaults to the using the Canadian Forestry Service, National Forest Inventory,",
                               "kNN-derived stand biomass map."),
                  sourceURL = ""),
-    expectsInput("rawBiomassMap", "RasterLayer",
-                 desc = paste("total biomass raster layer in study area. Only used to create `rasterToMatchLarge`",
-                              "if necessary. Defaults to the Canadian Forestry Service, National Forest Inventory,",
-                              "kNN-derived total aboveground biomass map from 2001 (in tonnes/ha), unless",
-                              "'dataYear' != 2001. See ",
-                              "https://open.canada.ca/data/en/dataset/ec9e2659-1c29-4ddb-87a2-6aced147a990",
-                              "for metadata."),
-                 sourceURL = ""), ## sourceURL varies by `dataYear`
+    # expectsInput("rawBiomassMap", "SpatRaster",
+    #              desc = paste("total biomass raster layer in study area. Only used to create `rasterToMatchLarge`",
+    #                           "if necessary. Defaults to the Canadian Forestry Service, National Forest Inventory,",
+    #                           "kNN-derived total aboveground biomass map from 2001 (in tonnes/ha), unless",
+    #                           "'dataYear' != 2001. See ",
+    #                           "https://open.canada.ca/data/en/dataset/ec9e2659-1c29-4ddb-87a2-6aced147a990",
+    #                           "for metadata."),
+    #              sourceURL = ""), ## sourceURL varies by `dataYear`
     expectsInput("sppColorVect", "character",
                  desc = paste("A named vector of colors to use for plotting.",
-                              "The names must be in sim$sppEquiv[[sim$sppEquivCol]],",
+                              "The names must be in `sim$sppEquiv[[sim$sppEquivCol]]`,",
                               "and should also contain a color for 'Mixed'"),
                  sourceURL = NA),
     expectsInput("sppEquiv", "data.table",
@@ -103,29 +107,21 @@ defineModule(sim, list(
                               "`P(sim)$sppEquivCol` column in `sppEquiv`. If not provided, then species will be taken from",
                               "the entire `P(sim)$sppEquivCol` column in `sppEquiv`.",
                               "See `LandR::sppEquivalencies_CA`.")),
-    expectsInput("studyAreaLarge", "SpatialPolygonsDataFrame",
+    expectsInput("studyAreaLarge", "sfc",
                  desc =  paste("Polygon to use as the parametrisation study area. Must be provided by the user.",
                                "Note that `studyAreaLarge` is only used for parameter estimation, and",
                                "can be larger than the actual study area used for LandR simulations (e.g,",
                                "larger than `studyArea` in LandR Biomass_core)."),
                  sourceURL = NA),
-    expectsInput("studyAreaReporting", "SpatialPolygonsDataFrame",
+    expectsInput("studyAreaReporting", "sfc",
                  desc = paste("multipolygon (typically smaller/unbuffered than `studyAreaLarge` and `studyArea`",
                               "in LandR Biomass_core) to use for plotting/reporting.",
                               "If not provided, will default to `studyAreaLarge`."),
                  sourceURL = NA)
   ),
   outputObjects = bindrows(
-    createsOutput("speciesLayers", "RasterStack",
-                  desc = "biomass percentage raster layers by species in Canada species map"),
-    createsOutput("treed", "data.table",
-                  desc = paste("Table with one logical column for each species, indicating whether",
-                               "there were non-zero cover values in each pixel.")),
-    createsOutput("numTreed", "numeric",
-                  desc = paste("a named vector with number of pixels with non-zero cover values for",
-                               "each species")),
-    createsOutput("nonZeroCover", "numeric",
-                  desc = "A single value indicating how many pixels have non-zero cover")
+    createsOutput("speciesLayers", "SpatRaster",
+                  desc = "biomass percentage raster layers by species in Canada species map")
   )
 ))
 
@@ -151,8 +147,8 @@ doEvent.Biomass_speciesData <- function(sim, eventTime, eventType) {
           1
         }
         dev.set(newDev)
-        plotVTM(speciesStack = raster::mask(sim$speciesLayers, sim$studyAreaReporting) %>%
-                  raster::stack(),
+
+        plotVTM(speciesStack = mask(sim$speciesLayers, sim$studyAreaReporting),
                 vegLeadingProportion = P(sim)$vegLeadingProportion,
                 sppEquiv = sim$sppEquiv,
                 sppEquivCol = P(sim)$sppEquivCol,
@@ -169,7 +165,7 @@ doEvent.Biomass_speciesData <- function(sim, eventTime, eventType) {
 
 ### template initialization
 biomassDataInit <- function(sim) {
-  cacheTags <- c(currentModule(sim), "function:biomassDataInit")
+  cacheTags <- c(currentModule(sim), "otherFunctions:biomassDataInit", P(sim)$.studyAreaName, P(sim)$dataYear)
   dPath <- asPath(getOption("reproducible.destinationPath", dataPath(sim)), 1)
   message(currentModule(sim), ": biomassInit() using dataPath '", dPath, "'.")
 
@@ -191,7 +187,6 @@ biomassDataInit <- function(sim) {
       stop(fnName, " does not exist. Please make it accessible in a package, as an object, ",
            " or in the .GlobalEnv")
     }
-
     fn <- get(fnName)
     httr::with_config(config = httr::config(ssl_verifypeer = P(sim)$.sslVerify), {
       speciesLayersNew <- Cache(fn,
@@ -204,7 +199,8 @@ biomassDataInit <- function(sim) {
                                 sppEquivCol = P(sim)$sppEquivCol,
                                 thresh = P(sim)$coverThresh,
                                 year = P(sim)$dataYear,
-                                userTags = c(cacheTags, fnName, "prepSpeciesLayers", P(sim)$.studyAreaName),
+                                .functionName = fnName,
+                                userTags = c(cacheTags, fnName, "prepSpeciesLayers"),
                                 omitArgs = c("userTags"))
     })
 
@@ -213,7 +209,7 @@ biomassDataInit <- function(sim) {
             highQualityStack = speciesLayersNew,
             lowQualityStack = sim$speciesLayers,
             destinationPath = outputPath(sim),
-            userTags = c(cacheTags, "overlayStacks", P(sim)$.studyAreaName),
+            userTags = c(cacheTags, "overlayStacks"),
             omitArgs = c("userTags"))
     } else {
       speciesLayersNew
@@ -225,12 +221,12 @@ biomassDataInit <- function(sim) {
 
   species <- names(sim$speciesLayers)
 
-  origFilenames <- vapply(layerNames(sim$speciesLayers),
-                          function(r) filename(sim$speciesLayers[[r]]),
+  origFilenames <- vapply(names(sim$speciesLayers),
+                          function(r) Filenames(sim$speciesLayers[[r]], allowMultiple = FALSE),
                           character(1))
 
   ## re-enforce study area mask (merged/summed layers are losing the mask)
-  sim$speciesLayers <- raster::mask(sim$speciesLayers, sim$rasterToMatchLarge)
+  sim$speciesLayers <- maskTo(sim$speciesLayers, sim$rasterToMatchLarge)
 
   ## make sure empty pixels inside study area have 0 cover, instead of NAs.
   ## this can happen when data has NAs instead of 0s and is not merged/overlayed (e.g. CASFRI)
@@ -240,46 +236,64 @@ biomassDataInit <- function(sim) {
   names(sim$speciesLayers) <- species
   rm(tempRas)
 
+  ## filter out species with no data, or too little cover (some prepSpeciesLayers_*/overlay are not doing this)
+  layersWdata <- vapply(names(sim$speciesLayers), function(nn) {
+    xx <- sim$speciesLayers[[nn]]
+    if (maxFn(xx) < P(sim)$coverThresh) FALSE else TRUE
+  }, logical(1))
+  sppKeep <- names(sim$speciesLayers)[layersWdata]
+  if (sum(!layersWdata) > 0) {
+    if (length(sppKeep)) {
+      message("removing ", sum(!layersWdata), " species because they had <", P(sim)$coverThreshresh,
+              " % cover in the study area\n",
+              "  These species are retained (and could be further culled manually, if desired):\n",
+              paste(sppKeep, collapse = " "))
+    } else {
+      message("no pixels for ", paste(names(layersWdata), collapse = " "),
+              " were found with >=", thresh, " % cover in the study area.",
+              "\n  No species layers were retained. Try lowering the threshold",
+              " to retain species with low % cover")
+    }
+  }
+  sim$speciesLayers <- sim$speciesLayers[[sppKeep]]
+  species <- sppKeep
+
   ## speciesLayers brick/stack may have filename but layers do not...
-  if (nzchar(filename(sim$speciesLayers)) && !all(nzchar(origFilenames))) {
+  if (nzchar(Filenames(sim$speciesLayers, allowMultiple = FALSE)) && !all(nzchar(origFilenames))) {
     sim$speciesLayers[] <- sim$speciesLayers[] ## bring to memory
   }
 
   sim$speciesLayers <- if (inMemory(sim$speciesLayers)) {
     sim$speciesLayers
   } else {
-    lapply(seq_along(layerNames(sim$speciesLayers)), function(r) {
+    message("Writing speciesLayers to disk...")
+    out <- lapply(seq_along(names(sim$speciesLayers)), function(r) {
       writeRaster(sim$speciesLayers[[r]], filename = origFilenames[r], overwrite = TRUE)
     })
+    message("      ... Done")
+    out
   }
-  sim$speciesLayers <- raster::stack(sim$speciesLayers) %>% setNames(species)
+
+  if (is(sim$speciesLayers, "list")) {
+    sim$speciesLayers <- .stack(sim$speciesLayers)
+  }
+
+  setNames(sim$speciesLayers, species)
 
   singular <- length(P(sim)$types) == 1
   message("sim$speciesLayers is from ", paste(P(sim)$types, collapse = ", "),
           " overlaid in that sequence, higher quality last"[!singular])
 
   message("------------------")
-  message("There are ", sum(!is.na(sim$speciesLayers[[1]][])), " pixels with trees in them")
-
-  # Calculate number of pixels with species cover
-  speciesLayersDT <- as.data.table(sim$speciesLayers[] > 0)
-  speciesLayersDT[, pixelId := seq(NROW(speciesLayersDT))]
-  sim$treed <- na.omit(speciesLayersDT)
-  colNames <- names(sim$treed)[!names(sim$treed) %in% "pixelId"]
-  sim$numTreed <- sim$treed[, append(
-    lapply(.SD, sum),
-    list(total = NROW(sim$treed))), .SDcols = colNames]
-
-  # How many have zero cover
-  bb <- speciesLayersDT[, apply(.SD, 1, any), .SDcols = 1:nlayers(sim$speciesLayers)]
-  sim$nonZeroCover <- sum(na.omit(bb))
-  message("There are ", sim$nonZeroCover, " pixels with non-zero tree cover in them.")
+  sumCoverPerPixel <- as.vector(values(sum(sim$speciesLayers, na.rm = TRUE)))
+  message("There are ", sum(!is.na(sumCoverPerPixel)), " pixels with non-NA tree cover in them")
+  message("There are ", sum(sumCoverPerPixel > 0, na.rm = TRUE), " pixels with non-zero tree cover in them")
 
   return(invisible(sim))
 }
 
 .inputObjects <- function(sim) {
-  cacheTags <- c(currentModule(sim), "function:.inputObjects")
+  cacheTags <- c(currentModule(sim), "otherFunctions:.inputObjects")
   dPath <- asPath(getOption("reproducible.destinationPath", dataPath(sim)), 1)
   message(currentModule(sim), ": using dataPath '", dPath, "'.")
 
@@ -306,7 +320,7 @@ biomassDataInit <- function(sim) {
   if (is.null(sim$rasterToMatchLarge)) {
     if (!suppliedElsewhere("rasterToMatchLarge", sim)) {      ## if one is not provided, re do both (safer?)
       needRTML <- TRUE
-      message("There is no rasterToMatchLarge supplied; will attempt to use rawBiomassMap")
+      message("There is no rasterToMatchLarge supplied; will attempt to use rawBiomassMap, if it is there; otherwise will try KNN")
     } else {
       stop("rasterToMatchLarge is going to be supplied, but ", currentModule(sim), " requires it ",
            "as part of its .inputObjects. Please make it accessible to ", currentModule(sim),
@@ -337,22 +351,24 @@ biomassDataInit <- function(sim) {
         rawBiomassMap <- prepRawBiomassMap(url = biomassURL,
                                            studyAreaName = P(sim)$.studyAreaName,
                                            cacheTags = cacheTags,
-                                           maskWithRTM = FALSE,
-                                           studyArea = sim$studyAreaLarge,
+                                           cropTo = sim$studyAreaLarge,
+                                           maskTo = sim$studyAreaLarge,
+                                           projectTo = NA,  ## don't project to SA
                                            destinationPath = dPath)
-      })
-    } else {
-      rawBiomassMap <- sim$rawBiomassMap
-      if (!compareRaster(sim$rawBiomassMap, sim$studyAreaLarge, stopiffalse = FALSE)) {
-        ## note that extents may never align if the resolution and projection do not allow for it
-        rawBiomassMap <- Cache(postProcess,
-                               rawBiomassMap,
-                               method = "bilinear",
-                               studyArea = sim$studyAreaLarge,
+    })
+  } else {
+    rawBiomassMap <- sim$rawBiomassMap
+    if (!.compareCRS(sim$rawBiomassMap, sim$studyAreaLarge)) {
+      ## note that extents may never align if the resolution and projection do not allow for it
+      rawBiomassMap <- Cache(postProcess,
+                             rawBiomassMap,
+                             method = "bilinear",
+                             cropTo = sim$studyAreaLarge,
+                             maskTo = sim$studyAreaLarge,
+                             projectTo = NA,  ## don't project to SA
                                overwrite = TRUE)
       }
     }
-  }
 
   RTMs <- prepRasterToMatch(studyArea = sim$studyAreaLarge,
                             studyAreaLarge = sim$studyAreaLarge,
@@ -364,13 +380,12 @@ biomassDataInit <- function(sim) {
                             cacheTags = cacheTags)
   sim$rasterToMatchLarge <- RTMs$rasterToMatchLarge
   rm(RTMs)
+  }
 
-
-  if (!compareCRS(sim$studyAreaLarge, sim$rasterToMatchLarge)) {
+  if (st_crs(sim$studyAreaLarge) != st_crs(sim$rasterToMatchLarge)) {
     warning(paste0("studyAreaLarge and rasterToMatchLarge projections differ.\n",
                    "studyAreaLarge will be projected to match rasterToMatchLarge"))
-    sim$studyAreaLarge <- spTransform(sim$studyAreaLarge, raster::crs(sim$rasterToMatchLarge))
-    sim$studyAreaLarge <- fixErrors(sim$studyAreaLarge)
+    sim$studyAreaLarge <- projectTo(sim$studyAreaLarge, sim$rasterToMatchLarge)
   }
 
   ## Species equivalencies table and associated columns ----------------------------
@@ -383,7 +398,8 @@ biomassDataInit <- function(sim) {
   paramCheckOtherMods(sim, "vegLeadingProportion", ifSetButDifferent = "error")
 
   sppOuts <- sppHarmonize(sim$sppEquiv, sim$sppNameVector, P(sim)$sppEquivCol,
-                          sim$sppColorVect, P(sim)$vegLeadingProportion, sim$studyAreaLarge)
+                          sim$sppColorVect, P(sim)$vegLeadingProportion, sim$studyAreaLarge,
+                          dPath = dPath)
   ## the following may, or may not change inputs
   sim$sppEquiv <- sppOuts$sppEquiv
   sim$sppNameVector <- sppOuts$sppNameVector
@@ -391,4 +407,12 @@ biomassDataInit <- function(sim) {
   sim$sppColorVect <- sppOuts$sppColorVect
 
   return(invisible(sim))
+}
+
+## older versions of SpaDES.core don't have this function
+if (packageVersion("SpaDES.core") < "2.0.2.9001") {
+  figurePath <- function(sim) {
+    file.path(outputPath(sim), "figures", current(sim)[["moduleName"]]) |>
+      checkPath(create = TRUE)
+  }
 }
