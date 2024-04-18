@@ -232,7 +232,8 @@ biomassDataInit <- function(sim) {
   ## this can happen when data has NAs instead of 0s and is not merged/overlayed (e.g. CASFRI)
   tempRas <- sim$rasterToMatchLarge
   tempRas[!is.na(tempRas[])] <- 0
-  sim$speciesLayers <- cover(sim$speciesLayers, tempRas)
+  sim$speciesLayers <- raster::cover(sim$speciesLayers, tempRas)
+  names(sim$speciesLayers) <- species
   rm(tempRas)
 
   ## filter out species with no data, or too little cover (some prepSpeciesLayers_*/overlay are not doing this)
@@ -348,12 +349,12 @@ biomassDataInit <- function(sim) {
 
       httr::with_config(config = httr::config(ssl_verifypeer = P(sim)$.sslVerify), {
         rawBiomassMap <- prepRawBiomassMap(url = biomassURL,
-                                         studyAreaName = P(sim)$.studyAreaName,
-                                         cacheTags = cacheTags,
-                                         cropTo = sim$studyAreaLarge,
-                                         maskTo = sim$studyAreaLarge,
-                                         projectTo = NA,  ## don't project to SA
-                                         destinationPath = dPath)
+                                           studyAreaName = P(sim)$.studyAreaName,
+                                           cacheTags = cacheTags,
+                                           cropTo = sim$studyAreaLarge,
+                                           maskTo = sim$studyAreaLarge,
+                                           projectTo = NA,  ## don't project to SA
+                                           destinationPath = dPath)
     })
   } else {
     rawBiomassMap <- sim$rawBiomassMap
