@@ -21,8 +21,6 @@ defineModule(sim, list(
   documentation = list("README.txt", "Biomass_speciesData.Rmd"),
   reqdPkgs = list("data.table", "magrittr", "pryr",
                   "raster", "reproducible (>= 1.2.6.9005)", "SpaDES.core", "SpaDES.tools",
-                  # "curl", "httr", ## called directly by this module, but pulled in by LandR (Sep 6th 2022).
-                  ## Excluded because loading is not necessary (just installation)
                   "PredictiveEcology/LandR@development (>= 1.0.9.9000)",
                   "PredictiveEcology/pemisc@development"),
   parameters = bindrows(
