@@ -22,13 +22,10 @@ defineModule(sim, list(
   loadOrder = list(before = c("Biomass_borealDataPrep", "Biomass_core")),
   reqdPkgs = list("data.table", "pryr", "RCurl",
                   "sf", "terra", "XML",
-                  # "curl", "httr", ## called directly by this module, but pulled in by LandR (Sep 6th 2022).
-                  ## Excluded because loading is not necessary (just installation)
+                  "reproducible (>= 2.0.8.9012)",
+                  "SpaDES.core (>= 2.0.2.9004)", "SpaDES.tools (>= 1.0.2)",
                   "PredictiveEcology/LandR@development (>= 1.1.0.9076)",
-                  "PredictiveEcology/pemisc@development",
-                  "PredictiveEcology/reproducible@reproducibleTempCacheDir (>= 2.0.8.9012)",
-                  "PredictiveEcology/SpaDES.tools@development (>= 1.0.2)",
-                  "PredictiveEcology/SpaDES.core@development (>= 2.0.2.9004)"),
+                  "PredictiveEcology/pemisc@development"),
   parameters = bindrows(
     #defineParameter("paramName", "paramClass", value, min, max, "parameter description"),
     defineParameter("coverThresh", "integer", 10L, NA, NA,
