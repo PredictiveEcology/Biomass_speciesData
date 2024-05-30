@@ -22,7 +22,7 @@ defineModule(sim, list(
   loadOrder = list(before = c("Biomass_borealDataPrep", "Biomass_core")),
   reqdPkgs = list("data.table", "pryr", "RCurl",
                   "sf", "terra", "XML",
-                  "reproducible (>= 2.0.8.9012)",
+                  "reproducible (>= 2.1.0)",
                   "SpaDES.core (>= 2.0.2.9004)", "SpaDES.tools (>= 1.0.2)",
                   "PredictiveEcology/LandR@development (>= 1.1.0.9076)",
                   "PredictiveEcology/pemisc@development"),
