@@ -23,7 +23,7 @@ defineModule(sim, list(
   reqdPkgs = list("data.table", "pryr", "RCurl",
                   "sf", "terra", "XML",
                   "reproducible (>= 2.1.0)",
-                  "SpaDES.core (>= 2.0.2.9004)", "SpaDES.tools (>= 1.0.2)",
+                  "SpaDES.core (>= 2.1.0)", "SpaDES.tools (>= 1.0.2)",
                   "PredictiveEcology/LandR@development (>= 1.1.0.9076)",
                   "PredictiveEcology/pemisc@development"),
   parameters = bindrows(
@@ -406,10 +406,3 @@ biomassDataInit <- function(sim) {
   return(invisible(sim))
 }
 
-## older versions of SpaDES.core don't have this function
-if (packageVersion("SpaDES.core") < "2.0.2.9001") {
-  figurePath <- function(sim) {
-    file.path(outputPath(sim), "figures", current(sim)[["moduleName"]]) |>
-      checkPath(create = TRUE)
-  }
-}
