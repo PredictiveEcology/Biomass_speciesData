@@ -1,6 +1,6 @@
 ---
 title: "LandR _Biomass_speciesData_ Manual"
-date: "Last updated: 2022-10-24"
+date: "Last updated: 2022-11-04"
 output:
   bookdown::html_document2:
     toc: true
@@ -38,7 +38,7 @@ always_allow_html: true
 
 
 
-[![module-version-Badge](D:/GitHub/LandR-Manual/modules/Biomass_speciesData/figures/moduleVersionBadge.png)](https://github.com/PredictiveEcology/Biomass_speciesData/commit/505fa065399da93e817424373ee1160e46703ce3)
+[![module-version-Badge](D:/GitHub/LandR-Manual/modules/Biomass_speciesData/figures/moduleVersionBadge.png)](https://github.com/CeresBarros/Biomass_speciesData/commit/7a53b4999a56e6a5d75c2217251eff4b76a6edaa)
 
 [![Issues-badge](D:/GitHub/LandR-Manual/modules/Biomass_speciesData/figures/issuesBadge.png)](https://github.com/PredictiveEcology/Biomass_speciesData/issues)
 
@@ -161,7 +161,7 @@ convention used throughout the simulation (defined by the `sppEquivCol`
 parameter). See Table \@ref(tab:mergingSpp-Biomass-speciesData) for an
 example.
 
-<table>
+<table class="table" style="margin-left: auto; margin-right: auto;">
 <caption>(\#tab:mergingSpp-Biomass-speciesData)Example of species merging for simulation. Here the user wants to model (ref:Abie-bal), (ref:Abie-las) and (ref:Pinu-con) as separate species, but all (ref:Pice-sp) as a genus-level group. For this, all six species are separately identified in the 'KNN' column, so that their (ref:percent) cover layers can be obtained, but in the 'Boreal' column (which defines the naming convention used in the simulation in this example) all (ref:Pice-sp) have the same name. (ref:Biomass-speciesData) will merge their (ref:percent) cover data into a single layer by summing their cover per pixel.</caption>
  <thead>
   <tr>
@@ -183,6 +183,18 @@ example.
    <td style="text-align:left;"> Abie_Las </td>
    <td style="text-align:left;"> Abie_Las </td>
    <td style="text-align:left;font-style: italic;"> Abies lasiocarpa </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-style: italic;"> Picea engelmannii x glauca </td>
+   <td style="text-align:left;"> Pice_Eng_Gla </td>
+   <td style="text-align:left;"> Pice_Spp </td>
+   <td style="text-align:left;font-style: italic;"> Picea spp. </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-style: italic;"> Picea engelmannii x glauca </td>
+   <td style="text-align:left;"> Pice_Eng_Gla </td>
+   <td style="text-align:left;"> Pice_Spp </td>
+   <td style="text-align:left;font-style: italic;"> Picea spp. </td>
   </tr>
   <tr>
    <td style="text-align:left;font-style: italic;"> Picea engelmannii </td>
@@ -214,7 +226,7 @@ example.
 \newpage
 \blandscape
 
-<table>
+<table class="table" style="margin-left: auto; margin-right: auto;">
 <caption>(\#tab:moduleInputs2-Biomass-speciesData)List of (ref:Biomass-speciesData) input objects and their description.</caption>
  <thead>
   <tr>
@@ -232,6 +244,12 @@ example.
    <td style="text-align:left;">  </td>
   </tr>
   <tr>
+   <td style="text-align:left;"> rawBiomassMap </td>
+   <td style="text-align:left;"> RasterLayer </td>
+   <td style="text-align:left;"> total biomass raster layer in study area. Only used to create `rasterToMatchLarge` if necessary. Defaults to the Canadian Forestry Service, National Forest Inventory, kNN-derived total aboveground biomass map from 2001 (in tonnes/ha), unless 'dataYear' != 2001. See https://open.canada.ca/data/en/dataset/ec9e2659-1c29-4ddb-87a2-6aced147a990 for metadata. </td>
+   <td style="text-align:left;">  </td>
+  </tr>
+  <tr>
    <td style="text-align:left;"> sppColorVect </td>
    <td style="text-align:left;"> character </td>
    <td style="text-align:left;"> A named vector of colors to use for plotting. The names must be in `sim$sppEquiv[[sim$sppEquivCol]]`, and should also contain a color for 'Mixed' </td>
@@ -242,6 +260,12 @@ example.
    <td style="text-align:left;"> data.table </td>
    <td style="text-align:left;"> table of species equivalencies. See `LandR::sppEquivalencies_CA`. </td>
    <td style="text-align:left;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> sppNameVector </td>
+   <td style="text-align:left;"> character </td>
+   <td style="text-align:left;"> an optional vector of species names to be pulled from `sppEquiv`. Species names must match `P(sim)$sppEquivCol` column in `sppEquiv`. If not provided, then species will be taken from the entire `P(sim)$sppEquivCol` column in `sppEquiv`. See `LandR::sppEquivalencies_CA`. </td>
+   <td style="text-align:left;"> NA </td>
   </tr>
   <tr>
    <td style="text-align:left;"> studyAreaLarge </td>
@@ -290,7 +314,7 @@ ForestInventory layers.
 \newpage
 \blandscape
 
-<table>
+<table class="table" style="margin-left: auto; margin-right: auto;">
 <caption>(\#tab:moduleParams2-Biomass-speciesData)List of (ref:Biomass-speciesData) parameters and their description.</caption>
  <thead>
   <tr>
@@ -317,7 +341,7 @@ ForestInventory layers.
    <td style="text-align:left;"> 2001 </td>
    <td style="text-align:left;"> NA </td>
    <td style="text-align:left;"> NA </td>
-   <td style="text-align:left;"> Passed to `paste0('prepSpeciesLayers_', types)` function to fetch data from that year (if applicable). Defaults to 2001 as the default kNN year. </td>
+   <td style="text-align:left;"> vpaste("Passed to `paste0('prepSpeciesLayers_', types)` function to fetch data", "from that year (if applicable). Defaults to 2001 as the default kNN year.") </td>
   </tr>
   <tr>
    <td style="text-align:left;"> sppEquivCol </td>
@@ -360,6 +384,14 @@ ForestInventory layers.
    <td style="text-align:left;"> This describes the simulation time interval between plot events </td>
   </tr>
   <tr>
+   <td style="text-align:left;"> .plots </td>
+   <td style="text-align:left;"> character </td>
+   <td style="text-align:left;"> screen </td>
+   <td style="text-align:left;"> NA </td>
+   <td style="text-align:left;"> NA </td>
+   <td style="text-align:left;"> Passed to `types` in `Plots` (see `?Plots`). There are a few plots that are made within this module, if set. Note that plots (or their data) saving will ONLY occur at `end(sim)`. If `NA`, plotting is turned off completely (this includes plot saving). </td>
+  </tr>
+  <tr>
    <td style="text-align:left;"> .saveInitialTime </td>
    <td style="text-align:left;"> numeric </td>
    <td style="text-align:left;"> NA </td>
@@ -381,7 +413,7 @@ ForestInventory layers.
    <td style="text-align:left;"> 64 </td>
    <td style="text-align:left;"> NA </td>
    <td style="text-align:left;"> NA </td>
-   <td style="text-align:left;"> Passed to `httr::config(ssl_verifypeer = P(sim)$.sslVerify)` when downloading KNN (NFI) datasets. Set to 0L if necessary to bypass checking the SSL certificate (this may be necessary when NFI's FTP website SSL certificate is down/out-of-date). </td>
+   <td style="text-align:left;"> Passed to `httr::config(ssl_verifypeer = P(sim)$.sslVerify)` when downloading KNN (NFI) datasets. Set to 0L if necessary to bypass checking the SSL certificate (this may be necessary when NFI's website SSL certificate is not correctly configured). </td>
   </tr>
   <tr>
    <td style="text-align:left;"> .studyAreaName </td>
@@ -419,7 +451,7 @@ The module produces the outputs in Table
 processed species cover layers in the output path defined in
 `getPaths(sim)$outputPath`.
 
-<table>
+<table class="table" style="margin-left: auto; margin-right: auto;">
 <caption>(\#tab:moduleOutputs-Biomass-speciesData)List of (ref:Biomass-speciesData) output objects and their description.</caption>
  <thead>
   <tr>
@@ -465,7 +497,7 @@ there are available (ref:percent) cover layers in the kNN dataset (Table
 \@ref(tab:defaultSppBiomass-speciesData); see `?LandR::sppEquivalencies_CA` for
 more information):
 
-<table>
+<table class="table" style="margin-left: auto; margin-right: auto;">
 <caption>(\#tab:defaultSppBiomass-speciesData)List of species cover data downloaded by default by (ref:Biomass-speciesData).</caption>
  <thead>
   <tr>
@@ -535,6 +567,10 @@ more information):
    <td style="text-align:left;"> Black ash </td>
   </tr>
   <tr>
+   <td style="text-align:left;font-style: italic;"> Fraxinus spp. </td>
+   <td style="text-align:left;"> Ash </td>
+  </tr>
+  <tr>
    <td style="text-align:left;font-style: italic;"> Larix laricina </td>
    <td style="text-align:left;"> Tamarack </td>
   </tr>
@@ -549,6 +585,14 @@ more information):
   <tr>
    <td style="text-align:left;font-style: italic;"> Larix spp. </td>
    <td style="text-align:left;"> Larch </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-style: italic;"> Picea engelmannii x glauca </td>
+   <td style="text-align:left;"> Engelmann's spruce </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-style: italic;"> Picea engelmannii x glauca </td>
+   <td style="text-align:left;"> Engelmann's spruce </td>
   </tr>
   <tr>
    <td style="text-align:left;font-style: italic;"> Picea engelmannii </td>
@@ -664,8 +708,7 @@ cover data into layers used by other modules.
 
 ```r
 options(repos = c(CRAN = "https://cloud.r-project.org"))
-# tempDir <- tempdir()
-tempDir <- "C:/Users/cbarros/AppData/Local/Temp/Biomass_sppData-example"
+tempDir <- tempdir()
 
 pkgPath <- file.path(tempDir, "packages", version$platform,
                      paste0(version$major, ".", strsplit(version$minor, "[.]")[[1]][1]))
@@ -673,18 +716,22 @@ dir.create(pkgPath, recursive = TRUE)
 .libPaths(pkgPath, include.site = FALSE)
 
 if (!require(Require, lib.loc = pkgPath)) {
-  install.packages("Require")
+  remotes::install_github(
+    paste0("PredictiveEcology/",
+           "Require@5c44205bf407f613f53546be652a438ef1248147"),
+    upgrade = FALSE, force = TRUE)
   library(Require, lib.loc = pkgPath)
 }
 
 setLinuxBinaryRepo()
 ```
 
-### Get the module and module dependencies {#bsppdataexample-pkg-mods}
+### Get the module and module dependencies {#bsppdata-example-pkg-mods}
 
 
 ```r
-Require("PredictiveEcology/SpaDES.project@6d7de6ee12fc967c7c60de44f1aa3b04e6eeb5db", 
+Require(paste0("PredictiveEcology/",
+               "SpaDES.project@6d7de6ee12fc967c7c60de44f1aa3b04e6eeb5db"), 
         require = FALSE, upgrade = FALSE, standAlone = TRUE)
 
 paths <- list(inputPath = normPath(file.path(tempDir, "inputs")), 
@@ -750,7 +797,8 @@ set to `1` here.
 
 ```r
 opts <- options(reproducible.useCache = TRUE,
-                spades.inputPath = paths$inputPath)
+                reproducible.destinationPath = paths$inputPath,
+                reproducible.useCache)
 
 mySimOut <- simInitAndSpades(times = list(start = 1, end = 1),
                              modules = modules, 
