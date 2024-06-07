@@ -4,7 +4,7 @@
 # in R packages. If exact location is required, functions will be: sim$<moduleName>$FunctionName
 defineModule(sim, list(
   name = "Biomass_speciesData",
-  description = paste("Download and pre-process species % cover raster data, overlaying",
+  description = paste("Download and pre-process species percent cover raster data, overlaying",
                       "lower quality data with higher quality data."),
   keywords = c("LandWeb", "LandR", "LandR Biomass", "species percent cover"),
   authors = c(
