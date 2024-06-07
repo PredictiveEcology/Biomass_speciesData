@@ -23,7 +23,7 @@ defineModule(sim, list(
   reqdPkgs = list("data.table", "pryr", "RCurl",
                   "sf", "terra", "XML",
                   "reproducible (>= 2.1.0)",
-                  "SpaDES.core (>= 2.1.0)", "SpaDES.tools (>= 1.0.2)",
+                  "SpaDES.core (>= 2.1.4)", "SpaDES.tools (>= 1.0.2)",
                   "PredictiveEcology/LandR (>= 1.1.0.9076)",
                   "PredictiveEcology/pemisc@development"),
   parameters = bindrows(
