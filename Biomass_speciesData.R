@@ -186,19 +186,20 @@ biomassDataInit <- function(sim) {
     }
     fn <- get(fnName)
     httr::with_config(config = httr::config(ssl_verifypeer = P(sim)$.sslVerify), {
-      speciesLayersNew <- Cache(fn,
-                                destinationPath = dPath, # this is generic files (preProcess)
-                                outputPath = outputPath(sim), # this will be the studyArea-specific files (postProcess)
-                                studyArea = sim$studyAreaLarge,
-                                studyAreaName = P(sim)$.studyAreaName,
-                                rasterToMatch = sim$rasterToMatchLarge,
-                                sppEquiv = sim$sppEquiv,
-                                sppEquivCol = P(sim)$sppEquivCol,
-                                thresh = P(sim)$coverThresh,
-                                year = P(sim)$dataYear,
-                                .functionName = fnName,
-                                userTags = c(cacheTags, fnName, "prepSpeciesLayers"),
-                                omitArgs = c("userTags"))
+      speciesLayersNew <- fn(
+        destinationPath = dPath, # this is generic files (preProcess)
+        outputPath = outputPath(sim), # this will be the studyArea-specific files (postProcess)
+        studyArea = sim$studyAreaLarge,
+        studyAreaName = P(sim)$.studyAreaName,
+        rasterToMatch = sim$rasterToMatchLarge,
+        sppEquiv = sim$sppEquiv,
+        sppEquivCol = P(sim)$sppEquivCol,
+        thresh = P(sim)$coverThresh,
+        year = P(sim)$dataYear,
+        .functionName = fnName,
+        userTags = c(cacheTags, fnName, "prepSpeciesLayers"),
+        omitArgs = c("userTags")
+      ) ## |> Cache() ## Cache retrieving RasterList as SpatRaster, so subsequent use breaks
     })
 
     sim$speciesLayers <- if (length(sim$speciesLayers) > 0) {
