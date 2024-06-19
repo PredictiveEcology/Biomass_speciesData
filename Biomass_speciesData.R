@@ -129,8 +129,7 @@ doEvent.Biomass_speciesData <- function(sim, eventTime, eventType) {
   switch(
     eventType,
     init = {
-      sim <- scheduleEvent(sim, P(sim)$.plotInitialTime, "Biomass_speciesData", "initPlot",
-                           eventPriority = 1)
+      sim <- scheduleEvent(sim, start(sim), "Biomass_speciesData", "initPlot", eventPriority = .first())
 
       sim <- biomassDataInit(sim)
     },
