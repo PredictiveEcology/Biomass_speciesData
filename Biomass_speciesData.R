@@ -13,7 +13,7 @@ defineModule(sim, list(
     person(c("Alex", "M."), "Chubaty", email = "achubaty@for-cast.ca", role = c("aut"))
   ),
   childModules = character(0),
-  version = list(Biomass_speciesData = "1.0.4"),
+  version = list(Biomass_speciesData = "1.0.5"),
   spatialExtent = raster::extent(rep(NA_real_, 4)),
   timeframe = as.POSIXlt(c(NA, NA)),
   timeunit = "year",
@@ -276,7 +276,7 @@ biomassDataInit <- function(sim) {
     sim$speciesLayers <- .stack(sim$speciesLayers)
   }
 
-  setNames(sim$speciesLayers, species)
+  sim$speciesLayers <- setNames(sim$speciesLayers, species)
 
   singular <- length(P(sim)$types) == 1
   message("sim$speciesLayers is from ", paste(P(sim)$types, collapse = ", "),
