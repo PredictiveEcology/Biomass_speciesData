@@ -14,7 +14,6 @@ defineModule(sim, list(
   ),
   childModules = character(0),
   version = list(Biomass_speciesData = "1.0.5"),
-  spatialExtent = raster::extent(rep(NA_real_, 4)),
   timeframe = as.POSIXlt(c(NA, NA)),
   timeunit = "year",
   citation = list("citation.bib"),
