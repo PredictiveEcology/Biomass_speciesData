@@ -175,6 +175,8 @@ biomassDataInit <- function(sim) {
     envirName <- attr(whereIsFnName, "name")
     if (is.null(envirName))
       envirName <- environmentName(whereIsFnName)
+    if (!is.character(envirName)) # this is from "box" package; slightly different
+      envirName <- environmentName(envirName)
 
     message("#############################################")
     message(type, " -- Loading using ", fnName, " located in ", envirName)
