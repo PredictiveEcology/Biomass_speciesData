@@ -4,7 +4,7 @@
 # in R packages. If exact location is required, functions will be: sim$<moduleName>$FunctionName
 defineModule(sim, list(
   name = "Biomass_speciesData",
-  description = paste("Download and pre-process species % cover raster data, overlaying",
+  description = paste("Download and pre-process species percent cover raster data, overlaying",
                       "lower quality data with higher quality data."),
   keywords = c("LandWeb", "LandR", "LandR Biomass", "species percent cover"),
   authors = c(
@@ -13,8 +13,7 @@ defineModule(sim, list(
     person(c("Alex", "M."), "Chubaty", email = "achubaty@for-cast.ca", role = c("aut"))
   ),
   childModules = character(0),
-  version = list(Biomass_speciesData = "1.0.4"),
-  spatialExtent = raster::extent(rep(NA_real_, 4)),
+  version = list(Biomass_speciesData = "1.0.5"),
   timeframe = as.POSIXlt(c(NA, NA)),
   timeunit = "year",
   citation = list("citation.bib"),
@@ -30,27 +29,28 @@ defineModule(sim, list(
     #defineParameter("paramName", "paramClass", value, min, max, "parameter description"),
     defineParameter("coverThresh", "integer", 10L, NA, NA,
                     desc = paste("The minimum % cover a species needs to have (per pixel) in the study",
-                          "area to be considered present")),
+                                 "area to be considered present")),
     defineParameter("dataYear", "numeric", 2001, NA, NA,
                     paste("Passed to `paste0('prepSpeciesLayers_', types)` function to fetch data",
                           "from that year (if applicable). Defaults to 2001 as the default kNN year.")),
     defineParameter("sppEquivCol", "character", "Boreal", NA, NA,
                     desc = paste("The column in `sim$sppEquiv` data.table to group species by and use as a",
-                          "naming convention. If different species in, e.g., the kNN data have the same",
-                          "name in the chosen column, their data are merged into one species by summing",
-                          "their % cover in each raster cell.")),
+                                 "naming convention. If different species in, e.g., the kNN data have the same",
+                                 "name in the chosen column, their data are merged into one species by summing",
+                                 "their percent cover in each raster cell.")),
     defineParameter("types", "character", "KNN", NA, NA,
                     desc = paste("The possible data sources. These must correspond to a function named",
-                          "`paste0('prepSpeciesLayers_', types)`. Defaults to 'KNN'",
-                          "to get the Canadian Forestry Service, National Forest Inventory,",
-                          "kNN-derived species cover maps from year 'dataYear', using the",
-                          "`LandR::prepSpeciesLayers_KNN` function (see https://open.canada.ca/",
-                          "data/en/dataset/ec9e2659-1c29-4ddb-87a2-6aced147a990 for details on these data).",
-                          "Other currently available options are 'ONFRI', 'CASFRI', 'Pickell' and",
-                          "'ForestInventory', which attempt to get proprietary data - the user must be granted",
-                          "access first. A custom function can be used to retrieve any data, just as long as",
-                          "it is accessible by the module (e.g., in the global environment) and is named as",
-                          "`paste0('prepSpeciesLayers_', types)`.")),
+                                 "`paste0('prepSpeciesLayers_', types)`. Defaults to 'KNN'",
+                                 "to get the Canadian Forestry Service, National Forest Inventory,",
+                                 "kNN-derived species cover maps from year 'dataYear', using the",
+                                 "`LandR::prepSpeciesLayers_KNN` function (see",
+                                 "https://open.canada.ca/data/en/dataset/ec9e2659-1c29-4ddb-87a2-6aced147a990",
+                                 "for details on these data).",
+                                 "Other currently available options are 'ONFRI', 'CASFRI', 'Pickell' and",
+                                 "'ForestInventory', which attempt to get proprietary data - the user must be granted",
+                                 "access first. A custom function can be used to retrieve any data, just as long as",
+                                 "it is accessible by the module (e.g., in the global environment) and is named as",
+                                 "`paste0('prepSpeciesLayers_', types)`.")),
     defineParameter("vegLeadingProportion", "numeric", 0.8, 0, 1,
                     desc = "a number that defines whether a species is leading for a given pixel. Only used for plotting."),
     defineParameter(".plotInitialTime", "numeric", NA, NA, NA,
@@ -59,17 +59,17 @@ defineModule(sim, list(
                     desc = "This describes the simulation time interval between plot events"),
     defineParameter(".plots", "character", c("screen"), NA, NA,
                     desc = paste("Passed to `types` in `Plots` (see `?Plots`).",
-                          "There are a few plots that are made within this module, if set.",
-                          "Note that plots (or their data) saving will ONLY occur at `end(sim)`.",
-                          "If `NA`, plotting is turned off completely (this includes plot saving).")),
+                                 "There are a few plots that are made within this module, if set.",
+                                 "Note that plots (or their data) saving will ONLY occur at `end(sim)`.",
+                                 "If `NA`, plotting is turned off completely (this includes plot saving).")),
     defineParameter(".saveInitialTime", "numeric", NA, NA, NA,
                     desc = "This describes the simulation time at which the first save event should occur"),
     defineParameter(".saveInterval", "numeric", NA, NA, NA,
                     "This describes the simulation time interval between save events"),
     defineParameter(".sslVerify", "integer", as.integer(unname(curl::curl_options("^ssl_verifypeer$"))), NA_integer_, NA_integer_,
                     desc = paste("Passed to `httr::config(ssl_verifypeer = P(sim)$.sslVerify)` when downloading KNN",
-                          "(NFI) datasets. Set to 0L if necessary to bypass checking the SSL certificate (this",
-                          "may be necessary when NFI's website SSL certificate is not correctly configured).")),
+                                 "(NFI) datasets. Set to 0L if necessary to bypass checking the SSL certificate (this",
+                                 "may be necessary when NFI's website SSL certificate is not correctly configured).")),
     defineParameter(".studyAreaName", "character", NA, NA, NA,
                     "Human-readable name for the study area used. If NA, a hash of `studyAreaLarge` will be used."),
     defineParameter(".useCache", "character", "init", NA, NA,
@@ -129,8 +129,7 @@ doEvent.Biomass_speciesData <- function(sim, eventTime, eventType) {
   switch(
     eventType,
     init = {
-      sim <- scheduleEvent(sim, P(sim)$.plotInitialTime, "Biomass_speciesData", "initPlot",
-                           eventPriority = 1)
+      sim <- scheduleEvent(sim, start(sim), "Biomass_speciesData", "initPlot", eventPriority = .first())
 
       sim <- biomassDataInit(sim)
     },
@@ -176,6 +175,8 @@ biomassDataInit <- function(sim) {
     envirName <- attr(whereIsFnName, "name")
     if (is.null(envirName))
       envirName <- environmentName(whereIsFnName)
+    if (!is.character(envirName)) # this is from "box" package; slightly different
+      envirName <- environmentName(envirName)
 
     message("#############################################")
     message(type, " -- Loading using ", fnName, " located in ", envirName)
@@ -186,19 +187,20 @@ biomassDataInit <- function(sim) {
     }
     fn <- get(fnName)
     httr::with_config(config = httr::config(ssl_verifypeer = P(sim)$.sslVerify), {
-      speciesLayersNew <- Cache(fn,
-                                destinationPath = dPath, # this is generic files (preProcess)
-                                outputPath = outputPath(sim), # this will be the studyArea-specific files (postProcess)
-                                studyArea = sim$studyAreaLarge,
-                                studyAreaName = P(sim)$.studyAreaName,
-                                rasterToMatch = sim$rasterToMatchLarge,
-                                sppEquiv = sim$sppEquiv,
-                                sppEquivCol = P(sim)$sppEquivCol,
-                                thresh = P(sim)$coverThresh,
-                                year = P(sim)$dataYear,
-                                .functionName = fnName,
-                                userTags = c(cacheTags, fnName, "prepSpeciesLayers"),
-                                omitArgs = c("userTags"))
+      speciesLayersNew <- fn(
+        destinationPath = dPath, # this is generic files (preProcess)
+        outputPath = outputPath(sim), # this will be the studyArea-specific files (postProcess)
+        studyArea = sim$studyAreaLarge,
+        studyAreaName = P(sim)$.studyAreaName,
+        rasterToMatch = sim$rasterToMatchLarge,
+        sppEquiv = sim$sppEquiv,
+        sppEquivCol = P(sim)$sppEquivCol,
+        thresh = P(sim)$coverThresh,
+        year = P(sim)$dataYear,
+        .functionName = fnName,
+        userTags = c(cacheTags, fnName, "prepSpeciesLayers"),
+        omitArgs = c("userTags")
+      ) ## |> Cache() ## Cache retrieving RasterList as SpatRaster, so subsequent use breaks
     })
 
     sim$speciesLayers <- if (length(sim$speciesLayers) > 0) {
@@ -275,7 +277,7 @@ biomassDataInit <- function(sim) {
     sim$speciesLayers <- .stack(sim$speciesLayers)
   }
 
-  setNames(sim$speciesLayers, species)
+  sim$speciesLayers <- setNames(sim$speciesLayers, species)
 
   singular <- length(P(sim)$types) == 1
   message("sim$speciesLayers is from ", paste(P(sim)$types, collapse = ", "),
