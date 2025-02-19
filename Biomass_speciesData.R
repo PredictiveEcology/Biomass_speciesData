@@ -33,7 +33,7 @@ defineModule(sim, list(
     defineParameter("dataYear", "numeric", 2001, NA, NA,
                     paste("Passed to `paste0('prepSpeciesLayers_', types)` function to fetch data",
                           "from that year (if applicable). Defaults to 2001 as the default kNN year.")),
-    defineParameter("sppEquivCol", "character", "Boreal", NA, NA,
+    defineParameter("sppEquivCol", "character", "LandR", NA, NA,
                     desc = paste("The column in `sim$sppEquiv` data.table to group species by and use as a",
                                  "naming convention. If different species in, e.g., the kNN data have the same",
                                  "name in the chosen column, their data are merged into one species by summing",
