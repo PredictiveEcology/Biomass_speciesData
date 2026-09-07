@@ -13,7 +13,7 @@ defineModule(sim, list(
     person(c("Alex", "M."), "Chubaty", email = "achubaty@for-cast.ca", role = c("aut"))
   ),
   childModules = character(0),
-  version = list(Biomass_speciesData = "1.0.5"),
+  version = list(Biomass_speciesData = "1.0.6"),
   timeframe = as.POSIXlt(c(NA, NA)),
   timeunit = "year",
   citation = list("citation.bib"),
@@ -205,7 +205,8 @@ biomassDataInit <- function(sim) {
         sppEquiv = sim$sppEquiv,
         sppEquivCol = P(sim)$sppEquivCol,
         thresh = P(sim)$coverThresh,
-        year = P(sim)$dataYear,
+        year = P(sim)$dataYear,     # read from `...` by prepSpeciesLayers_KNN()
+        dataYear = P(sim)$dataYear, # formal of prepSpeciesLayers_SCANFI() / _NTEMS(); was never reaching them
         .functionName = fnName,
         userTags = c(cacheTags, fnName, "prepSpeciesLayers"),
         omitArgs = c("userTags")
