@@ -228,9 +228,10 @@ biomassDataInit <- function(sim) {
 
   assertSpeciesLayers(sim$speciesLayers, P(sim)$coverThresh)
 
-  ## no tree species at all (e.g. non-forested ELFs) is a valid state; everything below assumes
-  ## at least one layer (masking, `[[sppKeep]]`, sum()), so carry the zero-layer stack through.
-  if (nlyr(sim$speciesLayers) == 0L) {
+  ## no tree species at all (e.g. non-forested ELFs) is a valid state, carried as NULL (a
+  ## zero-layer SpatRaster cannot be wrapped or written by terra, so it does not survive Cache);
+  ## everything below assumes at least one layer (masking, `[[sppKeep]]`, sum()).
+  if (is.null(sim$speciesLayers)) {
     return(invisible(sim))
   }
 
@@ -273,8 +274,8 @@ biomassDataInit <- function(sim) {
     }
   }
   if (length(sppKeep) == 0L) {
-    ## `x[[character(0)]]` errors in terra; a zero-layer SpatRaster is the valid "no species" state
-    sim$speciesLayers <- LandR:::.emptySpatRaster(sim$rasterToMatch_biomassParam)
+    ## `x[[character(0)]]` errors in terra; NULL is the valid "no species" state
+    sim$speciesLayers <- NULL
     return(invisible(sim))
   }
   sim$speciesLayers <- sim$speciesLayers[[sppKeep]]
