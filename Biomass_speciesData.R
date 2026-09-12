@@ -13,7 +13,7 @@ defineModule(sim, list(
     person(c("Alex", "M."), "Chubaty", email = "achubaty@for-cast.ca", role = c("aut"))
   ),
   childModules = character(0),
-  version = list(Biomass_speciesData = "1.0.6"),
+  version = list(Biomass_speciesData = "1.0.7"),
   timeframe = as.POSIXlt(c(NA, NA)),
   timeunit = "year",
   citation = list("citation.bib"),
@@ -228,6 +228,12 @@ biomassDataInit <- function(sim) {
 
   assertSpeciesLayers(sim$speciesLayers, P(sim)$coverThresh)
 
+  ## no tree species at all (e.g. non-forested ELFs) is a valid state; everything below assumes
+  ## at least one layer (masking, `[[sppKeep]]`, sum()), so carry the zero-layer stack through.
+  if (nlyr(sim$speciesLayers) == 0L) {
+    return(invisible(sim))
+  }
+
   species <- names(sim$speciesLayers)
 
   origFilenames <- vapply(
@@ -265,6 +271,11 @@ biomassDataInit <- function(sim) {
               "\n  No species layers were retained. Try lowering the threshold",
               " to retain species with low % cover")
     }
+  }
+  if (length(sppKeep) == 0L) {
+    ## `x[[character(0)]]` errors in terra; a zero-layer SpatRaster is the valid "no species" state
+    sim$speciesLayers <- LandR:::.emptySpatRaster(sim$rasterToMatch_biomassParam)
+    return(invisible(sim))
   }
   sim$speciesLayers <- sim$speciesLayers[[sppKeep]]
   species <- sppKeep
