@@ -134,7 +134,8 @@ doEvent.Biomass_speciesData <- function(sim, eventTime, eventType) {
     },
     initPlot = {
       ## TODO: use Plots() here to allow saving of the maps to png etc.
-      if (anyPlotting(P(sim)$.plots)) {
+      ## no tree species (speciesLayers NULL): nothing to map
+      if (anyPlotting(P(sim)$.plots) && !is.null(sim$speciesLayers)) {
         # browser()
         plt <- plotVTM(
           speciesStack = mask(sim$speciesLayers, sim$studyAreaReporting),
