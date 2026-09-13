@@ -23,7 +23,7 @@ defineModule(sim, list(
                   "sf", "terra", "XML",
                   "reproducible (>= 2.1.0)",
                   "SpaDES.core (>= 2.1.4)", "SpaDES.tools (>= 1.0.2)",
-                  "PredictiveEcology/LandR@development (>= 1.1.5.9063)",
+                  "PredictiveEcology/LandR@development (>= 1.2.0.9015)",
                   "PredictiveEcology/pemisc@development"),
   parameters = bindrows(
     #defineParameter("paramName", "paramClass", value, min, max, "parameter description"),
