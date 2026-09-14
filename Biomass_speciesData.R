@@ -13,7 +13,7 @@ defineModule(sim, list(
     person(c("Alex", "M."), "Chubaty", email = "achubaty@for-cast.ca", role = c("aut"))
   ),
   childModules = character(0),
-  version = list(Biomass_speciesData = "1.0.6"),
+  version = list(Biomass_speciesData = "1.0.7"),
   timeframe = as.POSIXlt(c(NA, NA)),
   timeunit = "year",
   citation = list("citation.bib"),
@@ -23,7 +23,7 @@ defineModule(sim, list(
                   "sf", "terra", "XML",
                   "reproducible (>= 2.1.0)",
                   "SpaDES.core (>= 2.1.4)", "SpaDES.tools (>= 1.0.2)",
-                  "PredictiveEcology/LandR@development (>= 1.1.5.9063)",
+                  "PredictiveEcology/LandR@development (>= 1.2.0.9015)",
                   "PredictiveEcology/pemisc@development"),
   parameters = bindrows(
     #defineParameter("paramName", "paramClass", value, min, max, "parameter description"),
@@ -134,7 +134,8 @@ doEvent.Biomass_speciesData <- function(sim, eventTime, eventType) {
     },
     initPlot = {
       ## TODO: use Plots() here to allow saving of the maps to png etc.
-      if (anyPlotting(P(sim)$.plots)) {
+      ## no tree species (speciesLayers NULL): nothing to map
+      if (anyPlotting(P(sim)$.plots) && !is.null(sim$speciesLayers)) {
         # browser()
         plt <- plotVTM(
           speciesStack = mask(sim$speciesLayers, sim$studyAreaReporting),
@@ -228,6 +229,13 @@ biomassDataInit <- function(sim) {
 
   assertSpeciesLayers(sim$speciesLayers, P(sim)$coverThresh)
 
+  ## no tree species at all (e.g. non-forested ELFs) is a valid state, carried as NULL (a
+  ## zero-layer SpatRaster cannot be wrapped or written by terra, so it does not survive Cache);
+  ## everything below assumes at least one layer (masking, `[[sppKeep]]`, sum()).
+  if (is.null(sim$speciesLayers)) {
+    return(invisible(sim))
+  }
+
   species <- names(sim$speciesLayers)
 
   origFilenames <- vapply(
@@ -265,6 +273,11 @@ biomassDataInit <- function(sim) {
               "\n  No species layers were retained. Try lowering the threshold",
               " to retain species with low % cover")
     }
+  }
+  if (length(sppKeep) == 0L) {
+    ## `x[[character(0)]]` errors in terra; NULL is the valid "no species" state
+    sim$speciesLayers <- NULL
+    return(invisible(sim))
   }
   sim$speciesLayers <- sim$speciesLayers[[sppKeep]]
   species <- sppKeep
