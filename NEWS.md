@@ -1,5 +1,11 @@
 Known issues: <https://github.com/PredictiveEcology/Biomass_speciesData/issues>
 
+# Biomass_speciesData (development version)
+
+* `vegLeadingProportion` now defaults to `getOption("NTEMS.mixedwoodProp", getOption("LandR.vegLeadingProportion", 0.8))`,
+  the same nested option LandR's `vegTypeMapGenerator()` uses, so one option sets the leading-species
+  threshold for every module and LandR function. The default is unchanged (0.8) when neither option is set.
+
 # Biomass_speciesData 1.0.5
 
 * switched the default species-layer data source from kNN to SCANFI (default year 2001 to 2020), updating input/output metadata, download logic, and references accordingly
