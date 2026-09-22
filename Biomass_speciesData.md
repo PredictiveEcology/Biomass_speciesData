@@ -1,6 +1,6 @@
 ---
 title: "LandR _Biomass_speciesData_ Manual"
-date: "Last updated: 2022-11-04"
+date: "Last updated: 2026-09-22"
 output:
   bookdown::html_document2:
     toc: true
@@ -38,9 +38,9 @@ always_allow_html: true
 
 
 
-[![module-version-Badge](D:/GitHub/LandR-Manual/modules/Biomass_speciesData/figures/moduleVersionBadge.png)](https://github.com/CeresBarros/Biomass_speciesData/commit/7a53b4999a56e6a5d75c2217251eff4b76a6edaa)
+[![module-version-Badge](figures/moduleVersionBadge.png)](https://github.com/PredictiveEcology/Biomass_speciesData16172f7ca85b46817527a6c0934651a56b68503a)
 
-[![Issues-badge](D:/GitHub/LandR-Manual/modules/Biomass_speciesData/figures/issuesBadge.png)](https://github.com/PredictiveEcology/Biomass_speciesData/issues)
+[![Issues-badge](figures/issuesBadge.png)](https://github.com/PredictiveEcology/Biomass_speciesData/issues)
 
 #### Authors:
 
@@ -103,17 +103,21 @@ the lowest quality data with higher quality data when several data sources are
 used. It's primary output is a `RasterStack` of species (ref:percent) cover,
 with each layer corresponding to a species.
 
-Currently, the module can access the Canadian National Forest Inventory (NFI)
-forest attributes kNN dataset [the default; @BeaudoinEtAl2017], the Common
-Attribute Schema for Forest Resource Inventories dataset [CASFRI; @Cosco2011],
-the Ontario Forest Resource Inventory (ONFRI), a dataset specific to Alberta
-compiled by Paul Pickell, and other Alberta forest inventory datasets. However,
-**only the NFI kNN data are freely available** and access to the other datasets
+Currently, the module can access the following datasets:
+- Canadian National Forest Inventory (NFI) forest attributes kNN dataset [`KNN`; @BeaudoinEtAl2014, @BeaudoinEtAl2017];
+- Common Attribute Schema for Forest Resource Inventories [`CASFRI` (v4); @Cosco2011],
+- Spatialized Canadian National Forest Inventory [`SCANFI`; @Guindon2023, @Guindon2024];
+- National Terrestrial Ecosystem Monitoring System for Canada Annual Tree Species [`NTEMS`; @Hermosilla2024];
+- Manitoba Forest Resource Inventory (`MBFRI`);
+- Ontario Forest Resource Inventory (`ONFRI`);
+- historical dataset specific to Western Canada compiled by Paul Pickell and Nicholas Coops [@Pickell2016] as part of the LandWeb project;
+- "current conditions" dataset specific to Western Canada compiled from forest resource inventories as part of the LandWeb project (`ForestInventory`);
+
+However, **only the NFI kNN data are freely available** and access to the other datasets
 must be granted by module developers and data owners, and requires a Google
 account. Nevertheless, the module is flexible enough that any user can use it to
 process additional datasets, provided that an adequate R function is passed to
-the module (see `types` parameter details in the [list of
-parameters](#bsppdata-params-list))
+the module (see `types` parameter details in the [list of parameters](#bsppdata-params-list)).
 
 When multiple data sources are used, the module will replace lower quality data
 with higher quality data following the order specified in the `types` parameter.
@@ -185,20 +189,14 @@ example.
    <td style="text-align:left;font-style: italic;"> Abies lasiocarpa </td>
   </tr>
   <tr>
-   <td style="text-align:left;font-style: italic;"> Picea engelmannii x glauca </td>
-   <td style="text-align:left;"> Pice_Eng_Gla </td>
-   <td style="text-align:left;"> Pice_Spp </td>
-   <td style="text-align:left;font-style: italic;"> Picea spp. </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-style: italic;"> Picea engelmannii x glauca </td>
-   <td style="text-align:left;"> Pice_Eng_Gla </td>
-   <td style="text-align:left;"> Pice_Spp </td>
-   <td style="text-align:left;font-style: italic;"> Picea spp. </td>
-  </tr>
-  <tr>
    <td style="text-align:left;font-style: italic;"> Picea engelmannii </td>
    <td style="text-align:left;"> Pice_Eng </td>
+   <td style="text-align:left;"> Pice_Spp </td>
+   <td style="text-align:left;font-style: italic;"> Picea spp. </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-style: italic;"> Picea engelmannii x glauca </td>
+   <td style="text-align:left;"> Pice_Eng_Gla </td>
    <td style="text-align:left;"> Pice_Spp </td>
    <td style="text-align:left;font-style: italic;"> Picea spp. </td>
   </tr>
@@ -215,10 +213,10 @@ example.
    <td style="text-align:left;font-style: italic;"> Picea spp. </td>
   </tr>
   <tr>
-   <td style="text-align:left;font-style: italic;"> Pinus contorta </td>
+   <td style="text-align:left;font-style: italic;"> Pinus contorta var. latifolia </td>
    <td style="text-align:left;"> Pinu_Con </td>
    <td style="text-align:left;"> Pinu_Con </td>
-   <td style="text-align:left;font-style: italic;"> Pinus contorta </td>
+   <td style="text-align:left;font-style: italic;"> Pinus contorta var. latifolia </td>
   </tr>
 </tbody>
 </table>
@@ -238,16 +236,16 @@ example.
  </thead>
 <tbody>
   <tr>
-   <td style="text-align:left;"> rasterToMatchLarge </td>
-   <td style="text-align:left;"> RasterLayer </td>
-   <td style="text-align:left;"> a raster of `studyAreaLarge` in the same resolution and projection the simulation's. Defaults to the using the Canadian Forestry Service, National Forest Inventory, kNN-derived stand biomass map. </td>
-   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> rasterToMatch </td>
+   <td style="text-align:left;"> SpatRaster </td>
+   <td style="text-align:left;"> conditionally used as template raster if studyArea_rasterToMatch_biomassParam and rasterTomatch_biomassParam are not supplied </td>
+   <td style="text-align:left;"> NA </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> rawBiomassMap </td>
-   <td style="text-align:left;"> RasterLayer </td>
-   <td style="text-align:left;"> total biomass raster layer in study area. Only used to create `rasterToMatchLarge` if necessary. Defaults to the Canadian Forestry Service, National Forest Inventory, kNN-derived total aboveground biomass map from 2001 (in tonnes/ha), unless 'dataYear' != 2001. See https://open.canada.ca/data/en/dataset/ec9e2659-1c29-4ddb-87a2-6aced147a990 for metadata. </td>
-   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> rasterToMatch_biomassParam </td>
+   <td style="text-align:left;"> SpatRaster </td>
+   <td style="text-align:left;"> a raster of `studyArea_biomassParam` in the same resolution and projection as the simulation's. </td>
+   <td style="text-align:left;"> NA </td>
   </tr>
   <tr>
    <td style="text-align:left;"> sppColorVect </td>
@@ -268,15 +266,21 @@ example.
    <td style="text-align:left;"> NA </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> studyAreaLarge </td>
-   <td style="text-align:left;"> SpatialPolygonsDataFrame </td>
-   <td style="text-align:left;"> Polygon to use as the parametrisation study area. Must be provided by the user. Note that `studyAreaLarge` is only used for parameter estimation, and can be larger than the actual study area used for LandR simulations (e.g, larger than `studyArea` in LandR Biomass_core). </td>
+   <td style="text-align:left;"> studyArea </td>
+   <td style="text-align:left;"> sf </td>
+   <td style="text-align:left;"> `sf` polygon or terra `SpatVector` to use as the study area - `nrow` must be one </td>
+   <td style="text-align:left;"> NA </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> studyArea_biomassParam </td>
+   <td style="text-align:left;"> sf </td>
+   <td style="text-align:left;"> Polygon to use as the parametrisation study area. Must be provided by the user. Note that `studyArea_biomassParam` is only used for parameter estimation, and can be larger than the actual study area used for LandR simulations (e.g., larger than `studyArea` in LandR `Biomass_core`). </td>
    <td style="text-align:left;"> NA </td>
   </tr>
   <tr>
    <td style="text-align:left;"> studyAreaReporting </td>
-   <td style="text-align:left;"> SpatialPolygonsDataFrame </td>
-   <td style="text-align:left;"> multipolygon (typically smaller/unbuffered than `studyAreaLarge` and `studyArea` in LandR Biomass_core) to use for plotting/reporting. If not provided, will default to `studyAreaLarge`. </td>
+   <td style="text-align:left;"> sf </td>
+   <td style="text-align:left;"> multipolygon (typically smaller/unbuffered than `studyArea_biomassParam` and `studyArea` in LandR `Biomass_core`) to use for plotting/reporting. If not provided, will default to `studyArea_biomassParam`. </td>
    <td style="text-align:left;"> NA </td>
   </tr>
 </tbody>
@@ -338,39 +342,39 @@ ForestInventory layers.
   <tr>
    <td style="text-align:left;"> dataYear </td>
    <td style="text-align:left;"> numeric </td>
-   <td style="text-align:left;"> 2001 </td>
+   <td style="text-align:left;"> 2020 </td>
    <td style="text-align:left;"> NA </td>
    <td style="text-align:left;"> NA </td>
-   <td style="text-align:left;"> vpaste("Passed to `paste0('prepSpeciesLayers_', types)` function to fetch data", "from that year (if applicable). Defaults to 2001 as the default kNN year.") </td>
+   <td style="text-align:left;"> Passed to `paste0('prepSpeciesLayers_', types)` function to fetch data from that year (if applicable). Defaults to 2020 as the default SCANFI year. </td>
   </tr>
   <tr>
    <td style="text-align:left;"> sppEquivCol </td>
    <td style="text-align:left;"> character </td>
-   <td style="text-align:left;"> Boreal </td>
+   <td style="text-align:left;"> LandR </td>
    <td style="text-align:left;"> NA </td>
    <td style="text-align:left;"> NA </td>
-   <td style="text-align:left;"> The column in `sim$sppEquiv` data.table to group species by and use as a naming convention. If different species in, e.g., the kNN data have the same name in the chosen column, their data are merged into one species by summing their % cover in each raster cell. </td>
+   <td style="text-align:left;"> The column in `sim$sppEquiv` data.table to group species by and use as a naming convention. If different species in, e.g., the SCANFI data have the same name in the chosen column, their data are merged into one species by summing their percent cover in each raster cell. </td>
   </tr>
   <tr>
    <td style="text-align:left;"> types </td>
    <td style="text-align:left;"> character </td>
-   <td style="text-align:left;"> KNN </td>
+   <td style="text-align:left;"> SCANFI </td>
    <td style="text-align:left;"> NA </td>
    <td style="text-align:left;"> NA </td>
-   <td style="text-align:left;"> The possible data sources. These must correspond to a function named `paste0('prepSpeciesLayers_', types)`. Defaults to 'KNN' to get the Canadian Forestry Service, National Forest Inventory, kNN-derived species cover maps from year 'dataYear', using the `LandR::prepSpeciesLayers_KNN` function (see https://open.canada.ca/ data/en/dataset/ec9e2659-1c29-4ddb-87a2-6aced147a990 for details on these data). Other currently available options are 'ONFRI', 'CASFRI', 'Pickell' and 'ForestInventory', which attempt to get proprietary data - the user must be granted access first. A custom function can be used to retrieve any data, just as long as it is accessible by the module (e.g., in the global environment) and is named as `paste0('prepSpeciesLayers_', types)`. </td>
+   <td style="text-align:left;"> The possible data sources. These must correspond to a function named `paste0('prepSpeciesLayers_', types)`. Defaults to 'SCANFI'. Other currently available options are: 'CASFRI', 'ForestInventory', 'KNN', 'MBFRI', 'NTEMS', 'ONFRI', 'Pickell'. All non-KNN datasets attempt to get proprietary data; the user must be granted access first. A custom function can be used to retrieve any data, just as long as it is accessible by the module (e.g., in the global environment) and is named as `paste0('prepSpeciesLayers_', types)`. </td>
   </tr>
   <tr>
    <td style="text-align:left;"> vegLeadingProportion </td>
    <td style="text-align:left;"> numeric </td>
-   <td style="text-align:left;"> 0.8 </td>
+   <td style="text-align:left;"> 0.75 </td>
    <td style="text-align:left;"> 0 </td>
    <td style="text-align:left;"> 1 </td>
-   <td style="text-align:left;"> a number that defines whether a species is leading for a given pixel. Only used for plotting. </td>
+   <td style="text-align:left;"> a number that defines whether a species is leading for a given pixel. Only used for plotting. Default: `LandR::leadingSpeciesProp()`, i.e. option `LandR.leadingSpeciesProp`, which takes `LandR.mixedwoodProp` (0.75) unless set. Setting it in one place moves every module and LandR function together. </td>
   </tr>
   <tr>
    <td style="text-align:left;"> .plotInitialTime </td>
    <td style="text-align:left;"> numeric </td>
-   <td style="text-align:left;"> NA </td>
+   <td style="text-align:left;"> 0 </td>
    <td style="text-align:left;"> NA </td>
    <td style="text-align:left;"> NA </td>
    <td style="text-align:left;"> This describes the simulation time at which the first plot event should occur </td>
@@ -413,7 +417,7 @@ ForestInventory layers.
    <td style="text-align:left;"> 64 </td>
    <td style="text-align:left;"> NA </td>
    <td style="text-align:left;"> NA </td>
-   <td style="text-align:left;"> Passed to `httr::config(ssl_verifypeer = P(sim)$.sslVerify)` when downloading KNN (NFI) datasets. Set to 0L if necessary to bypass checking the SSL certificate (this may be necessary when NFI's website SSL certificate is not correctly configured). </td>
+   <td style="text-align:left;"> Passed to `httr::config(ssl_verifypeer = P(sim)$.sslVerify)` when downloading NFI datasets. Set to 0L if necessary to bypass checking the SSL certificate (this may be necessary when NFI's website SSL certificate is not correctly configured). </td>
   </tr>
   <tr>
    <td style="text-align:left;"> .studyAreaName </td>
@@ -421,7 +425,7 @@ ForestInventory layers.
    <td style="text-align:left;"> NA </td>
    <td style="text-align:left;"> NA </td>
    <td style="text-align:left;"> NA </td>
-   <td style="text-align:left;"> Human-readable name for the study area used. If NA, a hash of `studyAreaLarge` will be used. </td>
+   <td style="text-align:left;"> Human-readable name for the study area used. If `NA`, a hash of `studyArea_biomassParam` will be used. </td>
   </tr>
   <tr>
    <td style="text-align:left;"> .useCache </td>
@@ -434,7 +438,7 @@ ForestInventory layers.
   <tr>
    <td style="text-align:left;"> .useParallel </td>
    <td style="text-align:left;"> numeric </td>
-   <td style="text-align:left;"> 16 </td>
+   <td style="text-align:left;"> 2 </td>
    <td style="text-align:left;"> NA </td>
    <td style="text-align:left;"> NA </td>
    <td style="text-align:left;"> Used in reading csv file with fread. Will be passed to `data.table::setDTthreads`. </td>
@@ -463,23 +467,8 @@ processed species cover layers in the output path defined in
 <tbody>
   <tr>
    <td style="text-align:left;"> speciesLayers </td>
-   <td style="text-align:left;"> RasterStack </td>
+   <td style="text-align:left;"> SpatRaster </td>
    <td style="text-align:left;"> biomass percentage raster layers by species in Canada species map </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> treed </td>
-   <td style="text-align:left;"> data.table </td>
-   <td style="text-align:left;"> Table with one logical column for each species, indicating whether there were non-zero cover values in each pixel. </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> numTreed </td>
-   <td style="text-align:left;"> numeric </td>
-   <td style="text-align:left;"> a named vector with number of pixels with non-zero cover values for each species </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> nonZeroCover </td>
-   <td style="text-align:left;"> numeric </td>
-   <td style="text-align:left;"> A single value indicating how many pixels have non-zero cover </td>
   </tr>
 </tbody>
 </table>
@@ -508,11 +497,11 @@ more information):
 <tbody>
   <tr>
    <td style="text-align:left;font-style: italic;"> Abies balsamea </td>
-   <td style="text-align:left;"> Balsam Fir </td>
+   <td style="text-align:left;"> Balsam fir </td>
   </tr>
   <tr>
    <td style="text-align:left;font-style: italic;"> Abies lasiocarpa </td>
-   <td style="text-align:left;"> Fir </td>
+   <td style="text-align:left;"> Subalpine fir </td>
   </tr>
   <tr>
    <td style="text-align:left;font-style: italic;"> Acer negundo </td>
@@ -523,24 +512,28 @@ more information):
    <td style="text-align:left;"> Striped maple </td>
   </tr>
   <tr>
-   <td style="text-align:left;font-style: italic;"> Acer saccharum </td>
-   <td style="text-align:left;"> Sugar maple </td>
+   <td style="text-align:left;font-style: italic;"> Acer saccharinum </td>
+   <td style="text-align:left;"> Silver maple </td>
   </tr>
   <tr>
-   <td style="text-align:left;font-style: italic;"> Acer spicatum </td>
-   <td style="text-align:left;"> Mountain maple </td>
+   <td style="text-align:left;font-style: italic;"> Acer saccharum </td>
+   <td style="text-align:left;"> Sugar maple </td>
   </tr>
   <tr>
    <td style="text-align:left;font-style: italic;"> Acer spp. </td>
    <td style="text-align:left;"> Maple </td>
   </tr>
   <tr>
-   <td style="text-align:left;font-style: italic;"> Alnus spp </td>
+   <td style="text-align:left;font-style: italic;"> Acer spicatum </td>
+   <td style="text-align:left;"> Mountain maple </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-style: italic;"> Alnus spp. </td>
    <td style="text-align:left;"> Alder </td>
   </tr>
   <tr>
    <td style="text-align:left;font-style: italic;"> Betula alleghaniensis </td>
-   <td style="text-align:left;"> Swamp birch </td>
+   <td style="text-align:left;"> Yellow birch </td>
   </tr>
   <tr>
    <td style="text-align:left;font-style: italic;"> Betula papyrifera </td>
@@ -587,24 +580,20 @@ more information):
    <td style="text-align:left;"> Larch </td>
   </tr>
   <tr>
-   <td style="text-align:left;font-style: italic;"> Picea engelmannii x glauca </td>
-   <td style="text-align:left;"> Engelmann's spruce </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-style: italic;"> Picea engelmannii x glauca </td>
-   <td style="text-align:left;"> Engelmann's spruce </td>
-  </tr>
-  <tr>
    <td style="text-align:left;font-style: italic;"> Picea engelmannii </td>
    <td style="text-align:left;"> Engelmann's spruce </td>
   </tr>
   <tr>
+   <td style="text-align:left;font-style: italic;"> Picea engelmannii x glauca </td>
+   <td style="text-align:left;"> Hybrid white x Englemann Spruce </td>
+  </tr>
+  <tr>
    <td style="text-align:left;font-style: italic;"> Picea glauca </td>
-   <td style="text-align:left;"> White.Spruce </td>
+   <td style="text-align:left;"> White spruce </td>
   </tr>
   <tr>
    <td style="text-align:left;font-style: italic;"> Picea mariana </td>
-   <td style="text-align:left;"> Black.Spruce </td>
+   <td style="text-align:left;"> Black spruce </td>
   </tr>
   <tr>
    <td style="text-align:left;font-style: italic;"> Picea spp. </td>
@@ -619,7 +608,7 @@ more information):
    <td style="text-align:left;"> Jack pine </td>
   </tr>
   <tr>
-   <td style="text-align:left;font-style: italic;"> Pinus contorta </td>
+   <td style="text-align:left;font-style: italic;"> Pinus contorta var. latifolia </td>
    <td style="text-align:left;"> Lodgepole pine </td>
   </tr>
   <tr>
@@ -635,16 +624,16 @@ more information):
    <td style="text-align:left;"> Pine </td>
   </tr>
   <tr>
+   <td style="text-align:left;font-style: italic;"> Populus balsamifera </td>
+   <td style="text-align:left;"> Balsam poplar </td>
+  </tr>
+  <tr>
    <td style="text-align:left;font-style: italic;"> Populus balsamifera v. balsamifera </td>
    <td style="text-align:left;"> Balsam poplar </td>
   </tr>
   <tr>
-   <td style="text-align:left;font-style: italic;"> Populus trichocarpa </td>
-   <td style="text-align:left;"> Black cottonwood </td>
-  </tr>
-  <tr>
    <td style="text-align:left;font-style: italic;"> Populus grandidentata </td>
-   <td style="text-align:left;"> White poplar </td>
+   <td style="text-align:left;"> Bigtooth aspen </td>
   </tr>
   <tr>
    <td style="text-align:left;font-style: italic;"> Populus spp. </td>
@@ -652,7 +641,11 @@ more information):
   </tr>
   <tr>
    <td style="text-align:left;font-style: italic;"> Populus tremuloides </td>
-   <td style="text-align:left;"> Trembling poplar </td>
+   <td style="text-align:left;"> Trembling aspen </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-style: italic;"> Populus trichocarpa </td>
+   <td style="text-align:left;"> Black cottonwood </td>
   </tr>
   <tr>
    <td style="text-align:left;font-style: italic;"> Tsuga canadensis </td>
@@ -693,8 +686,8 @@ number of pixels with forest cover are calculated (`treed`and `numTreed`
 output objects; see [list of outputs](#bsppdata-outputs-list)).
 
 [^biomass_speciesdata-1]: Raw data layers downloaded by the module are saved in
-\`dataPath(sim)\`, which can be controlled via
-\`options(reproducible.destinationPath = ...)\`.
+`dataPath(sim)`, which can be controlled via
+`options(reproducible.destinationPath = ...)`.
 
 ## Usage example {#bsppdata-example}
 
@@ -706,7 +699,7 @@ cover data into layers used by other modules.
 ### Set up R libraries {#bsppdata-example-libs}
 
 
-```r
+``` r
 options(repos = c(CRAN = "https://cloud.r-project.org"))
 tempDir <- tempdir()
 
@@ -729,7 +722,7 @@ setLinuxBinaryRepo()
 ### Get the module and module dependencies {#bsppdata-example-pkg-mods}
 
 
-```r
+``` r
 Require(paste0("PredictiveEcology/",
                "SpaDES.project@6d7de6ee12fc967c7c60de44f1aa3b04e6eeb5db"), 
         require = FALSE, upgrade = FALSE, standAlone = TRUE)
@@ -764,7 +757,7 @@ We pass the global parameter `.plotInitialTime = 1` in the `simInitAndSpades`
 function to activate plotting.
 
 
-```r
+``` r
 # User may want to set some options -- see ?reproducibleOptions 
 #    -- e.g., often the path to the 'inputs' folder will be set outside of project by user:
 # options(reproducible.inputPaths = "E:/Data/LandR_related/") # to re-use datasets across projects
@@ -795,10 +788,11 @@ the simulation) we are not iterating it and so both the start and end times are
 set to `1` here.
 
 
-```r
-opts <- options(reproducible.useCache = TRUE,
-                reproducible.destinationPath = paths$inputPath,
-                reproducible.useCache)
+``` r
+opts <- options(
+  reproducible.destinationPath = paths$inputPath,
+  reproducible.useCache = TRUE
+)
 
 mySimOut <- simInitAndSpades(times = list(start = 1, end = 1),
                              modules = modules, 
@@ -813,8 +807,9 @@ Here are some of outputs of *Biomass_speciesData* (dominant species) in a
 randomly generated study area within Canada.
 
 <div class="figure" style="text-align: center">
-<img src="D:/GitHub/LandR-Manual/modules/Biomass_speciesData/figures/testRunFigure.png" alt="(ref:Biomass-speciesData) automatically generates a plot of species dominance and number of presences in the study area when `.plotInitialTime=1` is passed as an argument." width="70%" />
+<img src="figures/testRunFigure.png" alt="(ref:Biomass-speciesData) automatically generates a plot of species dominance and number of presences in the study area when `.plotInitialTime=1` is passed as an argument." width="70%" />
 <p class="caption">(\#fig:fig-Biomass-speciesDataOutPlots)(ref:Biomass-speciesData) automatically generates a plot of species dominance and number of presences in the study area when `.plotInitialTime=1` is passed as an argument.</p>
 </div>
 
 ## References {#bsppdata-refs}
+
