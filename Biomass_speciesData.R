@@ -13,13 +13,13 @@ defineModule(sim, list(
     person(c("Alex", "M."), "Chubaty", email = "achubaty@for-cast.ca", role = c("aut"))
   ),
   childModules = character(0),
-  version = list(Biomass_speciesData = "1.0.7.9000"),
+  version = list(Biomass_speciesData = "1.0.7.9001"),
   timeframe = as.POSIXlt(c(NA, NA)),
   timeunit = "year",
   citation = list("citation.bib"),
   documentation = list("README.txt", "Biomass_speciesData.Rmd"),
   loadOrder = list(before = c("Biomass_borealDataPrep", "Biomass_core")),
-  reqdPkgs = list("curl", "data.table", "httr", "raster", "RCurl",
+  reqdPkgs = list("data.table", "RCurl",
                   "sf", "terra", "XML",
                   "reproducible (>= 2.1.0)",
                   "SpaDES.core (>= 2.1.4)", "SpaDES.tools (>= 1.0.2)",
@@ -255,7 +255,7 @@ biomassDataInit <- function(sim) {
   ## this can happen when data has NAs instead of 0s and is not merged/overlayed (e.g. CASFRI)
   tempRas <- sim$rasterToMatch_biomassParam
   tempRas[!is.na(tempRas[])] <- 0
-  sim$speciesLayers <- raster::cover(sim$speciesLayers, tempRas)
+  sim$speciesLayers <- terra::cover(sim$speciesLayers, tempRas)
   names(sim$speciesLayers) <- species
   rm(tempRas)
 

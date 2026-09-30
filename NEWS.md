@@ -2,6 +2,7 @@ Known issues: <https://github.com/PredictiveEcology/Biomass_speciesData/issues>
 
 # Biomass_speciesData (development version)
 
+* `reqdPkgs` no longer lists `curl`, `httr` and `raster`. The module calls them only as `pkg::fun()`, which resolves whether or not the package is attached or imported into the module, and LandR already installs each of them as a hard dependency; listed, they were attached for every module in a simulation under the default `spades.reqdPkgsAttach = TRUE`. `raster::cover()` on the `SpatRaster` species layers is now `terra::cover()`, which is what raster's `SpatRaster` method runs: identical values, names and categories, including categorical and multi-layer inputs.
 * `reqdPkgs` now lists `curl`, `httr` and `raster`, which the module's code uses.
 
 * `vegLeadingProportion` now defaults to `LandR::leadingSpeciesProp()` (option
