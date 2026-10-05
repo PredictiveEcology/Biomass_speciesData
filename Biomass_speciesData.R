@@ -13,7 +13,7 @@ defineModule(sim, list(
     person(c("Alex", "M."), "Chubaty", email = "achubaty@for-cast.ca", role = c("aut"))
   ),
   childModules = character(0),
-  version = list(Biomass_speciesData = "1.0.7.9001"),
+  version = list(Biomass_speciesData = "1.0.7.9002"),
   timeframe = as.POSIXlt(c(NA, NA)),
   timeunit = "year",
   citation = list("citation.bib"),
@@ -205,6 +205,9 @@ biomassDataInit <- function(sim) {
         destinationPath = dPath, # this is generic files (preProcess)
         outputPath = outputPath(sim), # this will be the studyArea-specific files (postProcess)
         to = sim$studyArea_biomassParam,
+        ## the grid's extent, not the polygon's bounding box: cover() below needs the geometry of
+        ## rasterToMatch_biomassParam, which can reach past the polygon (e.g. aggregated from 30 m)
+        cropTo = sim$rasterToMatch_biomassParam,
         studyAreaName = P(sim)$.studyAreaName,
         projectTo = sim$rasterToMatch_biomassParam,
         sppEquiv = sim$sppEquiv,
