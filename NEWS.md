@@ -2,6 +2,7 @@ Known issues: <https://github.com/PredictiveEcology/Biomass_speciesData/issues>
 
 # Biomass_speciesData (development version)
 
+* `speciesLayers` are now cropped to `rasterToMatch_biomassParam`, not to the bounding box of `studyArea_biomassParam`. When the grid reached past that box (here, a 240 m grid aggregated from 30 m around an irregular polygon) the layers lost a row and `biomassDataInit` stopped with "[cover] raster dimensions do not match".
 * `reqdPkgs` now lists `curl`, `httr` and `raster`, which the module's code uses.
 
 * `vegLeadingProportion` now defaults to `LandR::leadingSpeciesProp()` (option
