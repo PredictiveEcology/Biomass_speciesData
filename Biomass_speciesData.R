@@ -19,7 +19,7 @@ defineModule(sim, list(
   citation = list("citation.bib"),
   documentation = list("README.txt", "Biomass_speciesData.Rmd"),
   loadOrder = list(before = c("Biomass_borealDataPrep", "Biomass_core")),
-  reqdPkgs = list("data.table", "RCurl",
+  reqdPkgs = list("curl", "data.table", "httr", "RCurl",
                   "sf", "terra", "XML",
                   "reproducible (>= 2.1.0)",
                   "SpaDES.core (>= 2.1.4)", "SpaDES.tools (>= 1.0.2)",
