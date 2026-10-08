@@ -1,5 +1,7 @@
 Known issues: <https://github.com/PredictiveEcology/Biomass_speciesData/issues>
 
+# Biomass_speciesData (development version)
+
 # Biomass_speciesData 1.1.0
 
 This release makes SCANFI, the national satellite forest inventory, the default source of tree species maps, replacing the older kNN maps. The module's study-area inputs were renamed to match the other Biomass modules, and it works in metres throughout.
