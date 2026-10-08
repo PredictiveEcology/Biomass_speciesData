@@ -58,19 +58,19 @@ dir.create("figures", showWarnings = FALSE)
 if (!file.exists("figures/markdownBadge.png")) {
   download.file(url = "https://img.shields.io/badge/Made%20with-Markdown-1f425f.png",
                 destfile = "figures/markdownBadge.png",
-                mode = 'wb')
+                mode = "wb")
 }
 if (!file.exists("figures/issuesBadge.png")) {
   download.file(url = "https://img.shields.io/badge/Get%20help-Report%20issues-%3CCOLOR%3E.png",
                 destfile = "figures/issuesBadge.png",
-                mode = 'wb')
+                mode = "wb")
 }
 
 modversion <- paste(unlist(moduleMetadata(module = 'Biomass_speciesData', path = '..')$version), collapse = ".")
 download.file(url = paste0("https://img.shields.io/badge/Biomass_speciesData-", paste0("v.%20", modversion),
                            "-%3CCOLOR%3E.png"),
               destfile = "figures/moduleVersionBadge.png",
-              mode = 'wb')
+              mode = "wb")
 ```
 
 ``` {r moduleBadge-Biomass-speciesData, echo = FALSE, eval = TRUE, cache = FALSE, results = "asis"}
@@ -96,7 +96,7 @@ badgeURL <- if (!is_detached(modulePath)) {
 }
 badgeURL <- sub(".*github[.]com:", "https://github.com/", badgeURL)
 
-badgePath <- normPath("figures/moduleVersionBadge.png")
+badgePath <- SpaDES.docs::stageFigure("figures/moduleVersionBadge.png")
 
 ## make string of markdown code to be executed as-is
 cat(paste0("[![module-version-Badge](", badgePath, ")](", badgeURL, ")"))
@@ -104,7 +104,7 @@ cat(paste0("[![module-version-Badge](", badgePath, ")](", badgeURL, ")"))
 
 ```{r issuesBadge-Biomass-speciesData, echo = FALSE, eval = TRUE, cache = FALSE, results = "asis"}
 badgeURL <- "https://github.com/PredictiveEcology/Biomass_speciesData/issues"
-badgePath <- normPath("figures/issuesBadge.png")
+badgePath <- SpaDES.docs::stageFigure("figures/issuesBadge.png")
 
 ## make string of markdown code to be executed as-is
 cat(paste0("[![Issues-badge](", badgePath, ")](", badgeURL,")"))
@@ -171,17 +171,21 @@ the lowest quality data with higher quality data when several data sources are
 used. It's primary output is a `RasterStack` of species (ref:percent) cover,
 with each layer corresponding to a species.
 
-Currently, the module can access the Canadian National Forest Inventory (NFI)
-forest attributes kNN dataset [the default; @BeaudoinEtAl2017], the Common
-Attribute Schema for Forest Resource Inventories dataset [CASFRI; @Cosco2011],
-the Ontario Forest Resource Inventory (ONFRI), a dataset specific to Alberta
-compiled by Paul Pickell, and other Alberta forest inventory datasets. However,
-**only the NFI kNN data are freely available** and access to the other datasets
+Currently, the module can access the following datasets:
+- Canadian National Forest Inventory (NFI) forest attributes kNN dataset [`KNN`; @BeaudoinEtAl2014, @BeaudoinEtAl2017];
+- Common Attribute Schema for Forest Resource Inventories [`CASFRI` (v4); @Cosco2011],
+- Spatialized Canadian National Forest Inventory [`SCANFI`; @Guindon2023, @Guindon2024];
+- National Terrestrial Ecosystem Monitoring System for Canada Annual Tree Species [`NTEMS`; @Hermosilla2024];
+- Manitoba Forest Resource Inventory (`MBFRI`);
+- Ontario Forest Resource Inventory (`ONFRI`);
+- historical dataset specific to Western Canada compiled by Paul Pickell and Nicholas Coops [@Pickell2016] as part of the LandWeb project;
+- "current conditions" dataset specific to Western Canada compiled from forest resource inventories as part of the LandWeb project (`ForestInventory`);
+
+However, **only the NFI kNN data are freely available** and access to the other datasets
 must be granted by module developers and data owners, and requires a Google
 account. Nevertheless, the module is flexible enough that any user can use it to
 process additional datasets, provided that an adequate R function is passed to
-the module (see `types` parameter details in the [list of
-parameters](#bsppdata-params-list))
+the module (see `types` parameter details in the [list of parameters](#bsppdata-params-list)).
 
 When multiple data sources are used, the module will replace lower quality data
 with higher quality data following the order specified in the `types` parameter.
@@ -395,8 +399,8 @@ number of pixels with forest cover are calculated (`treed`and `numTreed`
 output objects; see [list of outputs](#bsppdata-outputs-list)).
 
 [^biomass_speciesdata-1]: Raw data layers downloaded by the module are saved in
-\`dataPath(sim)\`, which can be controlled via
-\`options(reproducible.destinationPath = ...)\`.
+`dataPath(sim)`, which can be controlled via
+`options(reproducible.destinationPath = ...)`.
 
 ## Usage example {#bsppdata-example}
 
@@ -494,9 +498,10 @@ the simulation) we are not iterating it and so both the start and end times are
 set to `1` here.
 
 ```{r module usage example2-Biomass-speciesData}
-opts <- options(reproducible.useCache = TRUE,
-                reproducible.destinationPath = paths$inputPath,
-                reproducible.useCache)
+opts <- options(
+  reproducible.destinationPath = paths$inputPath,
+  reproducible.useCache = TRUE
+)
 
 mySimOut <- simInitAndSpades(times = list(start = 1, end = 1),
                              modules = modules, 
@@ -511,9 +516,9 @@ Here are some of outputs of *Biomass_speciesData* (dominant species) in a
 randomly generated study area within Canada.
 
 ```{r fig-Biomass-speciesDataOutPlots, eval=TRUE, echo=FALSE, fig.align = 'center', out.width = ifelse(knitr::is_latex_output(), "100%", "70%"), fig.cap = "(ref:Biomass-speciesData) automatically generates a plot of species dominance and number of presences in the study area when `.plotInitialTime=1` is passed as an argument."}
-## make sure all include_graphics have wd attached to figure path
-## this is necessary to knit to pdf using child Rmds - see https://stackoverflow.com/questions/61065560/cant-compile-rmarkdown-pdf-with-image-in-child-rmd-latex-error-image-file
-knitr::include_graphics(normPath(c("figures/testRunFigure.png")))
+## includeFigure(): a path that works standalone and when staged into a manual
+SpaDES.docs::includeFigure("figures/testRunFigure.png")
 ```
 
 ## References {#bsppdata-refs}
+

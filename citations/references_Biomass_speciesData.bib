@@ -1,3 +1,16 @@
+@article{
+  BeaudoinEtAl2014,
+	title = {Mapping attributes of {Canada}'s forests at moderate resolution through {kNN} and {MODIS} imagery},
+	volume = {44},
+	doi = {10.1139/cjfr-2013-0401},
+	abstract = {Canada's National Forest Inventory (NFI) sampling program is designed to support reporting on forests at the national scale. On the other hand, continuous maps of forest attributes are required to support strategic analyses of regional policy and management issues. We have therefore produced maps covering 4.03 × 106 km2 of inventoried forest area for the 2001 base year using standardised observations from the NFI photo plots (PP) as reference data. We used the k nearest neighbours (kNN) method with 26 geospatial data layers including MODIS spectral data and climatic and topographic variables to produce maps of 127 forest attributes at a 250 × 250 m resolution. The stand-level attributes include land cover, structure, and tree species relative abundance. In this article, we report only on total live aboveground tree biomass, with all other attributes covered in the supplementary data (http://nrcresearchpress.com/doi/suppl/10.1139/cjfr-2013-0401). In general, deviations in predicted pixel-level values from those in a PP validation set are greater in mountainous regions and in areas with either low biomass or sparse PP sampling. Predicted pixel-level values are overestimated at small observed values and underestimated at large ones. Accuracy measures are improved through the spatial aggregation of pixels to 1 km2 and beyond. Overall, these new products provide unique baseline information for strategic-level analyses of forests (https://nfi.nfis.org).},
+	journal = {Canadian Journal of Forest Research},
+	author = {Beaudoin, A and Bernier, P Y and Guindon, L and Villemaire, P and Guo, X J and Stinson, G and Bergeron, T and Magnussen, S and Hall, R J},
+	year = {2014},
+	keywords = {remote sensing, boreal forest, biomass, composition, national baseline, nonparametric method, stand attribute},
+	pages = {521--532},
+}
+
 @misc{
   BeaudoinEtAl2017,
   title={Species composition, forest properties and land cover types across Canada’s forests at 250m resolution for 2001 and 2011},
@@ -5,7 +18,8 @@
   DOI={10.23687/EC9E2659-1C29-4DDB-87A2-6ACED147A990},
   publisher={Natural Resources Canada},
   author={Beaudoin, A and Bernier, P Y and Villemaire, P and Guindon, L and Guo, X J},
-year={2017} }
+  year={2017}
+}
 
 @book{
   Cosco2011,
@@ -14,4 +28,78 @@ year={2017} }
   author={Cosco, John},
   year={2011},
   month={Feb},
-pages={117} }
+  pages={117}
+}
+
+@misc{
+  Guindon2023,
+	title = {{SCANFI}: the {Spatialized} {CAnadian} {National} {Forest} {Inventory} data product},
+	copyright = {Open Government Licence - Canada},
+	shorttitle = {{SCANFI}},
+	url = {https://open.canada.ca/data/en/dataset/18e6a919-53fd-41ce-b4e2-44a9707c52dc},
+	doi = {10.23687/18E6A919-53FD-41CE-B4E2-44A9707C52DC},
+	abstract = {Cette publication de données contient un ensemble de fichiers rasterisés de résolution de 30m représentant, pour l’année 2020, les types de couverture terrestre, la hauteur et la fermeture de la canopée forestière et la biomasse forestière aérienne, ainsi que la couverture de plusieurs espèces d'arbres importantes pour l’ensemble du Canada. Le produit de données spatialisées de l'inventaire forestier national canadien (SCANFI) a été développé à l'aide de la mise à jour de l'ensemble de données de photo-échantillons de l’inventaire forestier national (IFN), qui consiste en une grille d'échantillonnage régulière d'imagerie haute résolution photo-interprétée couvrant toute la masse terrestre non arctique du Canada. SCANFI a été produit en utilisant des images spectrales Landsat temporellement harmonisées pour l'été et l'hiver, divisées en plusieurs centaines de tuiles d'analyses régionales, utilisant une méthode innovante d'imputation des k plus proches voisins et de forêts d'arbres décisionnelles.},
+	urldate = {2025-09-26},
+	publisher = {Natural Resources Canada},
+	author = {Guindon, L and Villemaire, P and Correia, D L P and Manka, F and Lacarte, S and Smiley, B},
+	year = {2023},
+}
+
+@article{
+  Guindon2024,
+	title = {A new approach for spatializing the {Canadian} {National} {Forest} {Inventory} ({SCANFI}) using {Landsat} dense time series},
+	volume = {54},
+	issn = {0045-5067, 1208-6037},
+	url = {https://cdnsciencepub.com/doi/10.1139/cjfr-2023-0118},
+	doi = {10.1139/cjfr-2023-0118},
+	abstract = {Accurate and fine-scale forest data are essential to improve natural resource management, particularly in the face of climate change. Here, we present SCANFI, the Spatialized CAnadian National Forest Inventory, which provides coherent, 30 m resolution 2020 wall-to-wall maps of forest attributes (land cover type, canopy height, crown closure, aboveground tree biomass, and main species composition). These maps were developed using the NFI photo-plot dataset, a systematic regular sample grid of photo-interpreted high-resolution imagery covering all of Canada's non-arctic landmass. SCANFI was produced using temporally harmonized summer and winter Landsat spectral imagery along with hundreds of tile-level regional models based on a multiresponse k-nearest neighbours and random forest imputation method. This tile-level approach revealed the importance of radiometric variables in predicting vegetation attributes, namely winter radiometry, as the large-scale climate gradients were controlled at the tile-level. SCANFI was validated with rigorous cross-validation analyses, which revealed robust model performance for structural attributes (biomass R
+              2 
+              = 0.76; crown closure R
+              2 
+              = 0.82; height R
+              2 
+              = 0.78) and tree species cover (e.g., Douglas fir R
+              2 
+              = 0.60). SCANFI attributes were also validated with several independent external products, ranging from ground plot-based tree species cover (e.g., black spruce R
+              2 
+              = 0.53) to satellite LiDAR height data products (e.g., crown closure R
+              2 
+              = 0.71). SCANFI total aboveground biomass trends also followed those published by other studies. The methodology presented herein can be used to map time series of these attributes, identify the original training points used to make any given prediction, as well as map additional variables associated with the NFI photo-plots that are challenging to map using traditional remote sensing approaches.},
+	language = {en},
+	number = {7},
+	urldate = {2025-09-26},
+	journal = {Canadian Journal of Forest Research},
+	author = {Guindon, Luc and Manka, Francis and Correia, David L.P. and Villemaire, Philippe and Smiley, Byron and Bernier, Pierre and Gauthier, Sylvie and Beaudoin, André and Boucher, Jonathan and Boulanger, Yan},
+	month = jul,
+	year = {2024},
+	pages = {793--815},
+}
+
+@article{
+  Hermosilla2024,
+	title = {Characterizing long-term tree species dynamics in {Canada}’s forested ecosystems using annual time series remote sensing data},
+	volume = {572},
+	issn = {03781127},
+	url = {https://linkinghub.elsevier.com/retrieve/pii/S037811272400625X},
+	doi = {10.1016/j.foreco.2024.122313},
+	language = {en},
+	urldate = {2025-09-26},
+	journal = {Forest Ecology and Management},
+	author = {Hermosilla, Txomin and Wulder, Michael A. and White, Joanne C. and Coops, Nicholas C. and Bater, Christopher W. and Hobart, Geordie W.},
+	month = nov,
+	year = {2024},
+	pages = {122313},
+}
+
+@techreport{
+  Pickell2016,
+	title = {Development of historical forest attribute layers using {Landsat} time series and {kNN} imputation for the western {Canadian} boreal forest},
+	abstract = {The purpose of this report is to describe the creation of spatially continuous layers of forest attributes for the LandWeb study area. A primary objective of the LandWeb project is the prediction of forest attributes (height, canopy cover, and species) for the years 1990, 2000, 2010, and a dateless layer. These layers are designed to assist modelers in back-casting the LandWeb
+study area to the pre-industrial landscape condition.
+In this technical note, we describe the methods for  predicting the target forest attributes across the LandWeb study area using a k-nearest neighbor (kNN) approach. We utilized the Common Attribute Schema for Forest Resource Inventories (CASFRI) dataset for training a kNN model and acquired several ancillary datasets to impute the target forest attributes for locations of the LandWeb study area where CASFRI data were not available. We cross-validated the predicted attributes with a reserved set of the observed CASFRI records to derive estimates of accuracy. Accuracy statements for the layers are provided to support and we discuss the possible uses for the predictions.},
+	institution = {University of British Columbia},
+	author = {Pickell, Paul D and Coops, Nicholas C},
+	month = dec,
+	year = {2016},
+	pages = {1--27},
+}
