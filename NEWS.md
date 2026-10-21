@@ -2,6 +2,8 @@ Known issues: <https://github.com/PredictiveEcology/Biomass_speciesData/issues>
 
 # Biomass_speciesData (development version)
 
+* Requires LandR >= 1.2.0.9047, so cached SCANFI species layers are not reused for a different study area (LandR #266).
+
 # Biomass_speciesData 1.1.0
 
 This release makes SCANFI, the national satellite forest inventory, the default source of tree species maps, replacing the older kNN maps. The module's study-area inputs were renamed to match the other Biomass modules, and it works in metres throughout.
