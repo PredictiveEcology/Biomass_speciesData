@@ -1,6 +1,6 @@
 ---
 title: "LandR _Biomass_speciesData_ Manual"
-date: "Last updated: 2026-10-08"
+date: "Last updated: 2026-10-22"
 output:
   bookdown::html_document2:
     toc: true
@@ -38,7 +38,7 @@ always_allow_html: true
 
 
 
-[![module-version-Badge](figures/moduleVersionBadge.png)](https://github.com/PredictiveEcology/Biomass_speciesDatafef7e071bc15e34fb3d73360043b12d7986144e4)
+[![module-version-Badge](figures/moduleVersionBadge.png)](https://github.com/PredictiveEcology/Biomass_speciesData07eb64f43b763ea349a41b057fd6da497dfeb860)
 
 [![Issues-badge](figures/issuesBadge.png)](https://github.com/PredictiveEcology/Biomass_speciesData/issues)
 
@@ -328,6 +328,7 @@ ForestInventory layers.
    <th style="text-align:left;"> min </th>
    <th style="text-align:left;"> max </th>
    <th style="text-align:left;"> paramDesc </th>
+   <th style="text-align:left;"> cacheKey </th>
   </tr>
  </thead>
 <tbody>
@@ -338,6 +339,7 @@ ForestInventory layers.
    <td style="text-align:left;"> NA </td>
    <td style="text-align:left;"> NA </td>
    <td style="text-align:left;"> The minimum % cover a species needs to have (per pixel) in the study area to be considered present </td>
+   <td style="text-align:left;"> TRUE </td>
   </tr>
   <tr>
    <td style="text-align:left;"> dataYear </td>
@@ -346,6 +348,7 @@ ForestInventory layers.
    <td style="text-align:left;"> NA </td>
    <td style="text-align:left;"> NA </td>
    <td style="text-align:left;"> Passed to `paste0('prepSpeciesLayers_', types)` function to fetch data from that year (if applicable). Defaults to 2020 as the default SCANFI year. </td>
+   <td style="text-align:left;"> TRUE </td>
   </tr>
   <tr>
    <td style="text-align:left;"> sppEquivCol </td>
@@ -354,6 +357,7 @@ ForestInventory layers.
    <td style="text-align:left;"> NA </td>
    <td style="text-align:left;"> NA </td>
    <td style="text-align:left;"> The column in `sim$sppEquiv` data.table to group species by and use as a naming convention. If different species in, e.g., the SCANFI data have the same name in the chosen column, their data are merged into one species by summing their percent cover in each raster cell. </td>
+   <td style="text-align:left;"> TRUE </td>
   </tr>
   <tr>
    <td style="text-align:left;"> types </td>
@@ -362,6 +366,7 @@ ForestInventory layers.
    <td style="text-align:left;"> NA </td>
    <td style="text-align:left;"> NA </td>
    <td style="text-align:left;"> The possible data sources. These must correspond to a function named `paste0('prepSpeciesLayers_', types)`. Defaults to 'SCANFI'. Other currently available options are: 'CASFRI', 'ForestInventory', 'KNN', 'MBFRI', 'NTEMS', 'ONFRI', 'Pickell'. All non-KNN datasets attempt to get proprietary data; the user must be granted access first. A custom function can be used to retrieve any data, just as long as it is accessible by the module (e.g., in the global environment) and is named as `paste0('prepSpeciesLayers_', types)`. </td>
+   <td style="text-align:left;"> TRUE </td>
   </tr>
   <tr>
    <td style="text-align:left;"> vegLeadingProportion </td>
@@ -370,6 +375,7 @@ ForestInventory layers.
    <td style="text-align:left;"> 0 </td>
    <td style="text-align:left;"> 1 </td>
    <td style="text-align:left;"> a number that defines whether a species is leading for a given pixel. Only used for plotting. Default: `LandR::leadingSpeciesProp()`, i.e. option `LandR.leadingSpeciesProp`, which takes `LandR.mixedwoodProp` (0.75) unless set. Setting it in one place moves every module and LandR function together. </td>
+   <td style="text-align:left;"> TRUE </td>
   </tr>
   <tr>
    <td style="text-align:left;"> .plotInitialTime </td>
@@ -378,6 +384,7 @@ ForestInventory layers.
    <td style="text-align:left;"> NA </td>
    <td style="text-align:left;"> NA </td>
    <td style="text-align:left;"> This describes the simulation time at which the first plot event should occur </td>
+   <td style="text-align:left;"> TRUE </td>
   </tr>
   <tr>
    <td style="text-align:left;"> .plotInterval </td>
@@ -386,6 +393,7 @@ ForestInventory layers.
    <td style="text-align:left;"> NA </td>
    <td style="text-align:left;"> NA </td>
    <td style="text-align:left;"> This describes the simulation time interval between plot events </td>
+   <td style="text-align:left;"> TRUE </td>
   </tr>
   <tr>
    <td style="text-align:left;"> .plots </td>
@@ -394,6 +402,7 @@ ForestInventory layers.
    <td style="text-align:left;"> NA </td>
    <td style="text-align:left;"> NA </td>
    <td style="text-align:left;"> Passed to `types` in `Plots` (see `?Plots`). There are a few plots that are made within this module, if set. Note that plots (or their data) saving will ONLY occur at `end(sim)`. If `NA`, plotting is turned off completely (this includes plot saving). </td>
+   <td style="text-align:left;"> TRUE </td>
   </tr>
   <tr>
    <td style="text-align:left;"> .saveInitialTime </td>
@@ -402,6 +411,7 @@ ForestInventory layers.
    <td style="text-align:left;"> NA </td>
    <td style="text-align:left;"> NA </td>
    <td style="text-align:left;"> This describes the simulation time at which the first save event should occur </td>
+   <td style="text-align:left;"> TRUE </td>
   </tr>
   <tr>
    <td style="text-align:left;"> .saveInterval </td>
@@ -410,6 +420,7 @@ ForestInventory layers.
    <td style="text-align:left;"> NA </td>
    <td style="text-align:left;"> NA </td>
    <td style="text-align:left;"> This describes the simulation time interval between save events </td>
+   <td style="text-align:left;"> TRUE </td>
   </tr>
   <tr>
    <td style="text-align:left;"> .sslVerify </td>
@@ -418,6 +429,7 @@ ForestInventory layers.
    <td style="text-align:left;"> NA </td>
    <td style="text-align:left;"> NA </td>
    <td style="text-align:left;"> Passed to `httr::config(ssl_verifypeer = P(sim)$.sslVerify)` when downloading NFI datasets. Set to 0L if necessary to bypass checking the SSL certificate (this may be necessary when NFI's website SSL certificate is not correctly configured). </td>
+   <td style="text-align:left;"> TRUE </td>
   </tr>
   <tr>
    <td style="text-align:left;"> .studyAreaName </td>
@@ -426,6 +438,7 @@ ForestInventory layers.
    <td style="text-align:left;"> NA </td>
    <td style="text-align:left;"> NA </td>
    <td style="text-align:left;"> Human-readable name for the study area used. If `NA`, a hash of `studyArea_biomassParam` will be used. </td>
+   <td style="text-align:left;"> TRUE </td>
   </tr>
   <tr>
    <td style="text-align:left;"> .useCache </td>
@@ -434,6 +447,7 @@ ForestInventory layers.
    <td style="text-align:left;"> NA </td>
    <td style="text-align:left;"> NA </td>
    <td style="text-align:left;"> Controls cache; caches the init event by default </td>
+   <td style="text-align:left;"> TRUE </td>
   </tr>
   <tr>
    <td style="text-align:left;"> .useParallel </td>
@@ -442,6 +456,7 @@ ForestInventory layers.
    <td style="text-align:left;"> NA </td>
    <td style="text-align:left;"> NA </td>
    <td style="text-align:left;"> Used in reading csv file with fread. Will be passed to `data.table::setDTthreads`. </td>
+   <td style="text-align:left;"> TRUE </td>
   </tr>
 </tbody>
 </table>
