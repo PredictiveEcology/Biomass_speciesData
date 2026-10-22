@@ -2,7 +2,7 @@ Known issues: <https://github.com/PredictiveEcology/Biomass_speciesData/issues>
 
 # Biomass_speciesData (development version)
 
-* Requires LandR >= 1.2.0.9047, so cached SCANFI species layers are not reused for a different study area (LandR #266).
+* Requires LandR >= 1.2.0.9064: cached SCANFI species layers are no longer reused for a different study area (LandR #266), and the species list this module makes no longer stops Biomass_borealDataPrep when two names are one species (LandR #287).
 
 # Biomass_speciesData 1.1.0
 
