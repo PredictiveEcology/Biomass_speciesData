@@ -64,9 +64,9 @@ defineModule(sim, list(
                     "This describes the simulation time interval between save events"),
     defineParameter(".sslVerify", "integer", as.integer(unname(curl::curl_options("^ssl_verifypeer$"))), NA_integer_, NA_integer_,
                     desc = paste(
-                      "Passed to `httr::config(ssl_verifypeer = P(sim)$.sslVerify)` when downloading NFI datasets.",
+                      "Passed to `httr::config(ssl_verifypeer = P(sim)$.sslVerify)` when downloading SCANFI data.",
                       "Set to 0L if necessary to bypass checking the SSL certificate",
-                      "(this may be necessary when NFI's website SSL certificate is not correctly configured)."
+                      "(this may be necessary when the data host's SSL certificate is not correctly configured)."
                     )),
     defineParameter(".studyAreaName", "character", NA, NA, NA,
                     paste("Human-readable name for the study area used.",
@@ -78,8 +78,8 @@ defineModule(sim, list(
   ),
   inputObjects = bindrows(
     expectsInput("rasterToMatch", "SpatRaster",
-                 desc = paste("conditionally used as template raster if studyArea_rasterToMatch_biomassParam",
-                              "and rasterTomatch_biomassParam are not supplied")),
+                 desc = paste("conditionally used as template raster if studyArea_biomassParam",
+                              "and rasterToMatch_biomassParam are not supplied")),
     expectsInput("rasterToMatch_biomassParam", "SpatRaster",
                  desc = paste(
                    "a raster of `studyArea_biomassParam` in the same resolution and projection as",
