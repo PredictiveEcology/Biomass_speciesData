@@ -181,6 +181,12 @@ layers exist for every 5 years from 1985 to 2025, and the year used is set by th
 The other data sources that earlier versions of the module listed (NFI kNN,
 CASFRI, NTEMS, MBFRI, ONFRI, the LandWeb Pickell and `ForestInventory` datasets)
 have been removed, as they could no longer be used from the module.
+Nevertheless, the module is flexible enough that any user can use it to
+process additional datasets, provided that an adequate R function is passed to
+the module (see `types` parameter details in the [list of parameters](#bsppdata-params-list)).
+
+When multiple data sources are used, the module will replace lower quality data
+with higher quality data following the order specified in the `types` parameter.
 
 When multiple species of a given data source are to be grouped, (ref:percent)
 cover is summed across species of the same group within each pixel. Please see
@@ -304,9 +310,15 @@ have data for an eventual simulation and the user will need to adjust
 simulation parameters accordingly (e.g., species in trait tables will need
 to match the species in `speciesLayers`).
 
--   `types` -- character. Which (ref:percent) cover data source is to be used
-(see [General functioning](#bsppdata-general-functioning)). Only `"SCANFI"`
-is available; any other value stops with an error.
+-   `types` -- character. Which (ref:percent) cover data sources are to be used
+(see [General functioning](#bsppdata-general-functioning)). Defaults to
+`"SCANFI"`, the supported data source. Each value must correspond to a function
+named `prepSpeciesLayers_<type>()` that is accessible by the module (e.g., in
+the global environment), so a user can supply their own function to process
+other data. Several data
+sources can be passed, in which case the module will overlay the lower
+quality layers with higher quality ones following the order of data sources
+in `types`.
 
 -   `dataYear` -- numeric. The year of the SCANFI layers, from 1985 to 2025 in
 steps of 5 years. Defaults to 2020.
