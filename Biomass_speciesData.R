@@ -4,8 +4,7 @@
 # in R packages. If exact location is required, functions will be: sim$<moduleName>$FunctionName
 defineModule(sim, list(
   name = "Biomass_speciesData",
-  description = paste("Download and pre-process species percent cover raster data, overlaying",
-                      "lower quality data with higher quality data."),
+  description = "Download and pre-process species percent cover raster data.",
   keywords = c("LandWeb", "LandR", "LandR Biomass", "species percent cover"),
   authors = c(
     person("Ceres", "Barros", email = "ceres.barros@ubc.ca", role = c("aut", "cre")),
@@ -31,8 +30,8 @@ defineModule(sim, list(
                     desc = paste("The minimum % cover a species needs to have (per pixel) in the study",
                                  "area to be considered present")),
     defineParameter("dataYear", "numeric", 2020, NA, NA,
-                    paste("Passed to `paste0('prepSpeciesLayers_', types)` function to fetch data",
-                          "from that year (if applicable). Defaults to 2020 as the default SCANFI year.")),
+                    paste("Passed to `LandR::prepSpeciesLayers_SCANFI()` function to fetch data",
+                          "from that year. Defaults to 2020 as the default SCANFI year.")),
     defineParameter("sppEquivCol", "character", "LandR", NA, NA,
                     desc = paste("The column in `sim$sppEquiv` data.table to group species by and use as a",
                                  "naming convention. If different species in, e.g., the SCANFI data have the same",
@@ -40,14 +39,9 @@ defineModule(sim, list(
                                  "their percent cover in each raster cell.")),
     defineParameter("types", "character", "SCANFI", NA, NA,
                     desc = paste(
-                      "The possible data sources. These must correspond to a function named",
-                      "`paste0('prepSpeciesLayers_', types)`. Defaults to 'SCANFI'.",
-                      "Other currently available options are:",
-                      "'CASFRI', 'ForestInventory', 'KNN', 'MBFRI', 'NTEMS', 'ONFRI', 'Pickell'.",
-                      "All non-KNN datasets attempt to get proprietary data; the user must be granted access first.",
-                      "A custom function can be used to retrieve any data, just as long as it is",
-                      "accessible by the module (e.g., in the global environment) and is named as",
-                      "`paste0('prepSpeciesLayers_', types)`."
+                      "The data source. Only 'SCANFI' is available, using `LandR::prepSpeciesLayers_SCANFI()`.",
+                      "The other data sources ('CASFRI', 'ForestInventory', 'KNN', 'MBFRI', 'NTEMS', 'ONFRI',",
+                      "'Pickell') were removed, and passing any of them is an error."
                     )),
     defineParameter("vegLeadingProportion", "numeric", LandR::leadingSpeciesProp(),
                     0, 1,
@@ -108,7 +102,7 @@ defineModule(sim, list(
                  desc = paste("`sf` polygon or terra `SpatVector` to use as the study area - `nrow` must be one")),
     expectsInput("studyArea_biomassParam", "sf",
                  desc =  paste(
-                   "Polygon to use as the parametrisation study area. Must be provided by the user.",
+                   "Polygon to use as the parametrisation study area. If not provided, `studyArea` is used.",
                    "Note that `studyArea_biomassParam` is only used for parameter estimation, and",
                    "can be larger than the actual study area used for LandR simulations",
                    "(e.g., larger than `studyArea` in LandR `Biomass_core`)."),
@@ -175,64 +169,25 @@ biomassDataInit <- function(sim) {
   dPath <- asPath(inputPath(sim), 1)
   message(currentModule(sim), ": biomassInit() using dataPath '", dPath, "'.")
 
-  if (!exists("speciesLayers", envir = envir(sim), inherits = FALSE)) {
-    sim$speciesLayers <- list()
-  }
-
-  for (type in P(sim)$types) {
-    fnName <- paste0("prepSpeciesLayers_", type)
-    whereIsFnName <- where(fnName)
-
-    envirName <- attr(whereIsFnName, "name")
-    if (is.null(envirName)) {
-      envirName <- environmentName(whereIsFnName)
-    }
-    if (!is.character(envirName)) {
-      ## this is from "box" package; slightly different
-      envirName <- environmentName(envirName)
-    }
-
-    message("#############################################")
-    message(type, " -- Loading using ", fnName, " located in ", envirName)
-    message("#############################################")
-    if (!exists(fnName)) {
-      stop(fnName, " does not exist. Please make it accessible in a package, as an object, ",
-           " or in the .GlobalEnv")
-    }
-    fn <- get(fnName)
-    httr::with_config(config = httr::config(ssl_verifypeer = P(sim)$.sslVerify), {
-      speciesLayersNew <- fn(
-        destinationPath = dPath, # this is generic files (preProcess)
-        outputPath = outputPath(sim), # this will be the studyArea-specific files (postProcess)
-        to = sim$studyArea_biomassParam,
-        ## the grid's extent, not the polygon's bounding box: cover() below needs the geometry of
-        ## rasterToMatch_biomassParam, which can reach past the polygon (e.g. aggregated from 30 m)
-        cropTo = sim$rasterToMatch_biomassParam,
-        studyAreaName = P(sim)$.studyAreaName,
-        projectTo = sim$rasterToMatch_biomassParam,
-        sppEquiv = sim$sppEquiv,
-        sppEquivCol = P(sim)$sppEquivCol,
-        thresh = P(sim)$coverThresh,
-        year = P(sim)$dataYear,     # read from `...` by prepSpeciesLayers_KNN()
-        dataYear = P(sim)$dataYear, # formal of prepSpeciesLayers_SCANFI() / _NTEMS(); was never reaching them
-        .functionName = fnName,
-        userTags = c(cacheTags, fnName, "prepSpeciesLayers"),
-        omitArgs = c("userTags")
-      ) ## |> Cache() ## Cache retrieving RasterList as SpatRaster, so subsequent use breaks
-    })
-
-    sim$speciesLayers <- if (length(sim$speciesLayers) > 0) {
-      overlayStacks(
-        highQualityStack = speciesLayersNew,
-        lowQualityStack = sim$speciesLayers,
-        destinationPath = outputPath(sim)
-      ) |>
-        Cache(userTags = c(cacheTags, "overlayStacks"), omitArgs = c("userTags"))
-    } else {
-      speciesLayersNew
-    }
-    rm(speciesLayersNew)
-  }
+  httr::with_config(config = httr::config(ssl_verifypeer = P(sim)$.sslVerify), {
+    sim$speciesLayers <- LandR::prepSpeciesLayers_SCANFI(
+      destinationPath = dPath, # this is generic files (preProcess)
+      outputPath = outputPath(sim), # this will be the studyArea-specific files (postProcess)
+      to = sim$studyArea_biomassParam,
+      ## the grid's extent, not the polygon's bounding box: cover() below needs the geometry of
+      ## rasterToMatch_biomassParam, which can reach past the polygon (e.g. aggregated from 30 m)
+      cropTo = sim$rasterToMatch_biomassParam,
+      studyAreaName = P(sim)$.studyAreaName,
+      projectTo = sim$rasterToMatch_biomassParam,
+      sppEquiv = sim$sppEquiv,
+      sppEquivCol = P(sim)$sppEquivCol,
+      thresh = P(sim)$coverThresh,
+      dataYear = P(sim)$dataYear,
+      .functionName = "prepSpeciesLayers_SCANFI",
+      userTags = c(cacheTags, "prepSpeciesLayers_SCANFI", "prepSpeciesLayers"),
+      omitArgs = c("userTags")
+    )
+  })
 
   assertSpeciesLayers(sim$speciesLayers, P(sim)$coverThresh)
 
@@ -324,6 +279,13 @@ biomassDataInit <- function(sim) {
 }
 
 .inputObjects <- function(sim) {
+  ## the older sources (kNN, CASFRI, ForestInventory, MBFRI, ONFRI, Pickell, NTEMS) were removed
+  if (!identical(P(sim)$types, "SCANFI")) {
+    stop("Biomass_speciesData: `types` must be \"SCANFI\"; got ", paste(dQuote(P(sim)$types, FALSE), collapse = ", "),
+         ". The other data sources (kNN, CASFRI, ForestInventory, MBFRI, ONFRI, Pickell, NTEMS)",
+         " were removed.", call. = FALSE)
+  }
+
   cacheTags <- c(currentModule(sim), "otherFunctions:.inputObjects")
   dPath <- asPath(getOption("reproducible.destinationPath", dataPath(sim)), 1)
   message(currentModule(sim), ": using dataPath '", dPath, "'.")
@@ -421,15 +383,4 @@ biomassDataInit <- function(sim) {
   sim$sppColorVect <- sppOuts$sppColorVect
 
   return(invisible(sim))
-}
-
-
-where <- function(name, env = parent.frame()) {
-  while (!identical(env, emptyenv())) {
-    if (exists(name, envir = env, inherits = FALSE)) {
-      return(env)
-    }
-    env <- parent.env(env)
-  }
-  stop(sprintf("Can't find '%s'", name), call. = FALSE)
 }
