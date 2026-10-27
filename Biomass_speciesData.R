@@ -89,7 +89,8 @@ defineModule(sim, list(
     expectsInput("rasterToMatch_biomassParam", "SpatRaster",
                  desc = paste(
                    "a raster of `studyArea_biomassParam` in the same resolution and projection as",
-                   "the simulation's."
+                   "the simulation's. If not supplied, defaults to `rasterToMatch`, extended to cover",
+                   "`studyArea_biomassParam` if that differs from `studyArea`."
                  )),
     expectsInput("sppColorVect", "character",
                  desc = paste("A named vector of colors to use for plotting.",
@@ -108,7 +109,8 @@ defineModule(sim, list(
                  desc = paste("`sf` polygon or terra `SpatVector` to use as the study area - `nrow` must be one")),
     expectsInput("studyArea_biomassParam", "sf",
                  desc =  paste(
-                   "Polygon to use as the parametrisation study area. Must be provided by the user.",
+                   "Polygon to use as the parametrisation study area. If not supplied, defaults to the",
+                   "area covered by `rasterToMatch_biomassParam` if that is supplied, otherwise to `studyArea`.",
                    "Note that `studyArea_biomassParam` is only used for parameter estimation, and",
                    "can be larger than the actual study area used for LandR simulations",
                    "(e.g., larger than `studyArea` in LandR `Biomass_core`)."),
@@ -336,11 +338,18 @@ biomassDataInit <- function(sim) {
   }
 
   if (!suppliedElsewhere("studyArea_biomassParam", sim)) {
-    if (is.null(sim$studyAreaLarge)) {
-      sim$studyArea_biomassParam <- sim$studyArea
-    } else {
+    if (!is.null(sim$studyAreaLarge)) {
       warning("please replace studyAreaLarge with studyArea_biomassParam")
       sim$studyArea_biomassParam <- sim$studyAreaLarge
+    } else if (suppliedElsewhere("rasterToMatch_biomassParam", sim) || !is.null(sim$rasterToMatchLarge)) {
+      ## a rasterToMatch_biomassParam was supplied without its polygon: use its non-NA
+      ## footprint, rather than falling back to the smaller studyArea
+      rtmBP <- if (is.null(sim$rasterToMatch_biomassParam)) sim$rasterToMatchLarge else sim$rasterToMatch_biomassParam
+      sim$studyArea_biomassParam <- terra::as.polygons(terra::ifel(is.na(rtmBP[[1]]), NA, 1L)) |>
+        terra::aggregate()
+      rm(rtmBP)
+    } else {
+      sim$studyArea_biomassParam <- sim$studyArea
     }
   }
 
@@ -374,15 +383,20 @@ biomassDataInit <- function(sim) {
     if (!is.null(sim$rasterToMatchLarge)) {
       warning("please use rasterToMatch_biomassParam in place of rasterToMatchLarge")
       sim$rasterToMatch_biomassParam <- sim$rasterToMatchLarge
-    # } else if (!terra::compareGeom(sim$studyArea_biomassParam, sim$studyArea)) {
-    } else if (!LandR::.compareCRS(sim$studyArea_biomassParam, sim$studyArea)) {
-      ## SA_BP was supplied but not RTM_BP
-      sim$rasterToMatch_biomassParam <- terra::rast(
-        sim$studyArea_biomassParam,
-        resolution = terra::res(sim$rasterToMatch),
-        vals = 1
-      ) |>
-        reproducible::postProcess(maskTo = sim$studyArea_biomassParam)
+    } else if (!identical(sim$studyArea_biomassParam, sim$studyArea)) {
+      ## studyArea_biomassParam differs from studyArea, but no rasterToMatch_biomassParam was supplied:
+      ## extend the rasterToMatch grid (same resolution, CRS and origin) over studyArea_biomassParam,
+      ## so the species layers cover the larger area on the simulation's grid.
+      studyArea_biomassParam <- sim$studyArea_biomassParam
+      if (!inherits(studyArea_biomassParam, "SpatVector")) {
+        studyArea_biomassParam <- terra::vect(studyArea_biomassParam)
+      }
+      studyArea_biomassParam <- terra::project(studyArea_biomassParam, terra::crs(sim$rasterToMatch))
+      sim$rasterToMatch_biomassParam <- terra::rast(sim$rasterToMatch) |>
+        terra::extend(terra::ext(studyArea_biomassParam), snap = "out") |>
+        terra::init(1) |>
+        terra::mask(mask = studyArea_biomassParam)
+      rm(studyArea_biomassParam)
     } else {
       sim$rasterToMatch_biomassParam <- sim$rasterToMatch
     }

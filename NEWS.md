@@ -2,6 +2,8 @@ Known issues: <https://github.com/PredictiveEcology/Biomass_speciesData/issues>
 
 # Biomass_speciesData (development version)
 
+* A `studyArea_biomassParam` larger than `studyArea` is now used even when `rasterToMatch_biomassParam` is not supplied. The default raster was built over the larger area only when the two study areas had different projections; otherwise it was a copy of `rasterToMatch`, so the species layers covered only `studyArea`. It is now the `rasterToMatch` grid extended over `studyArea_biomassParam`. Likewise, a `rasterToMatch_biomassParam` supplied without `studyArea_biomassParam` now sets that area (its non-NA cells) instead of `studyArea_biomassParam` defaulting to the smaller `studyArea`. Projects that supplied only one of the two get species layers over the larger area; projects that supply both, or neither, are not affected. The same rule is used by Biomass_borealDataPrep.
+
 * Requires LandR >= 1.2.0.9064: cached SCANFI species layers are no longer reused for a different study area (LandR #266), and the species list this module makes no longer stops Biomass_borealDataPrep when two names are one species (LandR #287).
 
 # Biomass_speciesData 1.1.0
