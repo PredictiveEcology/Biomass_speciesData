@@ -41,13 +41,16 @@ defineModule(sim, list(
     defineParameter("types", "character", "SCANFI", NA, NA,
                     desc = paste(
                       "The possible data sources. These must correspond to a function named",
-                      "`paste0('prepSpeciesLayers_', types)`. Defaults to 'SCANFI'.",
-                      "Other currently available options are:",
-                      "'CASFRI', 'ForestInventory', 'KNN', 'MBFRI', 'NTEMS', 'ONFRI', 'Pickell'.",
-                      "All non-KNN datasets attempt to get proprietary data; the user must be granted access first.",
+                      "`paste0('prepSpeciesLayers_', types)`. Defaults to 'SCANFI'",
+                      "(`LandR::prepSpeciesLayers_SCANFI()`), which is the supported data source.",
                       "A custom function can be used to retrieve any data, just as long as it is",
                       "accessible by the module (e.g., in the global environment) and is named as",
-                      "`paste0('prepSpeciesLayers_', types)`."
+                      "`paste0('prepSpeciesLayers_', types)`.",
+                      "The module calls it with the arguments `destinationPath`, `outputPath`, `to`, `cropTo`,",
+                      "`projectTo`, `studyAreaName`, `sppEquiv`, `sppEquivCol`, `thresh`, `year`, `dataYear`,",
+                      "`.functionName`, `userTags` and `omitArgs` (so it must accept these, or have `...`),",
+                      "and it must return a `SpatRaster` with one % cover layer per species.",
+                      "If several types are given, each is overlaid on the ones before it."
                     )),
     defineParameter("vegLeadingProportion", "numeric", LandR::leadingSpeciesProp(),
                     0, 1,
@@ -70,9 +73,9 @@ defineModule(sim, list(
                     "This describes the simulation time interval between save events"),
     defineParameter(".sslVerify", "integer", as.integer(unname(curl::curl_options("^ssl_verifypeer$"))), NA_integer_, NA_integer_,
                     desc = paste(
-                      "Passed to `httr::config(ssl_verifypeer = P(sim)$.sslVerify)` when downloading NFI datasets.",
+                      "Passed to `httr::config(ssl_verifypeer = P(sim)$.sslVerify)` when downloading SCANFI data.",
                       "Set to 0L if necessary to bypass checking the SSL certificate",
-                      "(this may be necessary when NFI's website SSL certificate is not correctly configured)."
+                      "(this may be necessary when the data host's SSL certificate is not correctly configured)."
                     )),
     defineParameter(".studyAreaName", "character", NA, NA, NA,
                     paste("Human-readable name for the study area used.",
@@ -84,8 +87,8 @@ defineModule(sim, list(
   ),
   inputObjects = bindrows(
     expectsInput("rasterToMatch", "SpatRaster",
-                 desc = paste("conditionally used as template raster if studyArea_rasterToMatch_biomassParam",
-                              "and rasterTomatch_biomassParam are not supplied")),
+                 desc = paste("conditionally used as template raster if studyArea_biomassParam",
+                              "and rasterToMatch_biomassParam are not supplied")),
     expectsInput("rasterToMatch_biomassParam", "SpatRaster",
                  desc = paste(
                    "a raster of `studyArea_biomassParam` in the same resolution and projection as",
@@ -108,7 +111,7 @@ defineModule(sim, list(
                  desc = paste("`sf` polygon or terra `SpatVector` to use as the study area - `nrow` must be one")),
     expectsInput("studyArea_biomassParam", "sf",
                  desc =  paste(
-                   "Polygon to use as the parametrisation study area. Must be provided by the user.",
+                   "Polygon to use as the parametrisation study area. If not provided, `studyArea` is used.",
                    "Note that `studyArea_biomassParam` is only used for parameter estimation, and",
                    "can be larger than the actual study area used for LandR simulations",
                    "(e.g., larger than `studyArea` in LandR `Biomass_core`)."),

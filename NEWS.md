@@ -2,6 +2,8 @@ Known issues: <https://github.com/PredictiveEcology/Biomass_speciesData/issues>
 
 # Biomass_speciesData (development version)
 
+* SCANFI is the supported data source. The `types` description no longer lists the older sources (`KNN`, `CASFRI`, `ForestInventory`, `MBFRI`, `ONFRI`, `Pickell` and `NTEMS`), which cannot be run from the module as it is, and now says which arguments the module passes to a `prepSpeciesLayers_<type>()` function, so a user can supply their own.
+* `studyArea_biomassParam` does not have to be provided: if it is missing, `studyArea` is used. Its description no longer says otherwise.
 * Requires LandR >= 1.2.0.9064: cached SCANFI species layers are no longer reused for a different study area (LandR #266), and the species list this module makes no longer stops Biomass_borealDataPrep when two names are one species (LandR #287).
 * When no species reaches `coverThresh` in the study area, the module now ends with no species layers (`speciesLayers` is `NULL`), as intended, instead of stopping with an error. The message about species removed for low cover now shows the threshold.
 
@@ -12,9 +14,9 @@ This release makes SCANFI, the national satellite forest inventory, the default 
 Species maps are now cut to the same grid as the rest of the simulation, which fixes runs that stopped with a "raster dimensions do not match" error on irregular study areas. A stand is now called "leading" by a species at 75% instead of 80%, which shifts vegetation type maps. The module no longer needs the older raster package. Projects that used the old input names need to switch to the new ones.
 
 * The message for an unset `.studyAreaName` comes from `reproducible::studyAreaName(notSupplied = ".studyAreaName")` (PredictiveEcology/reproducible#638), so it reads the same in every module that uses it: "`.studyAreaName` not supplied; using a hash of `<object>`: <hash>". With an older reproducible the name is the same and there is no message.
-* `raster::cover()` on the `SpatRaster` species layers is now `terra::cover()`, which is what raster's `SpatRaster` method runs: identical values, names and categories, including categorical and multi-layer inputs. That was the module's only use of `raster`, so `reqdPkgs` no longer lists it.
+* `raster::cover()` on the `SpatRaster` species layers is now `terra::cover()`, which is what raster's `SpatRaster` method runs: identical values, names and categories, including categorical and multi-layer inputs. That was the module's only use of `raster`, so `reqdPkgs` does not list it.
 * `speciesLayers` are now cropped to `rasterToMatch_biomassParam`, not to the bounding box of `studyArea_biomassParam`. When the grid reached past that box (here, a 240 m grid aggregated from 30 m around an irregular polygon) the layers lost a row and `biomassDataInit` stopped with "[cover] raster dimensions do not match".
-* `reqdPkgs` now lists `curl`, `httr` and `raster`, which the module's code uses.
+* `reqdPkgs` now lists `curl` and `httr`, which the module's code uses.
 
 * `vegLeadingProportion` now defaults to `LandR::leadingSpeciesProp()` (option
   `LandR.leadingSpeciesProp`, which takes `LandR.mixedwoodProp`, 0.75, unless set), so the
