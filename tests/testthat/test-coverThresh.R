@@ -3,24 +3,21 @@
 ## message, before reaching the "no tree species" state (speciesLayers = NULL). When only some
 ## were below, the message printed `P(sim)$coverThreshresh`, which is NULL.
 
-## run the module's init with a stand-in SCANFI source giving these maximum covers per species
+## run the module's init with a stand-in data source giving these maximum covers per species
 runWithCover <- function(cover) {
   rtm <- terra::rast(terra::ext(0, 2400, 0, 2400), resolution = 240, crs = "EPSG:3978", vals = 1)
   sa <- sf::st_as_sf(terra::as.polygons(terra::ext(rtm), crs = terra::crs(rtm)))
 
-  ## stand in for the SCANFI download
-  testthat::local_mocked_bindings(
-    prepSpeciesLayers_SCANFI = function(...) {
-      lyrs <- terra::rast(lapply(cover, function(x) rtm * x))
-      names(lyrs) <- names(cover)
-      lyrs
-    },
-    .package = "LandR"
-  )
+  assign("prepSpeciesLayers_TestCover", function(...) {
+    lyrs <- terra::rast(lapply(cover, function(x) rtm * x))
+    names(lyrs) <- names(cover)
+    lyrs
+  }, envir = globalenv())
+  on.exit(rm("prepSpeciesLayers_TestCover", envir = globalenv()))
 
   mySim <- SpaDES.core::simInit(
     times = list(start = 0, end = 1),
-    params = list(Biomass_speciesData = list(coverThresh = 10L,
+    params = list(Biomass_speciesData = list(types = "TestCover", coverThresh = 10L,
                                              .plots = NA, .studyAreaName = "test",
                                              .useCache = FALSE)),
     modules = moduleName,

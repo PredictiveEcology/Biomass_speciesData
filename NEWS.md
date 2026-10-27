@@ -2,7 +2,7 @@ Known issues: <https://github.com/PredictiveEcology/Biomass_speciesData/issues>
 
 # Biomass_speciesData (development version)
 
-* **SCANFI is now the only data source.** The older sources (`KNN`, `CASFRI`, `ForestInventory`, `MBFRI`, `ONFRI`, `Pickell` and `NTEMS`) were removed; none of them could be run from the module any more, and NTEMS was never implemented. Setting `types` to anything other than `"SCANFI"` now stops with an error that says so. Overlaying several sources, and using your own `prepSpeciesLayers_*` function through `types`, went with them.
+* SCANFI is the supported data source. The `types` description no longer lists the older sources (`KNN`, `CASFRI`, `ForestInventory`, `MBFRI`, `ONFRI`, `Pickell` and `NTEMS`), which cannot be run from the module as it is, and now says which arguments the module passes to a `prepSpeciesLayers_<type>()` function, so a user can supply their own.
 * `studyArea_biomassParam` does not have to be provided: if it is missing, `studyArea` is used. Its description no longer says otherwise.
 * Requires LandR >= 1.2.0.9064: cached SCANFI species layers are no longer reused for a different study area (LandR #266), and the species list this module makes no longer stops Biomass_borealDataPrep when two names are one species (LandR #287).
 * When no species reaches `coverThresh` in the study area, the module now ends with no species layers (`speciesLayers` is `NULL`), as intended, instead of stopping with an error. The message about species removed for low cover now shows the threshold.
