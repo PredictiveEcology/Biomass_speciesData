@@ -317,6 +317,8 @@ biomassDataInit <- function(sim) {
 }
 
 .inputObjects <- function(sim) {
+  ## the same data year as the other vegetation and fire modules; first, before any download
+  paramCheckOtherMods(sim, "dataYear", ifSetButDifferent = "error")
   cacheTags <- c(currentModule(sim), "otherFunctions:.inputObjects")
   dPath <- asPath(getOption("reproducible.destinationPath", dataPath(sim)), 1)
   message(currentModule(sim), ": using dataPath '", dPath, "'.")
