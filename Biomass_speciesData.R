@@ -13,17 +13,17 @@ defineModule(sim, list(
     person(c("Alex", "M."), "Chubaty", email = "achubaty@for-cast.ca", role = c("aut"))
   ),
   childModules = character(0),
-  version = list(Biomass_speciesData = "1.0.7.9000"),
+  version = list(Biomass_speciesData = "1.1.0.9000"),
   timeframe = as.POSIXlt(c(NA, NA)),
   timeunit = "year",
   citation = list("citation.bib"),
   documentation = list("README.txt", "Biomass_speciesData.Rmd"),
   loadOrder = list(before = c("Biomass_borealDataPrep", "Biomass_core")),
-  reqdPkgs = list("data.table", "RCurl",
+  reqdPkgs = list("curl", "data.table", "httr", "RCurl",
                   "sf", "terra", "XML",
                   "reproducible (>= 2.1.0)",
                   "SpaDES.core (>= 2.1.4)", "SpaDES.tools (>= 1.0.2)",
-                  "PredictiveEcology/LandR@development (>= 1.2.0.9015)",
+                  "PredictiveEcology/LandR@development (>= 1.2.0.9064)",
                   "PredictiveEcology/pemisc@development"),
   parameters = bindrows(
     #defineParameter("paramName", "paramClass", value, min, max, "parameter description"),
@@ -49,8 +49,12 @@ defineModule(sim, list(
                       "accessible by the module (e.g., in the global environment) and is named as",
                       "`paste0('prepSpeciesLayers_', types)`."
                     )),
-    defineParameter("vegLeadingProportion", "numeric", 0.8, 0, 1,
-                    desc = "a number that defines whether a species is leading for a given pixel. Only used for plotting."),
+    defineParameter("vegLeadingProportion", "numeric", LandR::leadingSpeciesProp(),
+                    0, 1,
+                    desc = paste("a number that defines whether a species is leading for a given pixel. Only used for plotting.",
+                                 "Default: `LandR::leadingSpeciesProp()`, i.e. option `LandR.leadingSpeciesProp`,",
+                                 "which takes `LandR.mixedwoodProp` (0.75) unless set. Setting it in one place",
+                                 "moves every module and LandR function together.")),
     defineParameter(".plotInitialTime", "numeric", start(sim), NA, NA,
                     desc = "This describes the simulation time at which the first plot event should occur"),
     defineParameter(".plotInterval", "numeric", NA, NA, NA,
@@ -201,6 +205,9 @@ biomassDataInit <- function(sim) {
         destinationPath = dPath, # this is generic files (preProcess)
         outputPath = outputPath(sim), # this will be the studyArea-specific files (postProcess)
         to = sim$studyArea_biomassParam,
+        ## the grid's extent, not the polygon's bounding box: cover() below needs the geometry of
+        ## rasterToMatch_biomassParam, which can reach past the polygon (e.g. aggregated from 30 m)
+        cropTo = sim$rasterToMatch_biomassParam,
         studyAreaName = P(sim)$.studyAreaName,
         projectTo = sim$rasterToMatch_biomassParam,
         sppEquiv = sim$sppEquiv,
@@ -251,7 +258,7 @@ biomassDataInit <- function(sim) {
   ## this can happen when data has NAs instead of 0s and is not merged/overlayed (e.g. CASFRI)
   tempRas <- sim$rasterToMatch_biomassParam
   tempRas[!is.na(tempRas[])] <- 0
-  sim$speciesLayers <- raster::cover(sim$speciesLayers, tempRas)
+  sim$speciesLayers <- terra::cover(sim$speciesLayers, tempRas)
   names(sim$speciesLayers) <- species
   rm(tempRas)
 
@@ -339,11 +346,9 @@ biomassDataInit <- function(sim) {
     }
   }
 
-  if (is.na(P(sim)$.studyAreaName)) {
-    params(sim)[[currentModule(sim)]][[".studyAreaName"]] <- reproducible::studyAreaName(sim$studyArea_biomassParam)
-    message("The .studyAreaName is not supplied; derived name from sim$studyArea_biomassParam: ",
-            params(sim)[[currentModule(sim)]][[".studyAreaName"]])
-  }
+  if (is.null(P(sim)$.studyAreaName) || is.na(P(sim)$.studyAreaName))
+    P(sim)$.studyAreaName <- reproducible::studyAreaName(sim$studyArea_biomassParam,
+                                                         notSupplied = ".studyAreaName")
 
   if (!suppliedElsewhere("studyAreaReporting", sim)) {
     message("'studyAreaReporting' was not provided by user. Using the same as 'studyArea_biomassParam'.")
