@@ -270,13 +270,13 @@ biomassDataInit <- function(sim) {
   sppKeep <- names(sim$speciesLayers)[layersWdata]
   if (sum(!layersWdata) > 0) {
     if (length(sppKeep)) {
-      message("removing ", sum(!layersWdata), " species because they had <", P(sim)$coverThreshresh,
+      message("removing ", sum(!layersWdata), " species because they had <", P(sim)$coverThresh,
               " % cover in the study area\n",
               "  These species are retained (and could be further culled manually, if desired):\n",
               paste(sppKeep, collapse = " "))
     } else {
       message("no pixels for ", paste(names(layersWdata), collapse = " "),
-              " were found with >=", thresh, " % cover in the study area.",
+              " were found with >=", P(sim)$coverThresh, " % cover in the study area.",
               "\n  No species layers were retained. Try lowering the threshold",
               " to retain species with low % cover")
     }
