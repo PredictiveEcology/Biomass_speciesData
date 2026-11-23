@@ -397,6 +397,25 @@ output objects; see [list of outputs](#bsppdata-outputs-list)).
 `dataPath(sim)`, which can be controlled via
 `options(reproducible.destinationPath = ...)`.
 
+```{r eventFlowCheck-Biomass-speciesData, include = FALSE, eval = TRUE, cache = FALSE}
+## the generated figures need SpaDES.core 3.2.1.9068 or later; older versions skip them
+.efOK <- utils::packageVersion("SpaDES.core") >= "3.2.1.9068"
+```
+
+```{r eventFlow-Biomass-speciesData, echo = FALSE, eval = .efOK, cache = FALSE, out.width = "100%", fig.pos = "H", fig.cap = "(ref:Biomass-speciesData) events, as read from the module code with its default parameters."}
+ef <- tryCatch(SpaDES.core::moduleEventFlow("Biomass_speciesData", path = ".."), error = function(e) e)
+SpaDES.core::includeModuleEventFlow(ef, "figures/Biomass_speciesData_eventFlow.png")
+```
+
+```{r eventObjects-Biomass-speciesData, echo = FALSE, eval = .efOK, cache = FALSE}
+SpaDES.core::kableModuleObjects(ef, caption = "Where each object of (ref:Biomass-speciesData) is written and read, in run order.",
+                                lead = "Table \\@ref(tab:eventObjects-Biomass-speciesData) lists, for each object, the code that writes it and the code that only reads it.")
+```
+
+```{r eventFigures-Biomass-speciesData, echo = FALSE, eval = .efOK, cache = FALSE, results = "asis"}
+SpaDES.core::moduleEventFigures(ef, figDir = "figures", level = 4)
+```
+
 ## Usage example {#bsppdata-example}
 
 This module can be run stand-alone, but it only compiles species (ref:percent)
