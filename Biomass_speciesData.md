@@ -1,6 +1,6 @@
 ---
 title: "LandR _Biomass_speciesData_ Manual"
-date: "Last updated: 2026-11-05"
+date: "Last updated: 2026-11-24"
 output:
   bookdown::html_document2:
     toc: true
@@ -38,7 +38,7 @@ always_allow_html: true
 
 
 
-[![module-version-Badge](figures/moduleVersionBadge.png)](https://github.com/PredictiveEcology/Biomass_speciesData8b61ef45ce0f7fc67281ac78e5eb9423d76bcc3f)
+[![module-version-Badge](figures/moduleVersionBadge.png)](https://github.com/PredictiveEcology/Biomass_speciesData86e2fe88861d142e51a62e1c6dedf48a9e8cbbf0)
 
 [![Issues-badge](figures/issuesBadge.png)](https://github.com/PredictiveEcology/Biomass_speciesData/issues)
 
@@ -703,6 +703,98 @@ output objects; see [list of outputs](#bsppdata-outputs-list)).
 [^biomass_speciesdata-1]: Raw data layers downloaded by the module are saved in
 `dataPath(sim)`, which can be controlled via
 `options(reproducible.destinationPath = ...)`.
+
+
+
+<div class="figure">
+<img src="figures/Biomass_speciesData_eventFlow.png" alt="(ref:Biomass-speciesData) events, as read from the module code with its default parameters." width="100%" />
+<p class="caption">(\#fig:eventFlow-Biomass-speciesData)(ref:Biomass-speciesData) events, as read from the module code with its default parameters.</p>
+</div>
+
+Table \@ref(tab:eventObjects-Biomass-speciesData) lists, for each object, the code that writes it and the code that only reads it.
+
+<table class="table" style="width: auto !important; ">
+<caption>(\#tab:eventObjects-Biomass-speciesData)Where each object of (ref:Biomass-speciesData) is written and read, in run order.</caption>
+ <thead>
+  <tr>
+   <th style="text-align:left;"> Object </th>
+   <th style="text-align:left;"> Written by </th>
+   <th style="text-align:left;"> Read by </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr grouplength="8"><td colspan="3" style="border-bottom: 1px solid;"><strong>Inputs</strong></td></tr>
+<tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> rasterToMatch </td>
+   <td style="text-align:left;"> .inputObjects (default) </td>
+   <td style="text-align:left;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> sppNameVector </td>
+   <td style="text-align:left;"> .inputObjects (default) </td>
+   <td style="text-align:left;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> studyArea </td>
+   <td style="text-align:left;"> .inputObjects (default) </td>
+   <td style="text-align:left;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> rasterToMatch_biomassParam </td>
+   <td style="text-align:left;"> .inputObjects (default) </td>
+   <td style="text-align:left;"> init </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> sppEquiv </td>
+   <td style="text-align:left;"> .inputObjects (default) </td>
+   <td style="text-align:left;"> init, initPlot </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> studyArea_biomassParam </td>
+   <td style="text-align:left;"> .inputObjects (default) </td>
+   <td style="text-align:left;"> init </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> sppColorVect </td>
+   <td style="text-align:left;"> .inputObjects (default) </td>
+   <td style="text-align:left;"> initPlot </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> studyAreaReporting </td>
+   <td style="text-align:left;"> .inputObjects (default) </td>
+   <td style="text-align:left;"> initPlot </td>
+  </tr>
+  <tr grouplength="1"><td colspan="3" style="border-bottom: 1px solid;"><strong>Outputs</strong></td></tr>
+<tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> speciesLayers </td>
+   <td style="text-align:left;"> init </td>
+   <td style="text-align:left;"> initPlot </td>
+  </tr>
+</tbody>
+</table>
+
+
+#### .inputObjects {-}
+
+during simInit: defaults for inputs not supplied
+
+![](figures/Biomass_speciesData_io_.inputObjects.png){width=100%}
+
+
+
+#### init {-}
+
+the init event
+
+![](figures/Biomass_speciesData_io_init.png){width=100%}
+
+
+
+#### initPlot {-}
+
+once, at start
+
+![](figures/Biomass_speciesData_io_initPlot.png){width=100%}
 
 ## Usage example {#bsppdata-example}
 
