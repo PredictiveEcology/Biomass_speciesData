@@ -4,6 +4,7 @@ Known issues: <https://github.com/PredictiveEcology/Biomass_speciesData/issues>
 
 * The README shows the module's events, the objects each reads and writes, and a figure per event, generated from the code (needs SpaDES.core 3.2.1.9068 or later; older versions leave them out).
 * Requires LandR >= 1.2.0.9064: cached SCANFI species layers are no longer reused for a different study area (LandR #266), and the species list this module makes no longer stops Biomass_borealDataPrep when two names are one species (LandR #287).
+* When no species reaches `coverThresh` in the study area, the module now ends with no species layers (`speciesLayers` is `NULL`), as intended, instead of stopping with an error. The message about species removed for low cover now shows the threshold.
 
 # Biomass_speciesData 1.1.0
 
